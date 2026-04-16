@@ -1,0 +1,46 @@
+---
+import BlogLayout from '../../layouts/BlogLayout.astro';
+import { getAllPosts, getPostBySlug, getRelatedPosts, markdownToHtml } from '../../lib/blog';
+
+// SSG — gera todas as páginas de blog em build time
+export const prerender = true;
+
+export async function getStaticPaths() {
+  const posts = await getAllPosts();
+  return posts.map((post) => ({
+    params: { slug: post.slug },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const contentHtml = markdownToHtml(post.content);
+const related = await getRelatedPosts(post.slug, post.category, 3);
+---
+
+<BlogLayout post={post}>
+  <!-- O conteúdo é injetado no BlogLayout via <slot /> -->
+  <Fragment set:html={contentHtml} />
+
+  <!-- Artigos relacionados (fora do layout, mas dentro do <slot>) -->
+  {related.length > 0 && (
+    <div class="mt-12 pt-8 border-t border-gray-100">
+      <h2 class="text-lg font-bold text-gray-900 mb-6">Artigos Relacionados</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {related.map((r) => (
+          <article class="bg-gray-50 rounded-xl p-4 hover:bg-gray-100 transition-colors">
+            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700 mb-2">
+              {r.category}
+            </span>
+            <h3 class="font-semibold text-gray-900 text-sm leading-snug mb-2">
+              <a href={`/blog/${r.slug}`} class="hover:text-emerald-600 transition-colors">
+                {r.title}
+              </a>
+            </h3>
+            <span class="text-xs text-gray-400">{r.readTime} min de leitura</span>
+          </article>
+        ))}
+      </div>
+    </div>
+  )}
+</BlogLayout>

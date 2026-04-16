@@ -1,0 +1,207 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getAllPosts } from '../lib/blog';
+
+export const prerender = true;
+
+const blogPosts = await getAllPosts();
+const relatedPosts = blogPosts.slice(0, 3);
+
+const sectors = [
+  { name: 'Agronegócio & Logística', icon: 'ri-truck-line', demand: 'Alta', jobs: ['Motorista', 'Op. Empilhadeira', 'Auxiliar de Carga'], color: 'emerald' },
+  { name: 'Saúde', icon: 'ri-heart-pulse-line', demand: 'Alta', jobs: ['Técnico Enfermagem', 'Recepcionista', 'Aux. Farmácia'], color: 'blue' },
+  { name: 'Comércio', icon: 'ri-store-line', demand: 'Muito Alta', jobs: ['Vendedor', 'Op. de Caixa', 'Estoquista'], color: 'amber' },
+  { name: 'Construção Civil', icon: 'ri-building-line', demand: 'Alta', jobs: ['Pedreiro', 'Eletricista', 'Encanador'], color: 'orange' },
+];
+
+const tips = [
+  { category: 'Currículo', icon: 'ri-file-user-line', color: 'blue', title: 'Currículo objetivo e claro', desc: 'Máximo 2 páginas. Use verbos de ação, destaque conquistas concretas e adapte para cada vaga.' },
+  { category: 'Entrevista', icon: 'ri-chat-smile-line', color: 'emerald', title: 'Prepare-se para a entrevista', desc: 'Pesquise sobre a empresa, prepare respostas para perguntas comuns e chegue 10 minutos antes.' },
+  { category: 'Mercado Local', icon: 'ri-map-pin-line', color: 'amber', title: 'Conheça o mercado de Santarém', desc: 'Comércio, saúde e logística são os setores que mais contratam na região. Foque neles.' },
+  { category: 'Carreira', icon: 'ri-award-line', color: 'purple', title: 'Invista em qualificação', desc: 'Cursos gratuitos do SENAC e SENAI estão disponíveis em Santarém. Certificados fazem diferença.' },
+  { category: 'Currículo', icon: 'ri-linkedin-line', color: 'blue', title: 'Crie um perfil no LinkedIn', desc: 'Mesmo em Santarém, recrutadores buscam profissionais no LinkedIn. Mantenha o perfil atualizado.' },
+  { category: 'Entrevista', icon: 'ri-shirt-line', color: 'emerald', title: 'Vista-se adequadamente', desc: 'Mesmo para vagas simples, roupas limpas e apresentação cuidada transmitem profissionalismo.' },
+];
+
+const howToSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'HowTo',
+  name: 'Como conseguir emprego em Santarém PA',
+  description: 'Guia prático com dicas para encontrar emprego em Santarém e região oeste do Pará.',
+  step: tips.map((tip, i) => ({
+    '@type': 'HowToStep',
+    position: i + 1,
+    name: tip.title,
+    text: tip.desc,
+  })),
+};
+---
+
+<BaseLayout
+  title="Dicas de Vaga em Santarém PA — Guia de Emprego | VagasOeste"
+  description="Dicas práticas para conseguir emprego em Santarém/PA: currículo, entrevista, setores em alta e mercado de trabalho local. Guia completo da VagasOeste."
+  keywords="dicas emprego Santarém, mercado trabalho Santarém PA, setores contratar Pará, como conseguir emprego Santarém"
+  schema={howToSchema}
+>
+
+  <!-- Hero com Stats -->
+  <section class="relative pt-24 pb-16 overflow-hidden" aria-label="Dicas de Vaga">
+    <div class="absolute inset-0">
+      <img
+        src="https://readdy.ai/api/search-image?query=Santarem%20Para%20Brazil%20city%20waterfront%20Amazon%20river%20aerial%20view%20golden%20hour%20professional%20urban%20tropical%20warm%20light%202026&width=1920&height=500&seq=dicas-hero&orientation=landscape"
+        alt="Mercado de trabalho em Santarém Pará"
+        class="w-full h-full object-cover"
+        loading="eager"
+      />
+      <div class="absolute inset-0 bg-emerald-950/78"></div>
+    </div>
+    <div class="relative z-10 max-w-7xl mx-auto px-4 md:px-6">
+      <nav aria-label="breadcrumb" class="mb-6">
+        <ol class="flex items-center gap-1.5 text-xs text-emerald-300">
+          <li><a href="/" class="hover:text-white transition-colors">Início</a></li>
+          <li><i class="ri-arrow-right-s-line"></i></li>
+          <li class="text-white font-medium">Dicas de Vaga</li>
+        </ol>
+      </nav>
+      <div class="text-center">
+        <h1 class="text-3xl md:text-4xl font-bold text-white mb-4 leading-tight">
+          Dicas para conseguir emprego<br class="hidden md:block" />
+          <span class="text-emerald-300">em Santarém e região</span>
+        </h1>
+        <p class="text-white/80 text-sm md:text-base max-w-lg mx-auto mb-8">
+          Guia prático com estratégias testadas para o mercado de trabalho do oeste do Pará.
+        </p>
+      </div>
+
+      <!-- Stats do mercado -->
+      <dl class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+        {[
+          { value: '1.240+', label: 'Vagas ativas' },
+          { value: '320+', label: 'Empresas parceiras' },
+          { value: '2.100+', label: 'Contratações em 2026' },
+          { value: '8.500+', label: 'Candidatos cadastrados' },
+        ].map((stat) => (
+          <div class="bg-white/10 border border-white/20 rounded-xl p-4 text-center">
+            <dt class="text-2xl font-bold text-white">{stat.value}</dt>
+            <dd class="text-xs text-emerald-200 mt-1">{stat.label}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  </section>
+
+  <!-- Setores em alta -->
+  <section class="py-16 bg-white" aria-labelledby="setores-title">
+    <div class="max-w-7xl mx-auto px-4 md:px-6">
+      <div class="text-center mb-10">
+        <p class="text-xs font-semibold text-emerald-600 uppercase tracking-wide mb-2">Onde estão as vagas</p>
+        <h2 id="setores-title" class="text-2xl font-bold text-gray-900">Setores que mais contratam em Santarém</h2>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        {sectors.map((s) => (
+          <div class="bg-gray-50 rounded-xl p-6 border border-gray-100 hover:shadow-md transition-shadow">
+            <div class={`w-10 h-10 rounded-lg flex items-center justify-center mb-3 bg-${s.color}-100`}>
+              <i class={`${s.icon} text-${s.color}-600 text-xl`}></i>
+            </div>
+            <h3 class="font-bold text-gray-900 mb-1">{s.name}</h3>
+            <span class={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-${s.color}-100 text-${s.color}-700 mb-3`}>
+              Demanda {s.demand}
+            </span>
+            <ul class="space-y-1">
+              {s.jobs.map((job) => (
+                <li class="text-xs text-gray-600 flex items-center gap-1">
+                  <i class="ri-arrow-right-s-line text-gray-400"></i>
+                  {job}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Dicas práticas -->
+  <section class="py-16 bg-gray-50" aria-labelledby="dicas-title">
+    <div class="max-w-7xl mx-auto px-4 md:px-6">
+      <div class="text-center mb-10">
+        <p class="text-xs font-semibold text-emerald-600 uppercase tracking-wide mb-2">Estratégias comprovadas</p>
+        <h2 id="dicas-title" class="text-2xl font-bold text-gray-900">Dicas Práticas</h2>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {tips.map((tip) => (
+          <div class="bg-white rounded-xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+            <div class="flex items-start gap-4">
+              <div class={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 bg-${tip.color}-100`}>
+                <i class={`${tip.icon} text-${tip.color}-600 text-xl`}></i>
+              </div>
+              <div>
+                <span class={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-${tip.color}-100 text-${tip.color}-700 mb-2`}>
+                  {tip.category}
+                </span>
+                <h3 class="font-semibold text-gray-900 text-sm mb-2">{tip.title}</h3>
+                <p class="text-xs text-gray-600 leading-relaxed">{tip.desc}</p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Artigos relacionados do Blog -->
+  {relatedPosts.length > 0 && (
+    <section class="py-16 bg-white" aria-labelledby="artigos-title">
+      <div class="max-w-7xl mx-auto px-4 md:px-6">
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+          <div>
+            <p class="text-xs font-semibold text-emerald-600 uppercase tracking-wide mb-1">Aprofunde seu conhecimento</p>
+            <h2 id="artigos-title" class="text-2xl font-bold text-gray-900">Artigos Relacionados</h2>
+          </div>
+          <a href="/blog" class="btn-secondary text-sm">
+            Ver todos os artigos <i class="ri-arrow-right-line"></i>
+          </a>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {relatedPosts.map((post) => (
+            <article class="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+              <a href={`/blog/${post.slug}`}>
+                <img src={post.coverImage} alt={post.title} class="w-full h-44 object-cover" loading="lazy" />
+              </a>
+              <div class="p-5">
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700 mb-2">
+                  {post.category}
+                </span>
+                <h3 class="font-bold text-gray-900 text-sm leading-snug mb-2">
+                  <a href={`/blog/${post.slug}`} class="hover:text-emerald-600 transition-colors">{post.title}</a>
+                </h3>
+                <a href={`/blog/${post.slug}`} class="text-xs font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-1">
+                  Ler artigo <i class="ri-arrow-right-line"></i>
+                </a>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- CTA -->
+  <section class="py-14 bg-emerald-900" aria-label="Chamada para ação dicas">
+    <div class="max-w-2xl mx-auto px-4 text-center">
+      <h2 class="text-2xl font-bold text-white mb-3">Coloque as dicas em prática!</h2>
+      <p class="text-emerald-200 text-sm mb-8">Cadastre-se grátis e candidate-se às vagas disponíveis em Santarém agora mesmo.</p>
+      <div class="flex flex-col sm:flex-row gap-3 justify-center">
+        <a href="/vagas" class="btn-outline-white">
+          <i class="ri-briefcase-line"></i>
+          Ver vagas disponíveis
+        </a>
+        <a href="/crie-seu-curriculo" class="btn-primary bg-white !text-emerald-700 hover:bg-emerald-50">
+          <i class="ri-file-user-line"></i>
+          Criar meu currículo
+        </a>
+      </div>
+    </div>
+  </section>
+
+</BaseLayout>

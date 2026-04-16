@@ -1,0 +1,96 @@
+---
+interface Props {
+  title: string;
+  description: string;
+  keywords?: string;
+  image?: string;
+  canonicalURL?: string;
+  type?: 'website' | 'article';
+  publishedAt?: string;
+  schema?: object | object[];
+}
+
+const {
+  title,
+  description,
+  keywords,
+  image = '/og-default.jpg',
+  canonicalURL = Astro.url.href,
+  type = 'website',
+  publishedAt,
+  schema,
+} = Astro.props;
+
+const siteURL = 'https://vagasoeste.com.br';
+const fullTitle = title.includes('VagasOeste') ? title : `${title} | VagasOeste`;
+const ogImage = image.startsWith('http') ? image : `${siteURL}${image}`;
+
+// Schema pode ser um array de schemas ou um único schema
+const schemas = Array.isArray(schema) ? schema : schema ? [schema] : [];
+---
+
+<!-- Charset e viewport -->
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="generator" content={Astro.generator} />
+
+<!-- Title e Description -->
+<title>{fullTitle}</title>
+<meta name="description" content={description} />
+{keywords && <meta name="keywords" content={keywords} />}
+
+<!-- Canonical -->
+<link rel="canonical" href={canonicalURL} />
+
+<!-- Open Graph -->
+<meta property="og:type" content={type} />
+<meta property="og:title" content={fullTitle} />
+<meta property="og:description" content={description} />
+<meta property="og:image" content={ogImage} />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:url" content={canonicalURL} />
+<meta property="og:site_name" content="VagasOeste" />
+<meta property="og:locale" content="pt_BR" />
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={fullTitle} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={ogImage} />
+
+<!-- Geo Tags — SEO Local Santarém/PA -->
+<meta name="geo.region" content="BR-PA" />
+<meta name="geo.placename" content="Santarém, Pará, Brasil" />
+<meta name="geo.position" content="-2.4426;-54.7082" />
+<meta name="ICBM" content="-2.4426, -54.7082" />
+
+<!-- Article metadata -->
+{publishedAt && <meta property="article:published_time" content={publishedAt} />}
+{type === 'article' && <meta property="article:author" content="Equipe VagasOeste" />}
+
+<!-- Robots -->
+<meta name="robots" content="index, follow" />
+
+<!-- Favicon -->
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+<!-- Preconnect Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+  rel="stylesheet"
+/>
+
+<!-- Remix Icon CDN -->
+<link
+  href="https://cdn.jsdelivr.net/npm/remixicon@4.0.0/fonts/remixicon.css"
+  rel="stylesheet"
+/>
+
+<!-- Schema.org JSON-LD -->
+{schemas.map((s) => (
+  <script type="application/ld+json" set:html={JSON.stringify(s)} />
+))}

@@ -1,0 +1,176 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { getAllJobs, getJobsByAreaAndCity, getJobCityAreaCombinations, slugify } from '../../../lib/jobs';
+
+// SSG — gera páginas estáticas para cada combinação cidade + cargo
+export const prerender = true;
+
+export async function getStaticPaths() {
+  const combinations = await getJobCityAreaCombinations();
+
+  return combinations.map(({ cidade, cargo, cityName, cargoName }) => ({
+    params: { cidade, cargo },
+    props: { cityName, cargoName },
+  }));
+}
+
+const { cidade, cargo } = Astro.params;
+const { cityName, cargoName } = Astro.props;
+
+// Busca vagas para esta combinação
+const allJobs = await getAllJobs();
+const jobs = allJobs.filter(
+  (j) =>
+    slugify(j.city) === cidade &&
+    slugify(j.area) === cargo &&
+    j.isActive
+);
+
+const seoTitle = `Vagas de ${cargoName} em ${cityName}/PA — VagasOeste`;
+const seoDesc = `${jobs.length} vaga${jobs.length !== 1 ? 's' : ''} de ${cargoName} em ${cityName}, Pará. Processo seletivo anônimo e seguro. Candidate-se agora na VagasOeste.`;
+
+const jobListSchema = jobs.length > 0 ? {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: seoTitle,
+  description: seoDesc,
+  numberOfItems: jobs.length,
+  itemListElement: jobs.map((job, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    url: `https://vagasoeste.com.br/vagas/${job.id}`,
+    name: `${job.title} em ${job.neighborhood}, ${job.city}`,
+  })),
+} : null;
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Início', item: 'https://vagasoeste.com.br/' },
+    { '@type': 'ListItem', position: 2, name: 'Vagas', item: 'https://vagasoeste.com.br/vagas' },
+    { '@type': 'ListItem', position: 3, name: cityName, item: `https://vagasoeste.com.br/vagas?cidade=${encodeURIComponent(cityName)}` },
+    { '@type': 'ListItem', position: 4, name: `${cargoName} em ${cityName}`, item: Astro.url.href },
+  ],
+};
+
+const schemas = [breadcrumbSchema, ...(jobListSchema ? [jobListSchema] : [])];
+---
+
+<BaseLayout
+  title={seoTitle}
+  description={seoDesc}
+  keywords={`vagas ${cargoName} ${cityName}, emprego ${cargoName} Pará, ${cargoName} Santarém PA, vagas ${cargo} ${cidade}`}
+  schema={schemas}
+  canonicalURL={`https://vagasoeste.com.br/vagas/${cidade}/${cargo}`}
+>
+
+  <!-- Hero / Breadcrumb -->
+  <section class="bg-emerald-900 pt-24 pb-12 relative overflow-hidden">
+    <div class="absolute inset-0 bg-emerald-950/30"></div>
+    <div class="relative z-10 max-w-7xl mx-auto px-4 md:px-6">
+      <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="flex flex-wrap items-center gap-1.5 text-xs text-emerald-300">
+          <li><a href="/" class="hover:text-white transition-colors">Início</a></li>
+          <li><i class="ri-arrow-right-s-line"></i></li>
+          <li><a href="/vagas" class="hover:text-white transition-colors">Vagas</a></li>
+          <li><i class="ri-arrow-right-s-line"></i></li>
+          <li class="text-white font-medium">{cargoName} em {cityName}</li>
+        </ol>
+      </nav>
+      <h1 class="text-2xl md:text-3xl font-bold text-white mb-2">
+        Vagas de <span class="text-emerald-300">{cargoName}</span> em {cityName}/PA
+      </h1>
+      <p class="text-emerald-200 text-sm">
+        <span class="font-semibold text-white">{jobs.length}</span> vaga{jobs.length !== 1 ? 's' : ''} disponível{jobs.length !== 1 ? 'is' : ''} · Empresa anônima até a seleção
+      </p>
+    </div>
+  </section>
+
+  <!-- Lista de vagas -->
+  <section class="py-10">
+    <div class="max-w-7xl mx-auto px-4 md:px-6">
+      {jobs.length === 0 ? (
+        <div class="text-center py-16">
+          <i class="ri-search-line text-5xl text-gray-200 mb-4 block"></i>
+          <h2 class="text-lg font-semibold text-gray-700 mb-2">Nenhuma vaga disponível agora</h2>
+          <p class="text-sm text-gray-500 mb-6">Mas novas vagas são publicadas diariamente!</p>
+          <div class="flex flex-col sm:flex-row gap-3 justify-center">
+            <a href="/vagas" class="btn-secondary">Ver todas as vagas</a>
+            <a href="https://app.vagasoeste.com.br/cadastro" class="btn-primary">Criar conta e receber alertas</a>
+          </div>
+        </div>
+      ) : (
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {jobs.map((job) => (
+            <article class="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 p-5">
+              <div class="flex items-start justify-between gap-2 mb-3">
+                <div>
+                  <h2 class="font-bold text-gray-900 text-base leading-tight mb-1">{job.title}</h2>
+                  <p class="text-sm font-medium text-gray-600">{job.area}</p>
+                </div>
+                <span class={`shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                  job.contractType === 'CLT' ? 'bg-emerald-100 text-emerald-700' :
+                  job.contractType === 'PJ' ? 'bg-blue-100 text-blue-700' :
+                  'bg-amber-100 text-amber-700'
+                }`}>
+                  {job.contractType}
+                </span>
+              </div>
+              <div class="flex flex-wrap gap-x-4 gap-y-1 mb-3 text-xs text-gray-500">
+                <span class="flex items-center gap-1">
+                  <i class="ri-map-pin-line text-emerald-500"></i>
+                  {job.neighborhood}, {job.city}
+                </span>
+                <span class="flex items-center gap-1 font-medium text-gray-700">
+                  <i class="ri-money-dollar-circle-line text-emerald-500"></i>
+                  {job.salaryRange}
+                </span>
+              </div>
+              <p class="text-xs text-gray-500 line-clamp-2 mb-4">{job.description}</p>
+              <div class="flex items-center justify-between">
+                <span class="text-xs text-gray-400">
+                  {new Date(job.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
+                </span>
+                <a href={`/vagas/${job.id}`} class="text-sm font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-1">
+                  Ver vaga <i class="ri-arrow-right-line"></i>
+                </a>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+
+      <!-- Internal linking para outras áreas -->
+      <div class="mt-12 pt-8 border-t border-gray-100">
+        <h2 class="text-base font-semibold text-gray-900 mb-4">Outras vagas em {cityName}</h2>
+        <div class="flex flex-wrap gap-2">
+          {['Administrativo', 'Vendas', 'Logística', 'Saúde', 'Construção Civil', 'Tecnologia'].filter((a) => a !== cargoName).map((area) => (
+            <a
+              href={`/vagas/${cidade}/${slugify(area)}`}
+              class="px-4 py-2 bg-white border border-gray-200 hover:border-emerald-300 hover:bg-emerald-50 text-sm text-gray-700 hover:text-emerald-700 rounded-full transition-colors"
+            >
+              {area}
+            </a>
+          ))}
+          <a href="/vagas" class="px-4 py-2 bg-white border border-gray-200 hover:border-emerald-300 text-sm text-gray-600 rounded-full transition-colors">
+            Ver todas <i class="ri-arrow-right-line text-xs"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="py-10 bg-emerald-50 border-t border-emerald-100">
+    <div class="max-w-xl mx-auto px-4 text-center">
+      <h2 class="text-lg font-bold text-gray-900 mb-2">Não encontrou o que procurava?</h2>
+      <p class="text-sm text-gray-600 mb-4">Cadastre-se e receba alertas quando novas vagas de {cargoName} forem publicadas.</p>
+      <a href="https://app.vagasoeste.com.br/cadastro" class="btn-primary">
+        <i class="ri-user-add-line"></i>
+        Criar conta e receber alertas
+      </a>
+    </div>
+  </section>
+
+</BaseLayout>

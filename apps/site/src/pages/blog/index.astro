@@ -1,0 +1,108 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import BlogSearch from '../../components/islands/BlogSearch';
+import { getAllPosts, getFeaturedPosts, getCategories } from '../../lib/blog';
+
+export const prerender = true;
+
+const posts = await getAllPosts();
+const featured = await getFeaturedPosts(2);
+const categories = await getCategories();
+
+const blogSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Blog',
+  name: 'Blog VagasOeste — Dicas de Emprego em Santarém',
+  description: 'Artigos sobre currículo, entrevistas, direitos trabalhistas e mercado de trabalho em Santarém e região oeste do Pará.',
+  url: 'https://vagasoeste.com.br/blog',
+  publisher: {
+    '@type': 'Organization',
+    name: 'VagasOeste',
+    logo: { '@type': 'ImageObject', url: 'https://vagasoeste.com.br/logo.png' },
+  },
+  blogPost: posts.slice(0, 5).map((p) => ({
+    '@type': 'BlogPosting',
+    headline: p.title,
+    url: `https://vagasoeste.com.br/blog/${p.slug}`,
+    datePublished: p.publishedAt,
+    image: p.coverImage,
+  })),
+};
+---
+
+<BaseLayout
+  title="Blog VagasOeste — Dicas de Emprego em Santarém PA"
+  description="Artigos sobre currículo, entrevistas, direitos trabalhistas e mercado de trabalho em Santarém e região oeste do Pará. Dicas práticas para encontrar emprego."
+  keywords="dicas emprego Santarém, currículo Pará, entrevista emprego, mercado trabalho Santarém, direitos trabalhistas"
+  schema={blogSchema}
+>
+
+  <!-- Hero -->
+  <section class="bg-emerald-900 pt-24 pb-12 relative overflow-hidden" aria-label="Blog">
+    <div class="absolute inset-0">
+      <img
+        src="https://readdy.ai/api/search-image?query=professional%20office%20desk%20laptop%20notebook%20writing%20career%20blog%20warm%20light%20minimal%20clean&width=1920&height=400&seq=blog-hero&orientation=landscape"
+        alt="Blog VagasOeste dicas de emprego"
+        class="w-full h-full object-cover opacity-20"
+        loading="eager"
+      />
+    </div>
+    <div class="relative z-10 max-w-7xl mx-auto px-4 md:px-6">
+      <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="flex items-center gap-1.5 text-xs text-emerald-300">
+          <li><a href="/" class="hover:text-white transition-colors">Início</a></li>
+          <li><i class="ri-arrow-right-s-line"></i></li>
+          <li class="text-white font-medium">Blog</li>
+        </ol>
+      </nav>
+      <h1 class="text-2xl md:text-3xl font-bold text-white mb-2">Blog VagasOeste</h1>
+      <p class="text-emerald-200 text-sm max-w-lg">
+        Dicas de currículo, entrevistas, mercado de trabalho e carreira para candidatos de Santarém e região.
+      </p>
+    </div>
+  </section>
+
+  <div class="max-w-7xl mx-auto px-4 md:px-6 py-10">
+
+    <!-- Posts em destaque -->
+    {featured.length > 0 && (
+      <section aria-labelledby="destaques-title" class="mb-12">
+        <h2 id="destaques-title" class="text-lg font-bold text-gray-900 mb-4">
+          <i class="ri-star-line text-amber-500 mr-1"></i>
+          Artigos em Destaque
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {featured.map((post) => (
+            <article class="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow overflow-hidden flex flex-col">
+              <a href={`/blog/${post.slug}`} class="block">
+                <img src={post.coverImage} alt={post.title} class="w-full h-52 object-cover" loading="lazy" />
+              </a>
+              <div class="p-6 flex flex-col flex-1">
+                <div class="flex items-center gap-2 mb-3">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
+                    {post.category}
+                  </span>
+                  <span class="text-xs text-gray-400">{post.readTime} min</span>
+                </div>
+                <h3 class="font-bold text-gray-900 text-lg leading-snug mb-2 flex-1">
+                  <a href={`/blog/${post.slug}`} class="hover:text-emerald-600 transition-colors">{post.title}</a>
+                </h3>
+                <p class="text-sm text-gray-500 line-clamp-2 mb-4">{post.excerpt}</p>
+                <a href={`/blog/${post.slug}`} class="text-sm font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-1">
+                  Ler artigo completo <i class="ri-arrow-right-line"></i>
+                </a>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+    )}
+
+    <!-- Todos os artigos com busca (ilha React) -->
+    <section aria-labelledby="todos-artigos-title">
+      <h2 id="todos-artigos-title" class="text-lg font-bold text-gray-900 mb-6">Todos os Artigos</h2>
+      <BlogSearch client:load initialPosts={posts} categories={categories} />
+    </section>
+  </div>
+
+</BaseLayout>

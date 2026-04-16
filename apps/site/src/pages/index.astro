@@ -1,0 +1,323 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import HeroSearch from '../components/islands/HeroSearch';
+import TestimonialsSlider from '../components/islands/TestimonialsSlider';
+import { getAllJobs, getUniqueSectors } from '../lib/jobs';
+import { getFeaturedPosts } from '../lib/blog';
+
+// SSG — gerado em build time
+export const prerender = true;
+
+const jobs = await getAllJobs();
+const recentJobs = jobs.slice(0, 6);
+const sectors = getUniqueSectors(jobs);
+const featuredPosts = await getFeaturedPosts(3);
+
+const stats = [
+  { label: 'Vagas Ativas', value: `${jobs.length}+` },
+  { label: 'Candidatos Cadastrados', value: '8.500+' },
+  { label: 'Empresas Parceiras', value: '320+' },
+  { label: 'Contratações em 2026', value: '2.100+' },
+];
+
+const testimonials = [
+  {
+    id: 1,
+    name: 'Fernanda Oliveira',
+    role: 'Auxiliar Administrativa',
+    neighborhood: 'Centro',
+    text: 'Em menos de 2 semanas após me cadastrar na VagasOeste, recebi uma proposta de emprego no meu bairro. O processo foi super transparente!',
+    image: 'https://readdy.ai/api/search-image?query=young%20Brazilian%20woman%20smiling%20professional%20headshot%20warm%20natural%20light%20clean%20background%20confident%20expression%2030%20years%20old&width=200&height=200&seq=t1&orientation=squarish',
+  },
+  {
+    id: 2,
+    name: 'Carlos Mendes',
+    role: 'Motorista Entregador',
+    neighborhood: 'Jardim Santarém',
+    text: 'Achei incrível que a empresa ficou anônima até eu ser selecionado. Me senti mais seguro no processo. Hoje estou empregado há 4 meses!',
+    image: 'https://readdy.ai/api/search-image?query=young%20Brazilian%20man%20smiling%20professional%20headshot%20warm%20natural%20light%20clean%20background%20confident%20expression%2035%20years%20old&width=200&height=200&seq=t2&orientation=squarish',
+  },
+  {
+    id: 3,
+    name: 'Juliana Santos',
+    role: 'Recepcionista',
+    neighborhood: 'Maracanã',
+    text: 'A plataforma é muito fácil de usar. Me candidatei a 3 vagas de uma vez e fui chamada para entrevista em 2 delas. A VagasOeste realmente funciona!',
+    image: 'https://readdy.ai/api/search-image?query=Brazilian%20woman%20smiling%20professional%20headshot%20warm%20natural%20light%20clean%20background%20confident%20expression%2028%20years%20old%20dark%20hair&width=200&height=200&seq=t3&orientation=squarish',
+  },
+];
+
+const howItWorksSteps = [
+  { icon: 'ri-user-add-line', title: 'Crie sua conta grátis', desc: 'Cadastro simples em 4 etapas: dados pessoais, perfil, cursos e senha.' },
+  { icon: 'ri-search-eye-line', title: 'Explore as vagas', desc: 'Veja vagas por bairro, setor e tipo de contrato. Empresa anônima até você ser selecionado.' },
+  { icon: 'ri-send-plane-line', title: 'Candidate-se', desc: 'Candidatura com 1 clique. Sem precisar enviar e-mail ou entrar em contato.' },
+  { icon: 'ri-notification-3-line', title: 'Acompanhe em tempo real', desc: 'Receba notificações por WhatsApp e e-mail sobre cada etapa do processo.' },
+  { icon: 'ri-shield-check-line', title: 'Processo seguro', desc: 'Seus dados são protegidos. A empresa só vê seu perfil profissional, nunca seus dados pessoais.' },
+  { icon: 'ri-trophy-line', title: 'Conquiste a vaga', desc: 'Quando selecionado, a VagasOeste media o contato e te acompanha até a contratação.' },
+];
+
+const organizationSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'VagasOeste',
+  url: 'https://vagasoeste.com.br',
+  logo: 'https://vagasoeste.com.br/logo.png',
+  description: 'Plataforma de empregos em Santarém e região oeste do Pará com processo seletivo anônimo e seguro.',
+  areaServed: {
+    '@type': 'Place',
+    name: 'Santarém, Pará, Brasil',
+  },
+  contactPoint: {
+    '@type': 'ContactPoint',
+    contactType: 'customer service',
+    availableLanguage: 'Portuguese',
+  },
+};
+
+const websiteSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'VagasOeste',
+  url: 'https://vagasoeste.com.br',
+  potentialAction: {
+    '@type': 'SearchAction',
+    target: { '@type': 'EntryPoint', urlTemplate: 'https://vagasoeste.com.br/vagas?q={search_term_string}' },
+    'query-input': 'required name=search_term_string',
+  },
+};
+---
+
+<BaseLayout
+  title="Vagas de Emprego em Santarém PA — VagasOeste"
+  description="Encontre vagas de emprego em Santarém e região oeste do Pará. Processo seletivo anônimo e seguro. Mais de 1.240 vagas ativas. Candidate-se grátis."
+  keywords="vagas em Santarém, emprego Santarém PA, vagas Pará, emprego oeste do Pará, vagas CLT Santarém"
+  schema={[organizationSchema, websiteSchema]}
+  transparentNav={true}
+>
+
+  <!-- ───────────────────────────── HERO ───────────────────────��───── -->
+  <section class="relative flex flex-col items-center justify-center overflow-hidden min-h-[480px]" aria-label="Busca de vagas">
+    <div class="absolute inset-0">
+      <img
+        src="https://readdy.ai/api/search-image?query=Santarem%20Para%20Brazil%20Amazon%20river%20city%20aerial%20view%20warm%20golden%20hour%20sunset%20tropical%20urban%20landscape%20buildings%20streets%20professional%20environment%20vibrant%20Brazilian%20city&width=1920&height=700&seq=hero-santarem&orientation=landscape"
+        alt="Santarém Pará — cidade de oportunidades"
+        class="w-full h-full object-cover object-top"
+        loading="eager"
+        fetchpriority="high"
+        decoding="async"
+      />
+      <div class="absolute inset-0 bg-gradient-to-b from-emerald-950/80 via-emerald-900/70 to-emerald-950/85"></div>
+    </div>
+
+    <div class="relative z-10 w-full max-w-7xl mx-auto px-4 md:px-6 pt-24 pb-10 flex flex-col items-center text-center">
+      <!-- Badge -->
+      <div class="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-3 py-1 mb-4">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span class="text-white/90 text-xs font-medium">{jobs.length}+ vagas ativas em Santarém e região</span>
+      </div>
+
+      <h1 class="text-2xl md:text-4xl font-bold text-white leading-tight mb-3 max-w-2xl text-balance">
+        Encontre sua vaga{' '}
+        <span class="text-emerald-300">no bairro certo</span> da sua cidade
+      </h1>
+      <p class="text-white/75 text-sm md:text-base max-w-lg mb-6 leading-relaxed">
+        Vagas reais em Santarém/PA. Você vê o bairro e a função — a empresa fica anônima até você ser selecionado.
+      </p>
+
+      <!-- Formulário de busca: ilha React -->
+      <HeroSearch client:load />
+    </div>
+  </section>
+
+  <!-- ─────────────────────────── STATS ─────────────────────────────── -->
+  <section class="bg-emerald-600" aria-label="Números da plataforma">
+    <div class="max-w-7xl mx-auto px-4 md:px-6 py-6">
+      <dl class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center text-white">
+        {stats.map((stat) => (
+          <div class="py-2">
+            <dt class="text-2xl md:text-3xl font-bold">{stat.value}</dt>
+            <dd class="text-xs md:text-sm text-emerald-100 mt-0.5">{stat.label}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  </section>
+
+  <!-- ─────────────────── VAGAS EM DESTAQUE ─────────────────────────── -->
+  <section class="py-14 bg-gray-50" aria-labelledby="vagas-destaque-title">
+    <div class="max-w-7xl mx-auto px-4 md:px-6">
+      <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+        <div>
+          <p class="text-xs font-semibold text-emerald-600 uppercase tracking-wide mb-1">Oportunidades recentes</p>
+          <h2 id="vagas-destaque-title" class="text-2xl font-bold text-gray-900">Vagas em Destaque</h2>
+        </div>
+        <a href="/vagas" class="btn-secondary text-sm">
+          Ver todas as vagas
+          <i class="ri-arrow-right-line"></i>
+        </a>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        {recentJobs.map((job, i) => (
+          <article
+            class="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 p-5"
+            style={`animation-delay: ${i * 60}ms`}
+          >
+            <div class="flex items-start justify-between gap-2 mb-3">
+              <div>
+                <h3 class="font-bold text-gray-900 text-base leading-tight mb-1">{job.title}</h3>
+                <p class="text-sm font-medium text-gray-600">{job.area}</p>
+              </div>
+              <span class={`shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                job.contractType === 'CLT' ? 'bg-emerald-100 text-emerald-700' :
+                job.contractType === 'PJ' ? 'bg-blue-100 text-blue-700' :
+                'bg-amber-100 text-amber-700'
+              }`}>
+                {job.contractType}
+              </span>
+            </div>
+            <div class="flex flex-wrap gap-x-4 gap-y-1 mb-3 text-xs text-gray-500">
+              <span class="flex items-center gap-1">
+                <i class="ri-map-pin-line text-emerald-500"></i>
+                {job.neighborhood}, {job.city}
+              </span>
+              <span class="flex items-center gap-1 font-medium text-gray-700">
+                <i class="ri-money-dollar-circle-line text-emerald-500"></i>
+                {job.salaryRange}
+              </span>
+            </div>
+            <p class="text-xs text-gray-500 line-clamp-2 mb-4 leading-relaxed">{job.description}</p>
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-gray-400">
+                {new Date(job.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
+              </span>
+              <a
+                href={`/vagas/${job.id}`}
+                class="text-sm font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-1 transition-colors"
+              >
+                Ver vaga <i class="ri-arrow-right-line"></i>
+              </a>
+            </div>
+          </article>
+        ))}
+      </div>
+
+      <!-- Chips de setores -->
+      <div class="flex flex-wrap justify-center gap-2 mt-8">
+        {sectors.slice(0, 8).map((sector) => (
+          <a
+            href={`/vagas?setor=${encodeURIComponent(sector)}`}
+            class="px-4 py-1.5 bg-white border border-gray-200 hover:border-emerald-300 hover:bg-emerald-50 text-sm text-gray-700 hover:text-emerald-700 rounded-full transition-colors"
+          >
+            {sector}
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────────── COMO FUNCIONA ─────────────────────────────── -->
+  <section class="py-14" aria-labelledby="como-funciona-title">
+    <div class="max-w-7xl mx-auto px-4 md:px-6">
+      <div class="text-center mb-10">
+        <p class="text-xs font-semibold text-emerald-600 uppercase tracking-wide mb-1">Simples e seguro</p>
+        <h2 id="como-funciona-title" class="text-2xl font-bold text-gray-900 mb-2">Como Funciona</h2>
+        <p class="text-sm text-gray-500 max-w-md mx-auto">Do cadastro à contratação, com todo processo intermediado pela nossa equipe.</p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {howItWorksSteps.map((step, i) => (
+          <div class="flex gap-4 p-4">
+            <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center shrink-0">
+              <i class={`${step.icon} text-emerald-600 text-xl`}></i>
+            </div>
+            <div>
+              <p class="text-xs font-bold text-emerald-600 mb-1">0{i + 1}</p>
+              <h3 class="font-semibold text-gray-900 text-sm mb-1">{step.title}</h3>
+              <p class="text-xs text-gray-500 leading-relaxed">{step.desc}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div class="text-center mt-8">
+        <a href="/como-funciona" class="btn-secondary">
+          Saber mais sobre o processo
+          <i class="ri-arrow-right-line"></i>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────────── DEPOIMENTOS ──────────────────────────────── -->
+  <section class="py-14 bg-gray-50" aria-labelledby="depoimentos-title">
+    <div class="max-w-7xl mx-auto px-4 md:px-6">
+      <div class="text-center mb-10">
+        <p class="text-xs font-semibold text-emerald-600 uppercase tracking-wide mb-1">Histórias reais</p>
+        <h2 id="depoimentos-title" class="text-2xl font-bold text-gray-900">O que dizem nossos candidatos</h2>
+      </div>
+      <TestimonialsSlider client:visible testimonials={testimonials} />
+    </div>
+  </section>
+
+  <!-- ─────────────────── BLOG ─────────────────────────��───────────── -->
+  {featuredPosts.length > 0 && (
+    <section class="py-14" aria-labelledby="blog-title">
+      <div class="max-w-7xl mx-auto px-4 md:px-6">
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+          <div>
+            <p class="text-xs font-semibold text-emerald-600 uppercase tracking-wide mb-1">Dicas de carreira</p>
+            <h2 id="blog-title" class="text-2xl font-bold text-gray-900">Artigos em Destaque</h2>
+          </div>
+          <a href="/blog" class="btn-secondary text-sm">
+            Ver todos os artigos <i class="ri-arrow-right-line"></i>
+          </a>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {featuredPosts.map((post) => (
+            <article class="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+              <a href={`/blog/${post.slug}`}>
+                <img src={post.coverImage} alt={post.title} class="w-full h-44 object-cover" loading="lazy" />
+              </a>
+              <div class="p-5">
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700 mb-3">
+                  {post.category}
+                </span>
+                <h3 class="font-bold text-gray-900 text-sm leading-snug mb-2 line-clamp-2">
+                  <a href={`/blog/${post.slug}`} class="hover:text-emerald-600 transition-colors">{post.title}</a>
+                </h3>
+                <p class="text-xs text-gray-500 line-clamp-2">{post.excerpt}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- ─────────────────── CTA FINAL ─────────────────────────────────── -->
+  <section class="relative overflow-hidden bg-emerald-900 py-16" aria-label="Chamada para ação">
+    <div class="relative z-10 max-w-3xl mx-auto px-4 text-center">
+      <h2 class="text-2xl md:text-3xl font-bold text-white mb-3">
+        Pronto para encontrar sua próxima vaga?
+      </h2>
+      <p class="text-emerald-200 text-sm md:text-base mb-8 leading-relaxed">
+        Junte-se a mais de 8.500 candidatos que já encontraram oportunidades em Santarém e região com segurança e anonimato.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-3 justify-center">
+        <a href="/vagas" class="btn-outline-white">
+          <i class="ri-briefcase-line"></i>
+          Explorar vagas
+        </a>
+        <a
+          href="https://app.vagasoeste.com.br/cadastro"
+          class="btn-primary bg-white !text-emerald-700 hover:bg-emerald-50"
+        >
+          <i class="ri-user-add-line"></i>
+          Criar conta grátis
+        </a>
+      </div>
+    </div>
+  </section>
+
+</BaseLayout>

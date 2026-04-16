@@ -1,0 +1,54 @@
+---
+import BaseHead from '../components/layout/BaseHead.astro';
+import Navbar from '../components/layout/Navbar.astro';
+import Footer from '../components/layout/Footer.astro';
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description: string;
+  keywords?: string;
+  schema?: object | object[];
+  image?: string;
+  type?: 'website' | 'article';
+  publishedAt?: string;
+  canonicalURL?: string;
+  /** Navbar transparente (apenas na home) */
+  transparentNav?: boolean;
+}
+
+const {
+  title,
+  description,
+  keywords,
+  schema,
+  image,
+  type,
+  publishedAt,
+  canonicalURL,
+  transparentNav = false,
+} = Astro.props;
+---
+
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+  <head>
+    <BaseHead
+      title={title}
+      description={description}
+      keywords={keywords}
+      schema={schema}
+      image={image}
+      type={type}
+      publishedAt={publishedAt}
+      canonicalURL={canonicalURL}
+    />
+  </head>
+  <body class="min-h-screen bg-white text-gray-900 font-sans antialiased">
+    <Navbar transparent={transparentNav} />
+    <main>
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>

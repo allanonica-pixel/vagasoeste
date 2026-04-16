@@ -1,0 +1,95 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Google Fonts: Inter — carregada no BaseHead.astro via link */
+
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-white text-gray-900;
+  }
+
+  * {
+    @apply box-border;
+  }
+}
+
+@layer components {
+  /* Botão primário padrão */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg transition-colors cursor-pointer whitespace-nowrap;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-lg transition-colors cursor-pointer whitespace-nowrap;
+  }
+
+  .btn-outline-white {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 border border-white/40 hover:bg-white/10 text-white text-sm font-medium rounded-lg transition-colors cursor-pointer whitespace-nowrap;
+  }
+
+  /* Card padrão */
+  .card {
+    @apply bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow;
+  }
+
+  /* Badge de contrato */
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .badge-emerald {
+    @apply badge bg-emerald-100 text-emerald-700;
+  }
+
+  .badge-blue {
+    @apply badge bg-blue-100 text-blue-700;
+  }
+
+  .badge-amber {
+    @apply badge bg-amber-100 text-amber-700;
+  }
+
+  /* Container padrão */
+  .container-site {
+    @apply max-w-7xl mx-auto px-4 md:px-6;
+  }
+
+  /* Hero pattern */
+  .hero-section {
+    @apply relative flex flex-col items-center justify-center overflow-hidden;
+  }
+
+  .hero-overlay {
+    @apply absolute inset-0 bg-gradient-to-b from-emerald-950/80 via-emerald-900/70 to-emerald-950/85;
+  }
+
+  /* Seção animada */
+  .animate-fade-up {
+    animation: fadeUp 0.5s ease-out forwards;
+  }
+
+  @keyframes fadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}

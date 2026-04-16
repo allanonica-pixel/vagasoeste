@@ -1,0 +1,16 @@
+User-agent: *
+Allow: /
+
+# Bloquear áreas privadas (serão proxied para o React SPA)
+Disallow: /plataforma/
+Disallow: /empresa/
+Disallow: /admin/
+Disallow: /login
+Disallow: /cadastro/
+Disallow: /verificar-email/
+
+# Arquivos de sistema
+Disallow: /_astro/
+
+# Sitemap
+Sitemap: https://vagasoeste.com.br/sitemap-index.xml

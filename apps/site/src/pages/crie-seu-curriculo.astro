@@ -1,0 +1,143 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+export const prerender = true;
+
+const features = [
+  { icon: 'ri-layout-line', title: 'Templates profissionais', desc: 'Modelos modernos aprovados por recrutadores.' },
+  { icon: 'ri-eye-line', title: 'Prévia em tempo real', desc: 'Veja como ficará antes de baixar.' },
+  { icon: 'ri-download-line', title: 'Download PDF gratuito', desc: 'Baixe em PDF de alta qualidade sem pagar nada.' },
+  { icon: 'ri-device-line', title: '100% online', desc: 'Crie pelo celular ou computador, sem instalar nada.' },
+  { icon: 'ri-shield-check-line', title: 'Dados seguros', desc: 'Seus dados ficam protegidos na plataforma.' },
+  { icon: 'ri-time-line', title: 'Pronto em minutos', desc: 'Construtor intuitivo, sem complicação.' },
+];
+
+const steps = [
+  { num: '01', title: 'Dados Pessoais', desc: 'Nome, contato, bairro e objetivo profissional.' },
+  { num: '02', title: 'Objetivo', desc: 'Descreva o cargo que busca e seus diferenciais.' },
+  { num: '03', title: 'Experiências', desc: 'Liste seus empregos anteriores com atividades.' },
+  { num: '04', title: 'Formação', desc: 'Escolaridade e cursos de capacitação.' },
+  { num: '05', title: 'Habilidades', desc: 'Competências técnicas e comportamentais.' },
+  { num: '06', title: 'Download PDF', desc: 'Currículo pronto para enviar para as empresas.' },
+];
+---
+
+<BaseLayout
+  title="Crie seu Currículo Grátis em Santarém PA — VagasOeste"
+  description="Crie um currículo profissional gratuitamente online. Download em PDF de alta qualidade. Sem cadastro obrigatório. Modelo moderno aprovado por recrutadores de Santarém."
+  keywords="criar currículo grátis, currículo online Santarém, modelo currículo Pará, currículo PDF grátis"
+>
+
+  <!-- Hero -->
+  <section class="relative pt-24 pb-16 overflow-hidden" aria-label="Criar currículo">
+    <div class="absolute inset-0">
+      <img
+        src="https://readdy.ai/api/search-image?query=resume%20curriculum%20vitae%20professional%20document%20clean%20desk%20laptop%20pen%20warm%20light%20office%20minimal%20career%20success&width=1920&height=500&seq=curriculo-hero&orientation=landscape"
+        alt="Criar currículo profissional grátis"
+        class="w-full h-full object-cover"
+        loading="eager"
+      />
+      <div class="absolute inset-0 bg-emerald-950/78"></div>
+    </div>
+    <div class="relative z-10 max-w-7xl mx-auto px-4 md:px-6 text-center">
+      <nav aria-label="breadcrumb" class="mb-6 flex justify-center">
+        <ol class="flex items-center gap-1.5 text-xs text-emerald-300">
+          <li><a href="/" class="hover:text-white transition-colors">Início</a></li>
+          <li><i class="ri-arrow-right-s-line"></i></li>
+          <li class="text-white font-medium">Crie seu Currículo</li>
+        </ol>
+      </nav>
+      <div class="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-3 py-1 mb-4">
+        <i class="ri-star-fill text-amber-400 text-xs"></i>
+        <span class="text-white/90 text-xs font-medium">100% gratuito, sem cadastro obrigatório</span>
+      </div>
+      <h1 class="text-3xl md:text-4xl font-bold text-white mb-4 leading-tight">
+        Crie seu currículo profissional<br class="hidden md:block" />
+        <span class="text-emerald-300">em menos de 10 minutos</span>
+      </h1>
+      <p class="text-white/80 text-sm md:text-base max-w-lg mx-auto mb-8 leading-relaxed">
+        Templates modernos, prévia em tempo real e download em PDF gratuito. Pronto para se candidatar às vagas de Santarém.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-3 justify-center">
+        <a href="https://app.vagasoeste.com.br/curriculo-avulso" class="btn-primary bg-white !text-emerald-700 hover:bg-emerald-50 text-base px-8 py-3">
+          <i class="ri-file-user-line"></i>
+          Criar meu currículo grátis
+        </a>
+        <a href="https://app.vagasoeste.com.br/cadastro" class="btn-outline-white">
+          <i class="ri-user-add-line"></i>
+          Criar conta + currículo
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Etapas do construtor -->
+  <section class="py-16 bg-white" aria-labelledby="etapas-curriculo-title">
+    <div class="max-w-5xl mx-auto px-4 md:px-6">
+      <div class="text-center mb-10">
+        <h2 id="etapas-curriculo-title" class="text-2xl font-bold text-gray-900">Como funciona o construtor</h2>
+        <p class="text-sm text-gray-500 mt-2">6 etapas simples, em qualquer dispositivo</p>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        {steps.map((step) => (
+          <div class="text-center">
+            <div class="w-12 h-12 bg-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3">
+              <span class="text-white font-bold text-sm">{step.num}</span>
+            </div>
+            <h3 class="font-semibold text-gray-900 text-xs mb-1">{step.title}</h3>
+            <p class="text-xs text-gray-500 leading-snug">{step.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Recursos -->
+  <section class="py-16 bg-gray-50" aria-labelledby="recursos-curriculo-title">
+    <div class="max-w-7xl mx-auto px-4 md:px-6">
+      <div class="text-center mb-10">
+        <h2 id="recursos-curriculo-title" class="text-2xl font-bold text-gray-900">Por que usar o VagasOeste?</h2>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {features.map((f) => (
+          <div class="bg-white rounded-xl p-6 border border-gray-100 shadow-sm flex items-start gap-4">
+            <div class="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center shrink-0">
+              <i class={`${f.icon} text-emerald-600 text-xl`}></i>
+            </div>
+            <div>
+              <h3 class="font-semibold text-gray-900 mb-1">{f.title}</h3>
+              <p class="text-sm text-gray-600">{f.desc}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA duplo -->
+  <section class="py-16 bg-emerald-900" aria-label="Chamada para ação currículo">
+    <div class="max-w-3xl mx-auto px-4 text-center">
+      <h2 class="text-2xl font-bold text-white mb-3">Escolha como quer criar seu currículo</h2>
+      <p class="text-emerald-200 text-sm mb-8">Com ou sem cadastro, seu currículo vai ficar profissional.</p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <div class="bg-white/10 border border-white/20 rounded-xl p-6 text-left">
+          <p class="text-xs font-bold text-emerald-300 uppercase tracking-wide mb-2">Sem cadastro</p>
+          <h3 class="font-bold text-white mb-2">Currículo Avulso</h3>
+          <p class="text-sm text-white/70 mb-4 leading-relaxed">Crie, visualize e baixe em PDF sem precisar criar uma conta. Ideal para quem precisa rápido.</p>
+          <a href="https://app.vagasoeste.com.br/curriculo-avulso" class="btn-outline-white text-sm">
+            Criar sem cadastro <i class="ri-arrow-right-line"></i>
+          </a>
+        </div>
+        <div class="bg-white rounded-xl p-6 text-left">
+          <p class="text-xs font-bold text-emerald-600 uppercase tracking-wide mb-2">Com conta grátis</p>
+          <h3 class="font-bold text-gray-900 mb-2">Currículo + Candidaturas</h3>
+          <p class="text-sm text-gray-600 mb-4 leading-relaxed">Crie o currículo e candidate-se às vagas diretamente. Acompanhe tudo pelo painel.</p>
+          <a href="https://app.vagasoeste.com.br/cadastro" class="btn-primary text-sm">
+            Criar conta grátis <i class="ri-arrow-right-line"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</BaseLayout>

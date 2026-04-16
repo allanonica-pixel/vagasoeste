@@ -1,0 +1,195 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+export const prerender = true;
+---
+
+<BaseLayout
+  title="Falar com a Equipe VagasOeste — Interesse de Empresa"
+  description="Entre em contato com a VagasOeste para contratar funcionários em Santarém/PA. Preencha o formulário e nossa equipe retorna em até 1 dia útil."
+  keywords="contratar funcionários Santarém, contato VagasOeste, interesse empresa RH Pará"
+>
+
+  <section class="pt-20 pb-16 bg-white">
+    <div class="max-w-7xl mx-auto px-4 md:px-6">
+      <nav aria-label="breadcrumb" class="mb-8">
+        <ol class="flex items-center gap-1.5 text-xs text-gray-500">
+          <li><a href="/" class="hover:text-emerald-600 transition-colors">Início</a></li>
+          <li><i class="ri-arrow-right-s-line"></i></li>
+          <li><a href="/para-empresas" class="hover:text-emerald-600 transition-colors">Para Empresas</a></li>
+          <li><i class="ri-arrow-right-s-line"></i></li>
+          <li class="text-gray-900 font-medium">Falar com a Equipe</li>
+        </ol>
+      </nav>
+
+      <div class="grid grid-cols-1 lg:grid-cols-5 gap-10">
+        <!-- Formulário -->
+        <div class="lg:col-span-3">
+          <h1 class="text-2xl font-bold text-gray-900 mb-2">Quero contratar pela VagasOeste</h1>
+          <p class="text-sm text-gray-600 mb-8">Preencha o formulário abaixo. Nossa equipe retorna em até 1 dia útil para criar sua conta e configurar as vagas.</p>
+
+          <form
+            action="https://readdy.ai/api/form/empresa-interesse"
+            method="POST"
+            class="space-y-6"
+          >
+            <!-- Dados da Empresa -->
+            <fieldset>
+              <legend class="text-sm font-bold text-gray-900 mb-4 pb-2 border-b border-gray-100 w-full flex items-center gap-2">
+                <i class="ri-building-line text-emerald-600"></i>
+                Dados da Empresa
+              </legend>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label for="company_name" class="block text-xs font-medium text-gray-700 mb-1">Nome da empresa *</label>
+                  <input id="company_name" name="company_name" type="text" required class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 transition-colors" placeholder="Empresa LTDA" />
+                </div>
+                <div>
+                  <label for="cnpj" class="block text-xs font-medium text-gray-700 mb-1">CNPJ</label>
+                  <input id="cnpj" name="cnpj" type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 transition-colors" placeholder="00.000.000/0001-00" />
+                </div>
+                <div>
+                  <label for="sector" class="block text-xs font-medium text-gray-700 mb-1">Setor de atuação *</label>
+                  <select id="sector" name="sector" required class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 transition-colors bg-white">
+                    <option value="">Selecione...</option>
+                    {['Comércio', 'Saúde', 'Logística', 'Construção Civil', 'Alimentação', 'Tecnologia', 'Educação', 'Indústria', 'Serviços', 'Outro'].map((s) => (
+                      <option value={s}>{s}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label for="neighborhood" class="block text-xs font-medium text-gray-700 mb-1">Bairro em Santarém *</label>
+                  <input id="neighborhood" name="neighborhood" type="text" required class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 transition-colors" placeholder="Centro" />
+                </div>
+              </div>
+            </fieldset>
+
+            <!-- Responsável -->
+            <fieldset>
+              <legend class="text-sm font-bold text-gray-900 mb-4 pb-2 border-b border-gray-100 w-full flex items-center gap-2">
+                <i class="ri-user-line text-emerald-600"></i>
+                Responsável pelo Contato
+              </legend>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label for="contact_name" class="block text-xs font-medium text-gray-700 mb-1">Nome *</label>
+                  <input id="contact_name" name="contact_name" type="text" required class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 transition-colors" />
+                </div>
+                <div>
+                  <label for="contact_role" class="block text-xs font-medium text-gray-700 mb-1">Cargo</label>
+                  <input id="contact_role" name="contact_role" type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 transition-colors" placeholder="Gerente de RH" />
+                </div>
+                <div>
+                  <label for="contact_email" class="block text-xs font-medium text-gray-700 mb-1">Email *</label>
+                  <input id="contact_email" name="contact_email" type="email" required class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 transition-colors" />
+                </div>
+                <div>
+                  <label for="contact_whatsapp" class="block text-xs font-medium text-gray-700 mb-1">WhatsApp *</label>
+                  <input id="contact_whatsapp" name="contact_whatsapp" type="tel" required class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 transition-colors" placeholder="(93) 99999-9999" />
+                </div>
+              </div>
+            </fieldset>
+
+            <!-- Informações adicionais -->
+            <fieldset>
+              <legend class="text-sm font-bold text-gray-900 mb-4 pb-2 border-b border-gray-100 w-full flex items-center gap-2">
+                <i class="ri-information-line text-emerald-600"></i>
+                Informações Adicionais
+              </legend>
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-xs font-medium text-gray-700 mb-2">Quantas vagas pretende publicar?</label>
+                  <div class="flex flex-wrap gap-2">
+                    {['1 a 3', '4 a 10', '11 a 30', 'Mais de 30'].map((qty) => (
+                      <label class="cursor-pointer">
+                        <input type="radio" name="vacancies_qty" value={qty} class="sr-only peer" />
+                        <span class="inline-flex items-center px-4 py-2 rounded-full border border-gray-200 text-sm text-gray-700 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 peer-checked:text-emerald-700 transition-colors">
+                          {qty}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label for="message" class="block text-xs font-medium text-gray-700 mb-1">Mensagem (opcional)</label>
+                  <textarea id="message" name="message" rows={3} class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 transition-colors resize-none" placeholder="Conte mais sobre suas necessidades de contratação..."></textarea>
+                </div>
+              </div>
+            </fieldset>
+
+            <button type="submit" class="btn-primary w-full justify-center py-3 text-base">
+              <i class="ri-send-plane-line"></i>
+              Enviar solicitação
+            </button>
+            <p class="text-xs text-gray-400 text-center">Retornamos em até 1 dia útil pelo WhatsApp ou email.</p>
+          </form>
+        </div>
+
+        <!-- Sidebar -->
+        <aside class="lg:col-span-2 space-y-5">
+          <!-- Contato direto -->
+          <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-5">
+            <h2 class="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <i class="ri-customer-service-2-line text-emerald-600"></i>
+              Prefere falar direto?
+            </h2>
+            <div class="space-y-3">
+              <a href="https://wa.me/559399999000" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 bg-white rounded-lg p-3 border border-emerald-100 hover:border-emerald-300 transition-colors">
+                <i class="ri-whatsapp-line text-2xl text-green-500"></i>
+                <div>
+                  <p class="text-xs font-semibold text-gray-900">(93) 99999-0000</p>
+                  <p class="text-xs text-gray-500">WhatsApp — Seg a Sex, 8h–18h</p>
+                </div>
+              </a>
+              <a href="mailto:empresas@vagasoeste.com.br" class="flex items-center gap-3 bg-white rounded-lg p-3 border border-emerald-100 hover:border-emerald-300 transition-colors">
+                <i class="ri-mail-line text-2xl text-emerald-500"></i>
+                <div>
+                  <p class="text-xs font-semibold text-gray-900">empresas@vagasoeste.com.br</p>
+                  <p class="text-xs text-gray-500">Resposta em até 24h</p>
+                </div>
+              </a>
+            </div>
+          </div>
+
+          <!-- Benefícios -->
+          <div class="bg-white border border-gray-100 rounded-xl p-5 shadow-sm">
+            <h2 class="font-semibold text-gray-900 mb-3">Por que a VagasOeste?</h2>
+            <ul class="space-y-3">
+              {[
+                { icon: 'ri-shield-user-line', text: 'Candidatos verificados pela equipe' },
+                { icon: 'ri-eye-off-line', text: 'Sua empresa fica anônima para os candidatos' },
+                { icon: 'ri-group-line', text: 'Acesso a 8.500+ candidatos em Santarém' },
+                { icon: 'ri-time-line', text: 'Publique sua vaga em minutos' },
+                { icon: 'ri-customer-service-2-line', text: 'Suporte dedicado da nossa equipe' },
+              ].map((item) => (
+                <li class="flex items-start gap-2 text-sm text-gray-700">
+                  <i class={`${item.icon} text-emerald-500 shrink-0 mt-0.5`}></i>
+                  {item.text}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <!-- Stats -->
+          <div class="bg-gray-50 border border-gray-100 rounded-xl p-5">
+            <h2 class="font-semibold text-gray-900 mb-3">Números da plataforma</h2>
+            <dl class="grid grid-cols-2 gap-3">
+              {[
+                { value: '320+', label: 'Empresas parceiras' },
+                { value: '8.500+', label: 'Candidatos ativos' },
+                { value: '2.100+', label: 'Contratações em 2026' },
+                { value: '<48h', label: 'Primeiros candidatos' },
+              ].map((s) => (
+                <div class="text-center bg-white rounded-lg p-3 border border-gray-100">
+                  <dt class="text-lg font-bold text-emerald-600">{s.value}</dt>
+                  <dd class="text-xs text-gray-500 mt-0.5">{s.label}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+</BaseLayout>

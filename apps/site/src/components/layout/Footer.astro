@@ -1,0 +1,109 @@
+---
+import NewsletterForm from '../islands/NewsletterForm';
+
+const footerLinks = [
+  { label: 'Vagas Disponíveis', href: '/vagas' },
+  { label: 'Como Funciona', href: '/como-funciona' },
+  { label: 'Para Empresas', href: '/para-empresas' },
+  { label: 'Blog de Carreira', href: '/blog' },
+  { label: 'Dicas de Vaga', href: '/dicas-de-vaga' },
+  { label: 'Crie seu Currículo', href: '/crie-seu-curriculo' },
+];
+
+const socialLinks = [
+  { icon: 'ri-instagram-line', href: '#', label: 'Instagram VagasOeste' },
+  { icon: 'ri-facebook-line', href: '#', label: 'Facebook VagasOeste' },
+  { icon: 'ri-linkedin-line', href: '#', label: 'LinkedIn VagasOeste' },
+  { icon: 'ri-whatsapp-line', href: '#', label: 'WhatsApp VagasOeste' },
+];
+---
+
+<footer class="bg-stone-900 text-white">
+  <div class="max-w-7xl mx-auto px-4 md:px-6 py-10">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+
+      <!-- Brand + Newsletter (ilha React para interatividade do form) -->
+      <div class="md:col-span-2">
+        <a href="/" class="flex items-center gap-2 mb-4">
+          <div class="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center shrink-0">
+            <i class="ri-briefcase-line text-sm text-white"></i>
+          </div>
+          <span class="font-bold text-xl tracking-tight">
+            Vagas<span class="text-emerald-400">Oeste</span>
+          </span>
+        </a>
+        <p class="text-stone-400 text-sm leading-relaxed mb-6 max-w-sm">
+          A plataforma que conecta candidatos a vagas de emprego em Santarém e região oeste do Pará
+          com segurança, anonimato e agilidade.
+        </p>
+        <p class="text-sm font-semibold text-white mb-3">Receba vagas no seu email</p>
+        <!-- Newsletter: ilha React pois tem estado (input + fetch) -->
+        <NewsletterForm client:idle />
+      </div>
+
+      <!-- Links -->
+      <div>
+        <p class="text-sm font-semibold text-white mb-4">Links</p>
+        <ul class="space-y-3">
+          {footerLinks.map((link) => (
+            <li>
+              <a
+                href={link.href}
+                class="text-stone-400 hover:text-white text-sm transition-colors"
+              >
+                {link.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <!-- Contato -->
+      <div>
+        <p class="text-sm font-semibold text-white mb-4">Contato</p>
+        <ul class="space-y-3">
+          <li class="flex items-center gap-2 text-stone-400 text-sm">
+            <i class="ri-whatsapp-line text-emerald-400 text-base shrink-0"></i>
+            (93) 99999-0000
+          </li>
+          <li class="flex items-center gap-2 text-stone-400 text-sm">
+            <i class="ri-mail-line text-emerald-400 text-base shrink-0"></i>
+            contato@vagasoeste.com.br
+          </li>
+          <li class="flex items-start gap-2 text-stone-400 text-sm">
+            <i class="ri-map-pin-line text-emerald-400 text-base shrink-0 mt-0.5"></i>
+            <span>Santarém, Pará — Brasil</span>
+          </li>
+        </ul>
+
+        <!-- Redes sociais -->
+        <div class="flex items-center gap-3 mt-6">
+          {socialLinks.map((social) => (
+            <a
+              href={social.href}
+              aria-label={social.label}
+              class="w-8 h-8 flex items-center justify-center rounded-md bg-stone-800 hover:bg-emerald-600 text-stone-400 hover:text-white transition-colors"
+            >
+              <i class={`${social.icon} text-sm`}></i>
+            </a>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Bar -->
+    <div class="border-t border-stone-800 mt-8 pt-5 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <p class="text-stone-500 text-xs">
+        © {new Date().getFullYear()} VagasOeste. Todos os direitos reservados.
+      </p>
+      <div class="flex items-center gap-4">
+        <a href="/privacidade" class="text-stone-500 hover:text-stone-300 text-xs transition-colors">
+          Política de Privacidade
+        </a>
+        <a href="/termos" class="text-stone-500 hover:text-stone-300 text-xs transition-colors">
+          Termos de Uso
+        </a>
+      </div>
+    </div>
+  </div>
+</footer>
