@@ -24,21 +24,48 @@ export interface Job {
   experienceYears?: string;
 }
 
+/** Mapeia row do banco (snake_case) para interface Job (camelCase) */
+function mapJob(row: Record<string, unknown>): Job {
+  return {
+    id: row.id as string,
+    title: row.title as string,
+    sector: (row.sector ?? '') as string,
+    area: (row.area ?? '') as string,
+    contractType: (row.contract_type ?? '') as string,
+    workMode: row.work_mode as string | undefined,
+    neighborhood: (row.neighborhood ?? '') as string,
+    city: (row.city ?? 'Santarém') as string,
+    state: (row.state ?? 'PA') as string,
+    salaryRange: (row.salary_range ?? '') as string,
+    description: (row.description ?? '') as string,
+    requirements: (row.requirements ?? '') as string,
+    benefits: row.benefits as string | undefined,
+    tags: (row.tags ?? []) as string[],
+    isActive: (row.is_active ?? false) as boolean,
+    createdAt: (row.created_at ?? '') as string,
+    validThrough: row.expires_at as string | undefined,
+    vacancies: row.vacancies as number | undefined,
+    workHours: row.schedule as string | undefined,
+    educationLevel: row.education_level as string | undefined,
+    experienceYears: row.experience_years as string | undefined,
+  };
+}
+
 /** Busca todas as vagas ativas — usada no build SSG e SSR */
 export async function getAllJobs(): Promise<Job[]> {
   const { data, error } = await supabase
     .from('jobs')
     .select(
-      'id, title, sector, area, contractType, workMode, neighborhood, city, state, salaryRange, description, requirements, benefits, tags, isActive, createdAt, validThrough, vacancies, workHours, educationLevel, experienceYears'
+      'id, title, sector, area, contract_type, work_mode, neighborhood, city, state, salary_range, description, requirements, benefits, tags, is_active, created_at, expires_at, vacancies, schedule, education_level, experience_years'
     )
-    .eq('isActive', true)
-    .order('createdAt', { ascending: false });
+    .eq('status', 'ativo')
+    .order('created_at', { ascending: false });
 
   if (error) {
     console.error('[jobs.ts] getAllJobs error:', error.message);
     return [];
   }
-  return data ?? [];
+  return (data ?? []).map(mapJob);
 }
 
 /** Busca uma vaga por ID */
@@ -47,14 +74,14 @@ export async function getJobById(id: string): Promise<Job | null> {
     .from('jobs')
     .select('*')
     .eq('id', id)
-    .eq('isActive', true)
+    .eq('status', 'ativo')
     .maybeSingle();
 
   if (error) {
     console.error('[jobs.ts] getJobById error:', error.message);
     return null;
   }
-  return data;
+  return data ? mapJob(data) : null;
 }
 
 /** Busca vagas por área + cidade (para páginas programáticas) */
@@ -64,14 +91,14 @@ export async function getJobsByAreaAndCity(area: string, city: string): Promise<
     .select('*')
     .ilike('area', `%${area}%`)
     .ilike('city', `%${city}%`)
-    .eq('isActive', true)
-    .order('createdAt', { ascending: false });
+    .eq('status', 'ativo')
+    .order('created_at', { ascending: false });
 
   if (error) {
     console.error('[jobs.ts] getJobsByAreaAndCity error:', error.message);
     return [];
   }
-  return data ?? [];
+  return (data ?? []).map(mapJob);
 }
 
 /** Retorna combinações únicas cidade + área para getStaticPaths */
@@ -106,15 +133,15 @@ export function slugify(str: string): string {
 
 /** Unique values helpers */
 export function getUniqueSectors(jobs: Job[]): string[] {
-  return [...new Set(jobs.map((j) => j.sector))].sort();
+  return [...new Set(jobs.map((j) => j.sector).filter(Boolean))].sort();
 }
 
 export function getUniqueNeighborhoods(jobs: Job[]): string[] {
-  return [...new Set(jobs.map((j) => j.neighborhood))].sort();
+  return [...new Set(jobs.map((j) => j.neighborhood).filter(Boolean))].sort();
 }
 
 export function getUniqueContractTypes(jobs: Job[]): string[] {
-  return [...new Set(jobs.map((j) => j.contractType))].sort();
+  return [...new Set(jobs.map((j) => j.contractType).filter(Boolean))].sort();
 }
 
 /** Schema.org JobPosting para uma vaga */
