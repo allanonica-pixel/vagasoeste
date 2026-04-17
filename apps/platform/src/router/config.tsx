@@ -14,7 +14,6 @@ import CurriculoAvulsoPage from "../pages/curriculo-avulso/page";
 import LoginPage from "../pages/login/page";
 import AdminPage from "../pages/admin/page";
 import AcessoRestritoPage from "../pages/acesso-restrito/page";
-import NotFound from "../pages/NotFound";
 import ComoFuncionaPage from "../pages/como-funciona/page";
 import ParaEmpresasPage from "../pages/para-empresas/page";
 import PreCadastroPage from "../pages/pre-cadastro/page";
