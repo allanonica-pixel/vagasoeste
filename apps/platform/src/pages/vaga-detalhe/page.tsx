@@ -317,6 +317,9 @@ export default function VagaDetalhePage() {
   const navigate = useNavigate();
   const [applyStep, setApplyStep] = useState<ApplyStep>("idle");
 
+  // Detecta se o usuário está logado como candidato
+  const isLoggedIn = sessionStorage.getItem("vagasoeste_user_auth") === "candidato";
+
   // Login form state
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
@@ -586,38 +589,63 @@ export default function VagaDetalhePage() {
                   <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
                   <span className="text-xs text-emerald-600 font-medium">Vaga disponível</span>
                 </div>
-                <p className="text-gray-800 text-sm">
-                  Candidate-se agora e a equipe <strong>VagasOeste</strong> cuidará de todo o processo!
-                </p>
+                {isLoggedIn ? (
+                  <p className="text-gray-800 text-sm">
+                    Candidate-se agora e a equipe <strong>VagasOeste</strong> cuidará de todo o processo!
+                  </p>
+                ) : (
+                  <p className="text-gray-600 text-sm">
+                    Faça <strong>login</strong> ou <strong>crie sua conta</strong> para se candidatar a esta vaga.
+                  </p>
+                )}
               </div>
 
-              <button
-                onClick={() => setApplyStep("choose")}
-                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl text-sm cursor-pointer transition-colors flex items-center justify-center gap-2 whitespace-nowrap"
-              >
-                <div className="w-4 h-4 flex items-center justify-center">
+              {isLoggedIn ? (
+                /* Usuário logado — candidatura direta */
+                <button
+                  onClick={() => setApplyStep("logged_in_confirm")}
+                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl text-sm cursor-pointer transition-colors flex items-center justify-center gap-2 whitespace-nowrap"
+                >
                   <i className="ri-send-plane-line text-sm"></i>
+                  Quero me Candidatar!
+                </button>
+              ) : (
+                /* Usuário não logado — CTAs de login/cadastro */
+                <div className="space-y-2">
+                  <button
+                    onClick={() => navigate(`/login?redirect=/vagas/${job.id}`)}
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl text-sm cursor-pointer transition-colors flex items-center justify-center gap-2 whitespace-nowrap"
+                  >
+                    <i className="ri-login-box-line text-sm"></i>
+                    Entrar e candidatar-se
+                  </button>
+                  <button
+                    onClick={() => navigate("/cadastro")}
+                    className="w-full border-2 border-emerald-500 text-emerald-700 hover:bg-emerald-50 font-semibold py-3 rounded-xl text-sm cursor-pointer transition-colors flex items-center justify-center gap-2 whitespace-nowrap"
+                  >
+                    <i className="ri-user-add-line text-sm"></i>
+                    Criar conta grátis
+                  </button>
+                  <div className="bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 mt-1">
+                    <p className="text-xs text-amber-700 text-center">
+                      <i className="ri-lock-line mr-1"></i>
+                      Somente usuários cadastrados podem se candidatar
+                    </p>
+                  </div>
                 </div>
-                Quero me Candidatar!
-              </button>
+              )}
 
               <div className="mt-3 space-y-2">
                 <div className="flex items-center gap-2 text-xs text-gray-700">
-                  <div className="w-4 h-4 flex items-center justify-center">
-                    <i className="ri-whatsapp-line text-emerald-500 text-xs"></i>
-                  </div>
+                  <i className="ri-whatsapp-line text-emerald-500 text-xs"></i>
                   Atualizações via WhatsApp
                 </div>
                 <div className="flex items-center gap-2 text-xs text-gray-700">
-                  <div className="w-4 h-4 flex items-center justify-center">
-                    <i className="ri-mail-line text-emerald-500 text-xs"></i>
-                  </div>
+                  <i className="ri-mail-line text-emerald-500 text-xs"></i>
                   Notificações por e-mail
                 </div>
                 <div className="flex items-center gap-2 text-xs text-gray-700">
-                  <div className="w-4 h-4 flex items-center justify-center">
-                    <i className="ri-eye-off-line text-emerald-500 text-xs"></i>
-                  </div>
+                  <i className="ri-eye-off-line text-emerald-500 text-xs"></i>
                   Empresa anônima até seleção
                 </div>
               </div>

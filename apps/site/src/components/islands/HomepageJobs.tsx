@@ -57,24 +57,19 @@ export default function HomepageJobs({ jobs, appUrl, totalCount }: Props) {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {visible.map((job) => (
-            <div
+            <a
               key={job.id}
-              className="bg-white rounded-xl border border-gray-100 p-4 sm:p-5 hover:border-emerald-200 transition-all group h-full flex flex-col"
+              href={`/vagas/${job.id}`}
+              className="bg-white rounded-xl border border-gray-100 p-4 sm:p-5 hover:border-emerald-200 hover:shadow-md transition-all group h-full flex flex-col no-underline"
             >
               {/* Badge + arrow */}
               <div className="flex items-center justify-between mb-4">
                 <span className={`text-sm font-semibold px-3 py-1 rounded-full ${contractColors[job.contractType] ?? 'bg-gray-100 text-gray-600'}`}>
                   {job.contractType}
                 </span>
-                <a
-                  href={`${appUrl}/cadastro?jobId=${job.id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Candidatar-se"
-                  className="w-7 h-7 flex items-center justify-center"
-                >
+                <div className="w-7 h-7 flex items-center justify-center">
                   <i className="ri-arrow-right-up-line text-gray-300 group-hover:text-emerald-500 transition-colors text-base"></i>
-                </a>
+                </div>
               </div>
 
               {/* Info */}
@@ -99,16 +94,11 @@ export default function HomepageJobs({ jobs, appUrl, totalCount }: Props) {
                   <i className="ri-eye-off-line text-gray-400 text-sm"></i>
                   <span className="text-gray-400 text-sm">Empresa anônima</span>
                 </div>
-                <a
-                  href={`${appUrl}/cadastro?jobId=${job.id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm font-semibold text-emerald-600 hover:text-emerald-700 transition-colors whitespace-nowrap"
-                >
-                  Candidatar-se
-                </a>
+                <span className="text-sm font-semibold text-emerald-600 group-hover:underline whitespace-nowrap">
+                  Ver vaga →
+                </span>
               </div>
-            </div>
+            </a>
           ))}
         </div>
       )}

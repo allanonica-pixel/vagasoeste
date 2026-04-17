@@ -26,6 +26,7 @@ export default function LoginPage() {
     setTimeout(() => {
       const creds = DEMO_CREDENTIALS[userType];
       if (email === creds.email && password === creds.password) {
+        sessionStorage.setItem("vagasoeste_user_auth", userType);
         navigate(creds.redirect);
       } else {
         setError("Email ou senha incorretos. Verifique suas credenciais.");

@@ -294,7 +294,11 @@ export default function JobsFilter({
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {filtered.map((job) => (
-            <article key={job.id} className="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 p-4 sm:p-5">
+            <a
+              key={job.id}
+              href={`/vagas/${job.id}`}
+              className="block bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all hover:-translate-y-0.5 p-4 sm:p-5 no-underline group"
+            >
               <div className="flex items-start justify-between gap-2 mb-3">
                 <div>
                   <h2 className="font-bold text-gray-900 text-lg leading-tight mb-1">{job.title}</h2>
@@ -322,15 +326,12 @@ export default function JobsFilter({
                 <span className="text-sm text-gray-400">
                   {new Date(job.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
                 </span>
-                <a
-                  href={`/vagas/${job.id}`}
-                  className="text-base font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-1 transition-colors"
-                >
+                <span className="text-base font-semibold text-emerald-600 group-hover:underline flex items-center gap-1 transition-colors">
                   Ver vaga
                   <i className="ri-arrow-right-line"></i>
-                </a>
+                </span>
               </div>
-            </article>
+            </a>
           ))}
         </div>
       )}
