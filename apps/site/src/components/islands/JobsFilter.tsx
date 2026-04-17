@@ -294,18 +294,18 @@ export default function JobsFilter({
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {filtered.map((job) => (
-            <article key={job.id} className="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 p-5">
+            <article key={job.id} className="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 p-4 sm:p-5">
               <div className="flex items-start justify-between gap-2 mb-3">
                 <div>
-                  <h2 className="font-bold text-gray-900 text-base leading-tight mb-1">{job.title}</h2>
-                  <p className="text-sm font-medium text-gray-600">{job.area}</p>
+                  <h2 className="font-bold text-gray-900 text-lg leading-tight mb-1">{job.title}</h2>
+                  <p className="text-base font-medium text-gray-600">{job.area}</p>
                 </div>
-                <span className={`shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${CONTRACT_COLORS[job.contractType] ?? 'bg-gray-100 text-gray-600'}`}>
+                <span className={`shrink-0 inline-flex items-center px-2.5 py-1 rounded-full text-sm font-medium ${CONTRACT_COLORS[job.contractType] ?? 'bg-gray-100 text-gray-600'}`}>
                   {job.contractType}
                 </span>
               </div>
 
-              <div className="flex flex-wrap gap-x-4 gap-y-1 mb-3 text-xs text-gray-500">
+              <div className="flex flex-wrap gap-x-4 gap-y-1.5 mb-3 text-sm text-gray-500">
                 <span className="flex items-center gap-1">
                   <i className="ri-map-pin-line text-emerald-500"></i>
                   {job.neighborhood}, {job.city}
@@ -316,15 +316,15 @@ export default function JobsFilter({
                 </span>
               </div>
 
-              <p className="text-xs text-gray-500 line-clamp-2 mb-4 leading-relaxed">{job.description}</p>
+              <p className="text-sm text-gray-500 line-clamp-3 mb-4 leading-relaxed">{job.description}</p>
 
               <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-400">
+                <span className="text-sm text-gray-400">
                   {new Date(job.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
                 </span>
                 <a
                   href={`/vagas/${job.id}`}
-                  className="text-sm font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-1 transition-colors"
+                  className="text-base font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-1 transition-colors"
                 >
                   Ver vaga
                   <i className="ri-arrow-right-line"></i>

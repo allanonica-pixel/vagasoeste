@@ -490,55 +490,55 @@ export default function VagasPage() {
             {filtered.map((job, index) => (
               <AnimatedSection key={job.id} variant="fade-up" delay={Math.min(index % 6, 5) * 70}>
                 <div
-                  className="bg-white rounded-xl border border-gray-100 p-5 hover:border-emerald-200 transition-all cursor-pointer group h-full"
+                  className="bg-white rounded-xl border border-gray-100 p-4 sm:p-5 hover:border-emerald-200 transition-all cursor-pointer group h-full"
                   onClick={() => navigate(`/vagas/${job.id}`)}
                 >
                   <div className="flex items-center justify-between mb-3">
-                    <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${CONTRACT_COLORS[job.contractType] || "bg-gray-100 text-gray-600"}`}>
+                    <span className={`text-sm font-semibold px-3 py-1 rounded-full ${CONTRACT_COLORS[job.contractType] || "bg-gray-100 text-gray-600"}`}>
                       {job.contractType}
                     </span>
-                    <i className="ri-arrow-right-up-line text-gray-300 group-hover:text-emerald-500 transition-colors text-sm"></i>
+                    <i className="ri-arrow-right-up-line text-gray-300 group-hover:text-emerald-500 transition-colors text-base"></i>
                   </div>
                   <div className="mb-1">
-                    <h2 className="font-bold text-gray-900 text-base leading-snug mb-1.5">{job.title}</h2>
+                    <h2 className="font-bold text-gray-900 text-lg leading-snug mb-1.5">{job.title}</h2>
                     <div className="flex items-center gap-2 flex-wrap">
                       {job.sector && (
-                        <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full border ${SECTOR_COLORS[job.sector] || "bg-gray-50 text-gray-500 border-gray-100"}`}>
-                          <i className="ri-building-line text-xs"></i>Setor {job.sector}
+                        <span className={`inline-flex items-center gap-1 text-sm font-medium px-2.5 py-0.5 rounded-full border ${SECTOR_COLORS[job.sector] || "bg-gray-50 text-gray-500 border-gray-100"}`}>
+                          <i className="ri-building-line text-sm"></i>Setor {job.sector}
                         </span>
                       )}
-                      <span className="text-xs text-gray-700">{job.area}</span>
+                      <span className="text-sm text-gray-700">{job.area}</span>
                     </div>
                   </div>
-                  <div className="space-y-1.5 mt-3 mb-3">
+                  <div className="space-y-2 mt-3 mb-3">
                     <div className="flex items-center gap-2">
-                      <i className="ri-map-pin-line text-emerald-500 text-xs"></i>
-                      <span className="text-gray-800 text-sm">{job.neighborhood}, {job.city}</span>
+                      <i className="ri-map-pin-line text-emerald-500 text-sm"></i>
+                      <span className="text-gray-800 text-base">{job.neighborhood}, {job.city}</span>
                     </div>
                     {job.salaryRange && (
                       <div className="flex items-center gap-2">
-                        <i className="ri-money-dollar-circle-line text-emerald-500 text-xs"></i>
-                        <span className="text-gray-800 text-sm">{job.salaryRange}</span>
+                        <i className="ri-money-dollar-circle-line text-emerald-500 text-sm"></i>
+                        <span className="text-gray-800 text-base">{job.salaryRange}</span>
                       </div>
                     )}
                     <div className="flex items-center gap-2">
-                      <i className="ri-calendar-line text-emerald-500 text-xs"></i>
-                      <span className="text-gray-700 text-xs">
+                      <i className="ri-calendar-line text-emerald-500 text-sm"></i>
+                      <span className="text-gray-700 text-sm">
                         Publicada em {new Date(job.createdAt).toLocaleDateString("pt-BR")}
                       </span>
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-1.5 mb-3">
                     {job.tags.map((tag) => (
-                      <span key={tag} className="bg-gray-50 border border-gray-100 text-gray-500 text-xs px-2 py-0.5 rounded-full">{tag}</span>
+                      <span key={tag} className="bg-gray-50 border border-gray-100 text-gray-500 text-sm px-2.5 py-0.5 rounded-full">{tag}</span>
                     ))}
                   </div>
                   <div className="flex items-center justify-between pt-3 border-t border-gray-50">
                     <div className="flex items-center gap-1.5">
-                      <i className="ri-eye-off-line text-gray-400 text-xs"></i>
-                      <span className="text-gray-600 text-xs">Empresa anônima</span>
+                      <i className="ri-eye-off-line text-gray-400 text-sm"></i>
+                      <span className="text-gray-600 text-sm">Empresa anônima</span>
                     </div>
-                    <span className="text-emerald-600 text-xs font-semibold group-hover:underline">Candidatar-se →</span>
+                    <span className="text-emerald-600 text-sm font-semibold group-hover:underline">Candidatar-se →</span>
                   </div>
                 </div>
               </AnimatedSection>

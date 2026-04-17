@@ -59,11 +59,11 @@ export default function HomepageJobs({ jobs, appUrl, totalCount }: Props) {
           {visible.map((job) => (
             <div
               key={job.id}
-              className="bg-white rounded-xl border border-gray-100 p-5 hover:border-emerald-200 transition-all group h-full flex flex-col"
+              className="bg-white rounded-xl border border-gray-100 p-4 sm:p-5 hover:border-emerald-200 transition-all group h-full flex flex-col"
             >
               {/* Badge + arrow */}
               <div className="flex items-center justify-between mb-4">
-                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${contractColors[job.contractType] ?? 'bg-gray-100 text-gray-600'}`}>
+                <span className={`text-sm font-semibold px-3 py-1 rounded-full ${contractColors[job.contractType] ?? 'bg-gray-100 text-gray-600'}`}>
                   {job.contractType}
                 </span>
                 <a
@@ -71,39 +71,39 @@ export default function HomepageJobs({ jobs, appUrl, totalCount }: Props) {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Candidatar-se"
-                  className="w-6 h-6 flex items-center justify-center"
+                  className="w-7 h-7 flex items-center justify-center"
                 >
-                  <i className="ri-arrow-right-up-line text-gray-300 group-hover:text-emerald-500 transition-colors text-sm"></i>
+                  <i className="ri-arrow-right-up-line text-gray-300 group-hover:text-emerald-500 transition-colors text-base"></i>
                 </a>
               </div>
 
               {/* Info */}
-              <h3 className="font-bold text-gray-900 text-base mb-1 leading-tight">{job.title}</h3>
-              <p className="text-gray-700 text-xs mb-3">{job.area}</p>
+              <h3 className="font-bold text-gray-900 text-lg mb-1 leading-tight">{job.title}</h3>
+              <p className="text-gray-700 text-sm mb-3">{job.area}</p>
 
-              <div className="flex items-center gap-1 mb-2">
-                <i className="ri-map-pin-line text-emerald-500 text-xs"></i>
-                <span className="text-gray-800 text-xs">{job.neighborhood}, {job.city}</span>
+              <div className="flex items-center gap-1.5 mb-2">
+                <i className="ri-map-pin-line text-emerald-500 text-sm"></i>
+                <span className="text-gray-800 text-sm">{job.neighborhood}, {job.city}</span>
               </div>
 
               {job.salaryRange && (
-                <div className="flex items-center gap-1 mb-3">
-                  <i className="ri-money-dollar-circle-line text-emerald-500 text-xs"></i>
-                  <span className="text-gray-800 text-xs">{job.salaryRange}</span>
+                <div className="flex items-center gap-1.5 mb-3">
+                  <i className="ri-money-dollar-circle-line text-emerald-500 text-sm"></i>
+                  <span className="text-gray-800 text-sm">{job.salaryRange}</span>
                 </div>
               )}
 
               {/* Empresa anônima + CTA */}
-              <div className="mt-auto pt-3 border-t border-gray-50 flex items-center justify-between">
+              <div className="mt-auto pt-3 border-t border-gray-50 flex items-center justify-between gap-2">
                 <div className="flex items-center gap-1.5">
-                  <i className="ri-eye-off-line text-gray-400 text-xs"></i>
-                  <span className="text-gray-400 text-xs">Empresa anônima</span>
+                  <i className="ri-eye-off-line text-gray-400 text-sm"></i>
+                  <span className="text-gray-400 text-sm">Empresa anônima</span>
                 </div>
                 <a
                   href={`${appUrl}/cadastro?jobId=${job.id}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 transition-colors"
+                  className="text-sm font-semibold text-emerald-600 hover:text-emerald-700 transition-colors whitespace-nowrap"
                 >
                   Candidatar-se
                 </a>
