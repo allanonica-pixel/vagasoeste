@@ -13,6 +13,7 @@ import CrieSeuCurriculoPage from "../pages/crie-seu-curriculo/page";
 import CurriculoAvulsoPage from "../pages/curriculo-avulso/page";
 import LoginPage from "../pages/login/page";
 import AdminPage from "../pages/admin/page";
+import AcessoRestritoPage from "../pages/acesso-restrito/page";
 import ComoFuncionaPage from "../pages/como-funciona/page";
 import ParaEmpresasPage from "../pages/para-empresas/page";
 import PreCadastroPage from "../pages/pre-cadastro/page";
@@ -72,6 +73,11 @@ const routes: RouteObject[] = [
   {
     path: "/admin",
     element: <AdminPage />,
+  },
+  {
+    // URL secreta — não linkada em nenhum lugar do sistema
+    path: "/acesso-restrito",
+    element: <AcessoRestritoPage />,
   },
   {
     path: "/como-funciona",

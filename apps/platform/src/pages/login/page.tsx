@@ -2,12 +2,11 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import AnimatedSection from "@/components/base/AnimatedSection";
 
-type UserType = "candidato" | "empresa" | "admin";
+type UserType = "candidato" | "empresa";
 
 const DEMO_CREDENTIALS: Record<UserType, { email: string; password: string; redirect: string }> = {
   candidato: { email: "candidato@email.com", password: "vagasoeste", redirect: "/plataforma" },
   empresa: { email: "empresa@email.com", password: "vagasoeste", redirect: "/empresa/dashboard" },
-  admin: { email: "vagas@email.com", password: "vagasoeste", redirect: "/admin" },
 };
 
 export default function LoginPage() {
@@ -35,23 +34,14 @@ export default function LoginPage() {
     }, 800);
   };
 
-  const fillDemo = () => {
-    const creds = DEMO_CREDENTIALS[userType];
-    setEmail(creds.email);
-    setPassword(creds.password);
-    setError("");
-  };
-
-  const typeConfig: Record<UserType, { label: string; icon: string; color: string; bg: string; activeBg: string }> = {
-    candidato: { label: "Candidato", icon: "ri-user-line", color: "text-emerald-700", bg: "bg-emerald-600", activeBg: "bg-emerald-600" },
-    empresa: { label: "Empresa", icon: "ri-building-line", color: "text-sky-700", bg: "bg-sky-600", activeBg: "bg-sky-600" },
-    admin: { label: "Administrador", icon: "ri-admin-line", color: "text-gray-700", bg: "bg-gray-700", activeBg: "bg-gray-700" },
+  const typeConfig: Record<UserType, { label: string; icon: string; bg: string }> = {
+    candidato: { label: "Candidato", icon: "ri-user-line", bg: "bg-emerald-600" },
+    empresa:   { label: "Empresa",   icon: "ri-building-line", bg: "bg-sky-600" },
   };
 
   const redirectLabels: Record<UserType, string> = {
     candidato: "Você será redirecionado para a plataforma do candidato",
-    empresa: "Você será redirecionado para o painel da empresa",
-    admin: "Você será redirecionado para o painel administrativo",
+    empresa:   "Você será redirecionado para o painel da empresa",
   };
 
   return (
@@ -92,17 +82,15 @@ export default function LoginPage() {
 
             {/* Type Selector */}
             <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-6">
-              {(["candidato", "empresa", "admin"] as UserType[]).map((type) => (
+              {(["candidato", "empresa"] as UserType[]).map((type) => (
                 <button
                   key={type}
                   onClick={() => { setUserType(type); setEmail(""); setPassword(""); setError(""); }}
-                  className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                     userType === type ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
                   }`}
                 >
-                  <div className="w-4 h-4 flex items-center justify-center">
-                    <i className={`${typeConfig[type].icon} text-xs`}></i>
-                  </div>
+                  <i className={`${typeConfig[type].icon} text-xs`}></i>
                   {typeConfig[type].label}
                 </button>
               ))}
@@ -110,9 +98,7 @@ export default function LoginPage() {
 
             {/* Redirect hint */}
             <div className="flex items-center gap-2 bg-gray-100 rounded-lg px-3 py-2 mb-4">
-              <div className="w-4 h-4 flex items-center justify-center shrink-0">
-                <i className="ri-arrow-right-circle-line text-gray-400 text-sm"></i>
-              </div>
+              <i className="ri-arrow-right-circle-line text-gray-400 text-sm shrink-0"></i>
               <p className="text-xs text-gray-500">{redirectLabels[userType]}</p>
             </div>
 
@@ -144,7 +130,7 @@ export default function LoginPage() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center cursor-pointer text-gray-400 hover:text-gray-600"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-gray-600"
                     >
                       <i className={`${showPassword ? "ri-eye-off-line" : "ri-eye-line"} text-sm`}></i>
                     </button>
@@ -153,9 +139,7 @@ export default function LoginPage() {
 
                 {error && (
                   <div className="bg-red-50 border border-red-100 rounded-lg px-4 py-3 flex items-center gap-2">
-                    <div className="w-4 h-4 flex items-center justify-center">
-                      <i className="ri-error-warning-line text-red-500 text-sm"></i>
-                    </div>
+                    <i className="ri-error-warning-line text-red-500 text-sm shrink-0"></i>
                     <p className="text-red-600 text-xs">{error}</p>
                   </div>
                 )}
@@ -163,7 +147,7 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className={`w-full ${typeConfig[userType].bg} hover:opacity-90 text-white font-bold py-3 rounded-xl text-sm transition-all cursor-pointer whitespace-nowrap ${loading ? "opacity-70 cursor-not-allowed" : ""}`}
+                  className={`w-full ${typeConfig[userType].bg} hover:opacity-90 text-white font-bold py-3 rounded-xl text-sm transition-all cursor-pointer ${loading ? "opacity-70 cursor-not-allowed" : ""}`}
                 >
                   {loading ? (
                     <span className="flex items-center justify-center gap-2">
@@ -178,17 +162,6 @@ export default function LoginPage() {
                   )}
                 </button>
               </form>
-
-              {/* Demo hint */}
-              <div className="mt-4 pt-4 border-t border-gray-100">
-                <button
-                  onClick={fillDemo}
-                  className="w-full text-xs text-gray-400 hover:text-gray-600 cursor-pointer transition-colors py-1"
-                >
-                  <i className="ri-magic-line mr-1"></i>
-                  Preencher com credenciais de demonstração
-                </button>
-              </div>
             </div>
 
             {/* Register link */}
@@ -200,27 +173,6 @@ export default function LoginPage() {
                 </Link>
               </p>
             )}
-
-            {/* Demo credentials info */}
-            <div className="mt-6 bg-amber-50 border border-amber-100 rounded-xl p-4">
-              <p className="text-xs font-semibold text-amber-800 mb-2">
-                <i className="ri-information-line mr-1"></i>
-                Credenciais de demonstração
-              </p>
-              <div className="space-y-1.5">
-                {(["candidato", "empresa", "admin"] as UserType[]).map((type) => (
-                  <div key={type} className="flex items-center gap-2 text-xs text-amber-700">
-                    <div className="w-4 h-4 flex items-center justify-center">
-                      <i className={`${typeConfig[type].icon} text-xs`}></i>
-                    </div>
-                    <span className="font-medium capitalize">{type}:</span>
-                    <span>{DEMO_CREDENTIALS[type].email}</span>
-                    <span className="text-amber-500">/ vagasoeste</span>
-                    <span className="ml-auto text-amber-400 text-xs">→ {DEMO_CREDENTIALS[type].redirect}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
           </AnimatedSection>
         </div>
       </div>
