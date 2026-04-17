@@ -10,10 +10,6 @@
       "destination": "https://app.vagasoeste.com.br/empresa/:path*"
     },
     {
-      "source": "/admin/:path*",
-      "destination": "https://app.vagasoeste.com.br/admin/:path*"
-    },
-    {
       "source": "/login",
       "destination": "https://app.vagasoeste.com.br/login"
     },

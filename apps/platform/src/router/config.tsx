@@ -14,6 +14,7 @@ import CurriculoAvulsoPage from "../pages/curriculo-avulso/page";
 import LoginPage from "../pages/login/page";
 import AdminPage from "../pages/admin/page";
 import AcessoRestritoPage from "../pages/acesso-restrito/page";
+import NotFound from "../pages/NotFound";
 import ComoFuncionaPage from "../pages/como-funciona/page";
 import ParaEmpresasPage from "../pages/para-empresas/page";
 import PreCadastroPage from "../pages/pre-cadastro/page";
@@ -71,13 +72,19 @@ const routes: RouteObject[] = [
     element: <LoginPage />,
   },
   {
+    // /admin → 404. O painel real está numa rota secreta abaixo.
     path: "/admin",
-    element: <AdminPage />,
+    element: <NotFound />,
   },
   {
-    // URL secreta — não linkada em nenhum lugar do sistema
+    // URL secreta de login — não linkada em nenhum lugar do sistema
     path: "/acesso-restrito",
     element: <AcessoRestritoPage />,
+  },
+  {
+    // Painel admin real — rota obscura, só acessível após login em /acesso-restrito
+    path: "/vo-painel",
+    element: <AdminPage />,
   },
   {
     path: "/como-funciona",

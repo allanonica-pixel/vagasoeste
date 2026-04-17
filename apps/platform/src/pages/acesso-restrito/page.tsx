@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 const ADMIN_CREDS = {
   email: "vagas@email.com",
   password: "vagasoeste",
-  redirect: "/admin",
+  redirect: "/vo-painel",
 };
 
 export default function AcessoRestritoPage() {
