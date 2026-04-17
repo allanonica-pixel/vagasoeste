@@ -8,19 +8,18 @@ const FILTERS: FilterType[] = ['Todos', 'CLT', 'PJ', 'Temporário', 'Freelance']
 interface Props {
   jobs: Job[];
   appUrl: string;
+  totalCount: number;
 }
 
-const contractBadge = (type: string) => {
-  const map: Record<string, string> = {
-    CLT: 'bg-emerald-100 text-emerald-700',
-    PJ: 'bg-blue-100 text-blue-700',
-    Temporário: 'bg-amber-100 text-amber-700',
-    Freelance: 'bg-purple-100 text-purple-700',
-  };
-  return map[type] ?? 'bg-gray-100 text-gray-600';
+const contractColors: Record<string, string> = {
+  CLT:       'bg-emerald-100 text-emerald-700',
+  PJ:        'bg-amber-100 text-amber-700',
+  Freelance: 'bg-violet-100 text-violet-700',
+  Temporário:'bg-orange-100 text-orange-700',
+  Estágio:   'bg-sky-100 text-sky-700',
 };
 
-export default function HomepageJobs({ jobs, appUrl }: Props) {
+export default function HomepageJobs({ jobs, appUrl, totalCount }: Props) {
   const [activeFilter, setActiveFilter] = useState<FilterType>('Todos');
 
   const filtered =
@@ -33,15 +32,15 @@ export default function HomepageJobs({ jobs, appUrl }: Props) {
   return (
     <div>
       {/* Filter tabs */}
-      <div className="flex flex-wrap gap-2 mb-5">
+      <div className="flex flex-wrap gap-2 mb-8">
         {FILTERS.map((f) => (
           <button
             key={f}
             onClick={() => setActiveFilter(f)}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors border ${
+            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors cursor-pointer whitespace-nowrap ${
               activeFilter === f
-                ? 'bg-emerald-600 text-white border-emerald-600'
-                : 'bg-white text-gray-600 border-gray-200 hover:border-emerald-300 hover:text-emerald-700'
+                ? 'bg-emerald-600 text-white'
+                : 'bg-white border border-gray-200 text-gray-600 hover:border-emerald-300'
             }`}
           >
             {f}
@@ -49,95 +48,79 @@ export default function HomepageJobs({ jobs, appUrl }: Props) {
         ))}
       </div>
 
-      {/* Gate notice */}
-      <div className="flex items-center gap-2 mb-6 text-xs text-gray-500">
-        <span>🔒</span>
-        <span>
-          Para se candidatar,{' '}
-          <a
-            href={`${appUrl}/cadastro`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-emerald-600 font-medium hover:underline"
-          >
-            crie sua conta grátis
-          </a>{' '}
-          na plataforma
-        </span>
-      </div>
-
-      {/* Cards grid */}
+      {/* Cards grid — 4 colunas igual à plataforma */}
       {visible.length === 0 ? (
-        <p className="text-center text-sm text-gray-500 py-10">
-          Nenhuma vaga encontrada para este filtro.
-        </p>
+        <div className="text-center py-16 text-gray-400">
+          <i className="ri-briefcase-line text-3xl mb-2 block"></i>
+          <p className="text-sm">Nenhuma vaga para este filtro no momento.</p>
+        </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {visible.map((job) => (
-            <article
+            <div
               key={job.id}
-              className="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 p-5 flex flex-col"
+              className="bg-white rounded-xl border border-gray-100 p-5 hover:border-emerald-200 transition-all group h-full flex flex-col"
             >
-              <div className="flex items-start justify-between gap-2 mb-3">
-                <div>
-                  <h3 className="font-bold text-gray-900 text-base leading-tight mb-1">
-                    {job.title}
-                  </h3>
-                  <p className="text-sm font-medium text-gray-600">{job.area}</p>
-                </div>
-                <span
-                  className={`shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${contractBadge(
-                    job.contractType
-                  )}`}
-                >
+              {/* Badge + arrow */}
+              <div className="flex items-center justify-between mb-4">
+                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${contractColors[job.contractType] ?? 'bg-gray-100 text-gray-600'}`}>
                   {job.contractType}
                 </span>
-              </div>
-
-              <div className="flex flex-wrap gap-x-4 gap-y-1 mb-3 text-xs text-gray-500">
-                <span className="flex items-center gap-1">
-                  <i className="ri-map-pin-line text-emerald-500"></i>
-                  {job.neighborhood}, {job.city}
-                </span>
-                <span className="flex items-center gap-1 font-medium text-gray-700">
-                  <i className="ri-money-dollar-circle-line text-emerald-500"></i>
-                  {job.salaryRange}
-                </span>
-              </div>
-
-              <p className="text-xs text-gray-500 line-clamp-2 mb-4 leading-relaxed flex-1">
-                {job.description}
-              </p>
-
-              <div className="flex items-center gap-2 mt-auto">
-                <a
-                  href={`/vagas/${job.id}`}
-                  className="flex-1 text-center text-sm font-semibold text-emerald-600 border border-emerald-200 rounded-lg py-2 hover:bg-emerald-50 transition-colors"
-                >
-                  Ver detalhes
-                </a>
                 <a
                   href={`${appUrl}/cadastro?jobId=${job.id}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-1 text-center text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg py-2 transition-colors"
+                  aria-label="Candidatar-se"
+                  className="w-6 h-6 flex items-center justify-center"
+                >
+                  <i className="ri-arrow-right-up-line text-gray-300 group-hover:text-emerald-500 transition-colors text-sm"></i>
+                </a>
+              </div>
+
+              {/* Info */}
+              <h3 className="font-bold text-gray-900 text-base mb-1 leading-tight">{job.title}</h3>
+              <p className="text-gray-700 text-xs mb-3">{job.area}</p>
+
+              <div className="flex items-center gap-1 mb-2">
+                <i className="ri-map-pin-line text-emerald-500 text-xs"></i>
+                <span className="text-gray-800 text-xs">{job.neighborhood}, {job.city}</span>
+              </div>
+
+              {job.salaryRange && (
+                <div className="flex items-center gap-1 mb-3">
+                  <i className="ri-money-dollar-circle-line text-emerald-500 text-xs"></i>
+                  <span className="text-gray-800 text-xs">{job.salaryRange}</span>
+                </div>
+              )}
+
+              {/* Empresa anônima + CTA */}
+              <div className="mt-auto pt-3 border-t border-gray-50 flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <i className="ri-eye-off-line text-gray-400 text-xs"></i>
+                  <span className="text-gray-400 text-xs">Empresa anônima</span>
+                </div>
+                <a
+                  href={`${appUrl}/cadastro?jobId=${job.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 transition-colors"
                 >
                   Candidatar-se
                 </a>
               </div>
-            </article>
+            </div>
           ))}
         </div>
       )}
 
       {/* Ver todas */}
-      <div className="text-center mt-8">
+      <div className="text-center mt-10">
         <a
           href="/vagas"
-          className="inline-flex items-center gap-2 text-sm font-semibold text-emerald-600 hover:text-emerald-700 transition-colors"
+          className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-8 py-3 rounded-lg transition-colors"
         >
-          Ver todas as vagas
-          <i className="ri-arrow-right-line"></i>
+          Ver todas as {totalCount}+ vagas
+          <i className="ri-arrow-right-line text-sm"></i>
         </a>
       </div>
     </div>

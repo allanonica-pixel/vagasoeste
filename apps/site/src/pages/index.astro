@@ -11,11 +11,23 @@ import { getFeaturedPosts } from '../lib/blog';
 export const prerender = true;
 
 const jobs = await getAllJobs();
-const recentJobs = jobs.slice(0, 8);
-const sectors = getUniqueSectors(jobs);
 const featuredPosts = await getFeaturedPosts(3);
-
 const appUrl = import.meta.env.PUBLIC_APP_URL ?? 'https://app.vagasoeste.com.br';
+
+// Mock fallback para quando o Supabase ainda não tiver vagas cadastradas
+const mockFallbackJobs = [
+  { id: '1', title: 'Auxiliar Administrativo', sector: 'Comércio', area: 'Administrativo', contractType: 'CLT', neighborhood: 'Centro', city: 'Santarém', state: 'PA', salaryRange: 'R$ 1.800 – R$ 2.200', description: 'Apoio em rotinas administrativas, controle de documentos e atendimento interno.', requirements: 'Ensino médio completo, pacote Office básico', tags: [], isActive: true, createdAt: '2026-04-10' },
+  { id: '2', title: 'Operador de Caixa', sector: 'Comércio', area: 'Varejo', contractType: 'CLT', neighborhood: 'Maracanã', city: 'Santarém', state: 'PA', salaryRange: 'R$ 1.600 – R$ 1.900', description: 'Atendimento ao cliente, operação de caixa e controle de troco.', requirements: 'Ensino médio completo, experiência em varejo', tags: [], isActive: true, createdAt: '2026-04-11' },
+  { id: '3', title: 'Motorista Entregador', sector: 'Logística', area: 'Logística', contractType: 'CLT', neighborhood: 'Jardim Santarém', city: 'Santarém', state: 'PA', salaryRange: 'R$ 2.200 – R$ 2.800', description: 'Entrega de mercadorias na região de Santarém, uso de aplicativo de rotas.', requirements: 'CNH B, experiência com entregas', tags: [], isActive: true, createdAt: '2026-04-12' },
+  { id: '4', title: 'Recepcionista', sector: 'Saúde', area: 'Atendimento', contractType: 'CLT', neighborhood: 'Aldeia', city: 'Santarém', state: 'PA', salaryRange: 'R$ 1.700 – R$ 2.100', description: 'Recepção de clientes, agendamentos e suporte à equipe administrativa.', requirements: 'Ensino médio completo, boa comunicação', tags: [], isActive: true, createdAt: '2026-04-12' },
+  { id: '5', title: 'Auxiliar de Limpeza', sector: 'Serviços', area: 'Serviços Gerais', contractType: 'CLT', neighborhood: 'Santa Clara', city: 'Santarém', state: 'PA', salaryRange: 'R$ 1.500 – R$ 1.700', description: 'Limpeza e conservação de ambientes comerciais e industriais.', requirements: 'Ensino fundamental, experiência na área', tags: [], isActive: true, createdAt: '2026-04-13' },
+  { id: '6', title: 'Vendedor Externo', sector: 'Comércio', area: 'Vendas', contractType: 'PJ', neighborhood: 'Aparecida', city: 'Santarém', state: 'PA', salaryRange: 'R$ 2.500 – R$ 4.000 + comissão', description: 'Prospecção e atendimento de clientes na região de Santarém, metas mensais.', requirements: 'Experiência em vendas externas, CNH', tags: [], isActive: true, createdAt: '2026-04-13' },
+  { id: '7', title: 'Técnico de Informática', sector: 'Tecnologia', area: 'TI', contractType: 'CLT', neighborhood: 'Centro', city: 'Santarém', state: 'PA', salaryRange: 'R$ 2.800 – R$ 3.500', description: 'Suporte técnico, manutenção de computadores e redes locais.', requirements: 'Curso técnico em TI, experiência em suporte', tags: [], isActive: true, createdAt: '2026-04-14' },
+  { id: '8', title: 'Cozinheiro(a)', sector: 'Alimentação', area: 'Alimentação', contractType: 'CLT', neighborhood: 'Maracanã', city: 'Santarém', state: 'PA', salaryRange: 'R$ 2.000 – R$ 2.600', description: 'Preparo de refeições para restaurante de médio porte, cardápio variado.', requirements: 'Experiência em cozinha, curso de gastronomia desejável', tags: [], isActive: true, createdAt: '2026-04-14' },
+];
+
+const displayJobs = jobs.length > 0 ? jobs.slice(0, 8) : mockFallbackJobs;
+const totalJobCount = jobs.length > 0 ? jobs.length : 12;
 
 // Bairros: tenta Supabase, cai no fallback se vazio/erro
 const fallbackNeighborhoods = [
@@ -38,7 +50,7 @@ const neighborhoods =
     : fallbackNeighborhoods;
 
 const stats = [
-  { label: 'Vagas Ativas', value: `${jobs.length}+` },
+  { label: 'Vagas Ativas', value: `${totalJobCount}+` },
   { label: 'Candidatos Cadastrados', value: '8.500+' },
   { label: 'Empresas Parceiras', value: '320+' },
   { label: 'Contratações em 2026', value: '2.100+' },
@@ -161,7 +173,7 @@ const websiteSchema = {
       <!-- Badge -->
       <div class="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-3 py-1 mb-4">
         <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-        <span class="text-white/90 text-xs font-medium">{jobs.length}+ vagas ativas em Santarém e região</span>
+        <span class="text-white/90 text-xs font-medium">{totalJobCount}+ vagas ativas em Santarém e região</span>
       </div>
 
       <h1 class="text-2xl md:text-4xl font-bold text-white leading-tight mb-3 max-w-2xl text-balance">
@@ -191,46 +203,24 @@ const websiteSchema = {
     </div>
   </section>
 
-  <!-- ─────────────────── VAGAS EM DESTAQUE ─────────────────────────── -->
-  <section class="py-14 bg-gray-50" aria-labelledby="vagas-destaque-title">
+  <!-- ─────────────────── VAGAS POR BAIRRO (layout plataforma) ──────── -->
+  <section class="py-20 bg-white" aria-labelledby="bairros-title">
     <div class="max-w-7xl mx-auto px-4 md:px-6">
-      <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-12">
         <div>
-          <p class="text-xs font-semibold text-emerald-600 uppercase tracking-wide mb-1">Oportunidades recentes</p>
-          <h2 id="vagas-destaque-title" class="text-2xl font-bold text-gray-900">Vagas em Destaque</h2>
+          <span class="text-emerald-600 text-xs font-semibold uppercase tracking-widest">Localização</span>
+          <h2 id="bairros-title" class="text-3xl md:text-4xl font-bold text-gray-900 mt-2">Vagas por Bairro</h2>
+          <p class="text-gray-700 text-sm mt-2 max-w-md">
+            Você vê o bairro da empresa, mas o nome dela fica anônimo até você ser selecionado.
+          </p>
         </div>
-        <a href="/vagas" class="btn-secondary text-sm">
-          Ver todas as vagas
-          <i class="ri-arrow-right-line"></i>
+        <a href="/vagas" class="text-sm font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-1 whitespace-nowrap">
+          Ver todos os bairros
+          <i class="ri-arrow-right-line text-sm"></i>
         </a>
       </div>
 
-      <HomepageJobs client:load jobs={recentJobs} appUrl={appUrl} />
-
-      <!-- Chips de setores -->
-      <div class="flex flex-wrap justify-center gap-2 mt-8">
-        {sectors.slice(0, 8).map((sector) => (
-          <a
-            href={`/vagas?setor=${encodeURIComponent(sector)}`}
-            class="px-4 py-1.5 bg-white border border-gray-200 hover:border-emerald-300 hover:bg-emerald-50 text-sm text-gray-700 hover:text-emerald-700 rounded-full transition-colors"
-          >
-            {sector}
-          </a>
-        ))}
-      </div>
-    </div>
-  </section>
-
-  <!-- ─────────────────── VAGAS POR BAIRRO ─────────────────────────── -->
-  <section class="py-14" aria-labelledby="bairros-title">
-    <div class="max-w-7xl mx-auto px-4 md:px-6">
-      <div class="text-center mb-10">
-        <p class="text-xs font-semibold text-emerald-600 uppercase tracking-wide mb-1">Perto de você</p>
-        <h2 id="bairros-title" class="text-2xl font-bold text-gray-900 mb-2">Vagas por Bairro</h2>
-        <p class="text-sm text-gray-500 max-w-md mx-auto">Encontre oportunidades no seu bairro e nos arredores.</p>
-      </div>
-
-      <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {neighborhoods.slice(0, 6).map((bairro) => (
           <a
             href={`/vagas?bairro=${encodeURIComponent(bairro.name)}`}
@@ -239,22 +229,55 @@ const websiteSchema = {
           >
             <img
               src={bairro.image_url ?? ''}
-              alt={`Vagas em ${bairro.name}`}
-              class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              alt={`Vagas em ${bairro.name}, Santarém PA`}
+              class="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
               loading="lazy"
             />
-            <div class="absolute inset-0 bg-gradient-to-t from-emerald-950/85 via-emerald-900/40 to-transparent"></div>
-            <div class="absolute bottom-0 left-0 right-0 p-4">
-              <p class="font-bold text-white text-base leading-tight">{bairro.name}</p>
-              {bairro.job_count != null && (
-                <p class="text-emerald-200 text-xs mt-0.5">
-                  {bairro.job_count > 0 ? `${bairro.job_count} vaga${bairro.job_count !== 1 ? 's' : ''}` : 'Ver vagas'}
-                </p>
-              )}
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
+            <!-- Default -->
+            <div class="absolute bottom-0 left-0 right-0 p-5">
+              <div class="flex items-center gap-1 mb-1">
+                <i class="ri-map-pin-line text-emerald-400 text-xs"></i>
+                <span class="text-white/70 text-xs">
+                  {bairro.job_count != null && bairro.job_count > 0 ? `${bairro.job_count} vagas` : 'Ver vagas'}
+                </span>
+              </div>
+              <h3 class="text-white font-bold text-xl">{bairro.name}</h3>
             </div>
           </a>
         ))}
       </div>
+
+      <!-- Aviso de anonimato -->
+      <div class="mt-8 flex items-center gap-3 bg-emerald-50 border border-emerald-100 rounded-xl p-4">
+        <div class="w-8 h-8 flex items-center justify-center rounded-lg bg-emerald-100 shrink-0">
+          <i class="ri-shield-check-line text-emerald-600 text-sm"></i>
+        </div>
+        <p class="text-sm text-emerald-800">
+          <strong>Processo seguro:</strong> O nome da empresa só é revelado após você ser selecionado para a vaga. Seu processo seletivo é conduzido pela equipe VagasOeste.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────────── VAGAS DISPONÍVEIS HOJE (layout plataforma) ── -->
+  <section class="py-20 bg-gray-50" aria-labelledby="vagas-hoje-title">
+    <div class="max-w-7xl mx-auto px-4 md:px-6">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+        <div>
+          <span class="text-emerald-600 text-xs font-semibold uppercase tracking-widest">Oportunidades</span>
+          <h2 id="vagas-hoje-title" class="text-3xl md:text-4xl font-bold text-gray-900 mt-2">Vagas Disponíveis Hoje</h2>
+          <p class="text-gray-700 text-sm mt-2">
+            Empresa anônima até sua seleção — candidate-se com segurança.
+          </p>
+        </div>
+        <a href="/vagas" class="text-sm font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-1 whitespace-nowrap">
+          Ver todas as vagas
+          <i class="ri-arrow-right-line text-sm"></i>
+        </a>
+      </div>
+
+      <HomepageJobs client:load jobs={displayJobs} appUrl={appUrl} totalCount={totalJobCount} />
     </div>
   </section>
 
