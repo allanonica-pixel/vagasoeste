@@ -6,7 +6,6 @@ import JobsSection from "./components/JobsSection";
 import HowItWorksSection from "./components/HowItWorksSection";
 import TestimonialsSection from "./components/TestimonialsSection";
 import AffiliateSection from "./components/AffiliateSection";
-import CTASection from "./components/CTASection";
 
 export default function Home() {
   return (
@@ -19,7 +18,6 @@ export default function Home() {
         <HowItWorksSection />
         <TestimonialsSection />
         <AffiliateSection />
-        <CTASection />
       </main>
       <Footer />
     </div>
