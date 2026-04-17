@@ -11,6 +11,13 @@ const sectors = getUniqueSectors(jobs);
 const neighborhoods = getUniqueNeighborhoods(jobs);
 const contractTypes = getUniqueContractTypes(jobs);
 
+// Lê filtros de localização da URL para pré-popular o componente
+const url = Astro.url;
+const initialEstado = url.searchParams.get('estado') ?? '';
+const initialCidade = url.searchParams.get('cidade') ?? '';
+const initialBairro = url.searchParams.get('bairro') ?? '';
+const initialQ     = url.searchParams.get('q') ?? '';
+
 const itemListSchema = {
   '@context': 'https://schema.org',
   '@type': 'ItemList',
@@ -70,6 +77,10 @@ const itemListSchema = {
         sectors={sectors}
         neighborhoods={neighborhoods}
         contractTypes={contractTypes}
+        initialEstado={initialEstado}
+        initialCidade={initialCidade}
+        initialBairro={initialBairro}
+        initialQ={initialQ}
       />
     </div>
   </section>
