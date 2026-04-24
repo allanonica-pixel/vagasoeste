@@ -35,12 +35,12 @@ export default function BlogPostPage() {
       name: "VagasOeste",
       logo: {
         "@type": "ImageObject",
-        url: "https://vagasoeste.com.br/logo.png",
+        url: "https://santarem.app/logo.png",
       },
     },
     mainEntityOfPage: {
       "@type": "WebPage",
-      "@id": `https://vagasoeste.com.br/blog/${post.slug}`,
+      "@id": `https://santarem.app/blog/${post.slug}`,
     },
     keywords: post.tags.join(", "),
     articleSection: post.category,

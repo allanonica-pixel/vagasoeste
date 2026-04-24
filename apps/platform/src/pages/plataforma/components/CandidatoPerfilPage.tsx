@@ -1,7 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import QRCode from "qrcode";
 import { EDUCATION_LEVELS_FILTER } from "@/mocks/candidates";
 import { formatBrazilPhone, isValidBrazilPhone } from "@/hooks/useBrazilPhone";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/lib/supabase";
 
 interface Course {
   id: string;
@@ -17,8 +20,116 @@ const INITIAL_COURSES: Course[] = [
 ];
 
 export default function CandidatoPerfilPage() {
-  const [activeTab, setActiveTab] = useState<"dados" | "cursos">("dados");
+  const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState<"dados" | "cursos" | "seguranca">("dados");
   const [saved, setSaved] = useState(false);
+
+  // ── Segurança / 2FA ──────────────────────────────────────────
+  type MfaStatus = "loading" | "active" | "inactive";
+  type MfaFlow = "idle" | "enroll-qr" | "enroll-verify" | "disable-verify";
+
+  const [mfaStatus, setMfaStatus] = useState<MfaStatus>("loading");
+  const [mfaFactorId, setMfaFactorId] = useState("");
+  const [mfaFlow, setMfaFlow] = useState<MfaFlow>("idle");
+  const [mfaQr, setMfaQr] = useState("");
+  const [mfaSecret, setMfaSecret] = useState("");
+  const [mfaEnrollId, setMfaEnrollId] = useState("");
+  const [mfaCode, setMfaCode] = useState("");
+  const [mfaError, setMfaError] = useState("");
+  const [mfaSubmitting, setMfaSubmitting] = useState(false);
+  const [pwdResetSent, setPwdResetSent] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.mfa.listFactors().then(({ data }) => {
+      const verified = data?.totp?.find((f) => f.status === "verified");
+      if (verified) {
+        setMfaFactorId(verified.id);
+        setMfaStatus("active");
+      } else {
+        setMfaStatus("inactive");
+      }
+    });
+  }, []);
+
+  const handleStartEnroll = async () => {
+    setMfaError("");
+    setMfaSubmitting(true);
+    const { data: enroll, error } = await supabase.auth.mfa.enroll({
+      factorType: "totp",
+      friendlyName: "VagasOeste Candidato",
+    });
+    if (error || !enroll) {
+      setMfaError("Erro ao iniciar configuração. Tente novamente.");
+      setMfaSubmitting(false);
+      return;
+    }
+    setMfaEnrollId(enroll.id);
+    setMfaSecret(enroll.totp.secret);
+    const uri = `otpauth://totp/VagasOeste%3ACandidato?secret=${enroll.totp.secret}&issuer=VagasOeste`;
+    const qr = await QRCode.toDataURL(uri, { width: 192, margin: 1 });
+    setMfaQr(qr);
+    setMfaFlow("enroll-qr");
+    setMfaSubmitting(false);
+  };
+
+  const handleConfirmEnroll = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setMfaError("");
+    setMfaSubmitting(true);
+    const { data: challenge, error: cErr } = await supabase.auth.mfa.challenge({ factorId: mfaEnrollId });
+    if (cErr || !challenge) { setMfaError("Erro ao criar desafio."); setMfaSubmitting(false); return; }
+    const { error: vErr } = await supabase.auth.mfa.verify({
+      factorId: mfaEnrollId, challengeId: challenge.id, code: mfaCode.replace(/\s/g, ""),
+    });
+    if (vErr) {
+      setMfaError("Código incorreto. Verifique o app e tente novamente.");
+      setMfaCode(""); setMfaSubmitting(false); return;
+    }
+    setMfaFactorId(mfaEnrollId);
+    setMfaStatus("active");
+    setMfaFlow("idle");
+    setMfaCode("");
+  };
+
+  const handleStartDisable = async () => {
+    setMfaError("");
+    setMfaSubmitting(true);
+    const { data: challenge, error } = await supabase.auth.mfa.challenge({ factorId: mfaFactorId });
+    if (error || !challenge) { setMfaError("Erro ao iniciar verificação."); setMfaSubmitting(false); return; }
+    setMfaEnrollId(challenge.id); // reusing state for challengeId
+    setMfaFlow("disable-verify");
+    setMfaSubmitting(false);
+  };
+
+  const handleConfirmDisable = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setMfaError("");
+    setMfaSubmitting(true);
+    const { error: vErr } = await supabase.auth.mfa.verify({
+      factorId: mfaFactorId, challengeId: mfaEnrollId, code: mfaCode.replace(/\s/g, ""),
+    });
+    if (vErr) {
+      setMfaError("Código incorreto. Tente novamente.");
+      setMfaCode(""); setMfaSubmitting(false); return;
+    }
+    const { error: uErr } = await supabase.auth.mfa.unenroll({ factorId: mfaFactorId });
+    if (uErr) {
+      setMfaError("Erro ao remover 2FA. Tente novamente.");
+      setMfaSubmitting(false); return;
+    }
+    setMfaStatus("inactive");
+    setMfaFactorId("");
+    setMfaFlow("idle");
+    setMfaCode("");
+  };
+
+  const handleSendPasswordReset = async () => {
+    if (!user?.email) return;
+    await supabase.auth.resetPasswordForEmail(user.email, {
+      redirectTo: `${window.location.origin}/redefinir-senha`,
+    });
+    setPwdResetSent(true);
+  };
 
   // Personal data
   const [name, setName] = useState("Juliana Ferreira");
@@ -129,10 +240,11 @@ export default function CandidatoPerfilPage() {
         )}
 
         {/* Tabs */}
-        <div className="flex gap-1 bg-gray-100 rounded-lg p-1 w-fit mb-6">
+        <div className="flex gap-1 bg-gray-100 rounded-lg p-1 w-fit mb-6 flex-wrap">
           {[
             { id: "dados" as const, label: "Dados Pessoais", icon: "ri-user-line" },
-            { id: "cursos" as const, label: "Cursos e Certificações", icon: "ri-graduation-cap-line" },
+            { id: "cursos" as const, label: "Cursos", icon: "ri-graduation-cap-line" },
+            { id: "seguranca" as const, label: "Segurança", icon: "ri-shield-keyhole-line" },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -300,6 +412,202 @@ export default function CandidatoPerfilPage() {
               <i className="ri-save-line mr-2"></i>
               Salvar Alterações
             </button>
+          </div>
+        )}
+
+        {/* Segurança */}
+        {activeTab === "seguranca" && (
+          <div className="space-y-5">
+
+            {/* ── Alterar Senha ───────────────────────────── */}
+            <div className="bg-white rounded-2xl border border-gray-100 p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center">
+                  <i className="ri-lock-password-line text-emerald-600 text-sm"></i>
+                </div>
+                <h2 className="font-bold text-gray-900 text-base">Senha de acesso</h2>
+              </div>
+              {pwdResetSent ? (
+                <div className="bg-emerald-50 border border-emerald-100 rounded-xl px-4 py-3 flex items-center gap-2">
+                  <i className="ri-mail-check-line text-emerald-600 text-sm shrink-0"></i>
+                  <p className="text-emerald-700 text-sm">
+                    Link enviado para <strong>{user?.email}</strong>. Verifique sua caixa de entrada.
+                  </p>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between gap-4 flex-wrap">
+                  <p className="text-sm text-gray-600">
+                    Enviaremos um link seguro para redefinição ao seu email cadastrado.
+                  </p>
+                  <button
+                    onClick={handleSendPasswordReset}
+                    className="flex items-center gap-1.5 border border-gray-200 hover:border-emerald-300 text-gray-700 hover:text-emerald-700 font-medium px-4 py-2 rounded-lg text-sm cursor-pointer transition-colors whitespace-nowrap"
+                  >
+                    <i className="ri-mail-send-line text-sm"></i>
+                    Redefinir senha
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* ── 2FA ────────────────────────────────────── */}
+            <div className="bg-white rounded-2xl border border-gray-100 p-6">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center">
+                  <i className="ri-smartphone-line text-emerald-600 text-sm"></i>
+                </div>
+                <h2 className="font-bold text-gray-900 text-base">Verificação em 2 etapas (2FA)</h2>
+              </div>
+              <p className="text-xs text-gray-500 mb-5 ml-9">
+                Opcional — adiciona uma camada extra de segurança usando o Google Authenticator.
+              </p>
+
+              {/* Status atual */}
+              {mfaFlow === "idle" && (
+                <>
+                  <div className={`flex items-center justify-between p-4 rounded-xl border ${mfaStatus === "active" ? "bg-emerald-50 border-emerald-200" : "bg-gray-50 border-gray-100"}`}>
+                    <div className="flex items-center gap-3">
+                      <div className={`w-9 h-9 rounded-full flex items-center justify-center ${mfaStatus === "active" ? "bg-emerald-100" : "bg-gray-100"}`}>
+                        {mfaStatus === "loading" ? (
+                          <i className="ri-loader-4-line animate-spin text-gray-400 text-sm"></i>
+                        ) : mfaStatus === "active" ? (
+                          <i className="ri-shield-check-line text-emerald-600 text-sm"></i>
+                        ) : (
+                          <i className="ri-shield-line text-gray-400 text-sm"></i>
+                        )}
+                      </div>
+                      <div>
+                        <p className={`text-sm font-semibold ${mfaStatus === "active" ? "text-emerald-800" : "text-gray-700"}`}>
+                          {mfaStatus === "loading" ? "Verificando..." : mfaStatus === "active" ? "2FA ativo" : "2FA desativado"}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                          {mfaStatus === "active"
+                            ? "Seu login exige código do Google Authenticator"
+                            : "Seu login usa apenas email e senha"}
+                        </p>
+                      </div>
+                    </div>
+                    {mfaStatus === "inactive" && (
+                      <button
+                        onClick={handleStartEnroll}
+                        disabled={mfaSubmitting}
+                        className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2 rounded-lg text-xs cursor-pointer transition-colors disabled:opacity-50 whitespace-nowrap"
+                      >
+                        {mfaSubmitting ? <i className="ri-loader-4-line animate-spin text-xs"></i> : <i className="ri-add-line text-xs"></i>}
+                        Ativar 2FA
+                      </button>
+                    )}
+                    {mfaStatus === "active" && (
+                      <button
+                        onClick={handleStartDisable}
+                        disabled={mfaSubmitting}
+                        className="flex items-center gap-1.5 border border-red-200 hover:bg-red-50 text-red-600 font-semibold px-4 py-2 rounded-lg text-xs cursor-pointer transition-colors disabled:opacity-50 whitespace-nowrap"
+                      >
+                        {mfaSubmitting ? <i className="ri-loader-4-line animate-spin text-xs"></i> : <i className="ri-delete-bin-line text-xs"></i>}
+                        Desativar
+                      </button>
+                    )}
+                  </div>
+
+                  {mfaStatus === "inactive" && (
+                    <div className="mt-3 flex items-start gap-2 text-xs text-gray-400">
+                      <i className="ri-information-line shrink-0 mt-0.5"></i>
+                      <p>Ao ativar, você precisará do código do autenticador a cada login. Mesmo após trocar sua senha, o 2FA permanece ativo.</p>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* Passo 1: QR Code */}
+              {mfaFlow === "enroll-qr" && (
+                <div>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Escaneie o QR code com o <strong>Google Authenticator</strong>. O app exibirá o código como <strong>VagasOeste: Candidato</strong>.
+                  </p>
+                  {mfaQr && (
+                    <div className="bg-white border border-gray-100 rounded-xl p-3 mb-4 flex items-center justify-center">
+                      <img src={mfaQr} alt="QR code 2FA" className="w-44 h-44" />
+                    </div>
+                  )}
+                  {mfaSecret && (
+                    <div className="bg-gray-50 border border-gray-100 rounded-lg px-3 py-2.5 mb-5">
+                      <p className="text-xs text-gray-400 mb-1">Ou insira manualmente:</p>
+                      <p className="text-xs font-mono text-gray-700 break-all select-all">{mfaSecret}</p>
+                    </div>
+                  )}
+                  <button
+                    onClick={() => setMfaFlow("enroll-verify")}
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-lg text-sm cursor-pointer transition-colors"
+                  >
+                    Já escaneei → Inserir código →
+                  </button>
+                  <button
+                    onClick={() => { setMfaFlow("idle"); setMfaQr(""); setMfaSecret(""); }}
+                    className="mt-2 w-full text-center text-xs text-gray-400 hover:text-gray-600 cursor-pointer"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              )}
+
+              {/* Passo 2: Confirmar código */}
+              {(mfaFlow === "enroll-verify" || mfaFlow === "disable-verify") && (
+                <form onSubmit={mfaFlow === "enroll-verify" ? handleConfirmEnroll : handleConfirmDisable} className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 mb-1.5 block">
+                      {mfaFlow === "enroll-verify" ? "Código de 6 dígitos do app" : "Confirme com o código atual do app"}
+                    </label>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9 ]{6,7}"
+                      value={mfaCode}
+                      onChange={(e) => setMfaCode(e.target.value)}
+                      placeholder="000 000"
+                      maxLength={7}
+                      required
+                      autoFocus
+                      autoComplete="one-time-code"
+                      className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-800 outline-none focus:border-emerald-400 transition-colors text-center tracking-widest font-mono"
+                    />
+                    <p className="text-xs text-gray-400 mt-1 text-center">O código muda a cada 30 segundos</p>
+                  </div>
+
+                  {mfaError && (
+                    <div className="bg-red-50 border border-red-100 rounded-lg px-4 py-3 flex items-center gap-2">
+                      <i className="ri-error-warning-line text-red-500 text-sm shrink-0"></i>
+                      <p className="text-red-600 text-xs">{mfaError}</p>
+                    </div>
+                  )}
+
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      onClick={() => { setMfaFlow(mfaFlow === "enroll-verify" ? "enroll-qr" : "idle"); setMfaCode(""); setMfaError(""); }}
+                      className="flex-1 border border-gray-200 text-gray-600 font-medium py-2.5 rounded-lg text-sm cursor-pointer hover:bg-gray-50"
+                    >
+                      Voltar
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={mfaSubmitting}
+                      className={`flex-1 font-semibold py-2.5 rounded-lg text-sm cursor-pointer transition-colors disabled:opacity-50 ${
+                        mfaFlow === "disable-verify"
+                          ? "bg-red-500 hover:bg-red-600 text-white"
+                          : "bg-emerald-600 hover:bg-emerald-700 text-white"
+                      }`}
+                    >
+                      {mfaSubmitting ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <i className="ri-loader-4-line animate-spin text-sm"></i>
+                          Verificando...
+                        </span>
+                      ) : mfaFlow === "disable-verify" ? "Confirmar desativação" : "Ativar 2FA"}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
           </div>
         )}
 

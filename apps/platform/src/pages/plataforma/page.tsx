@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { mockJobs } from "@/mocks/jobs";
 import CandidaturasPage from "./components/CandidaturasPage";
 import CurriculoBuilder from "./components/CurriculoBuilder";
@@ -28,6 +29,8 @@ type Tab = "vagas" | "candidaturas" | "curriculo" | "notificacoes";
 type ModalState = "none" | "success" | "process";
 
 export default function PlataformaPage() {
+  const { user, signOut } = useAuth();
+  const displayName = user?.user_metadata?.full_name ?? user?.email ?? "Candidato";
   const [activeTab, setActiveTab] = useState<Tab>("vagas");
   const [selected, setSelected] = useState<string[]>([]);
   const [modal, setModal] = useState<ModalState>("none");
@@ -97,6 +100,7 @@ export default function PlataformaPage() {
             <span className="text-gray-700 text-sm hidden sm:block">Plataforma do Candidato</span>
           </div>
           <div className="flex items-center gap-3">
+            <span className="text-xs text-gray-500 hidden sm:block truncate max-w-[180px]">{displayName}</span>
             <Link
               to="/plataforma/perfil"
               className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-emerald-600 transition-colors cursor-pointer"
@@ -106,6 +110,13 @@ export default function PlataformaPage() {
               </div>
               <span className="hidden sm:block">Meu Perfil</span>
             </Link>
+            <button
+              onClick={() => signOut()}
+              title="Sair"
+              className="w-8 h-8 rounded-full bg-gray-100 hover:bg-red-50 flex items-center justify-center transition-colors cursor-pointer"
+            >
+              <i className="ri-logout-box-r-line text-gray-400 hover:text-red-500 text-sm"></i>
+            </button>
           </div>
         </div>
       </header>
@@ -113,7 +124,7 @@ export default function PlataformaPage() {
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-8">
         {/* Welcome */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Olá! Bem-vindo(a) à plataforma</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Olá, {displayName.split(" ")[0]}! 👋</h1>
           <p className="text-gray-700 text-sm mt-1">
             Gerencie suas candidaturas, crie seu currículo e encontre novas oportunidades.
           </p>

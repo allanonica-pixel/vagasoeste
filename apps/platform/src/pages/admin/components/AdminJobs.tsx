@@ -180,7 +180,7 @@ export default function AdminJobs() {
       companyName: job.company,
       jobTitle: job.title,
       motivo: action === "reject" ? motivo : undefined,
-      loginUrl: "https://vagasoeste.com.br/empresa/dashboard",
+      loginUrl: "https://santarem.app/empresa/dashboard",
     });
 
     setJobs((prev) =>

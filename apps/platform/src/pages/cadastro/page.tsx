@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Navbar from "@/components/feature/Navbar";
 import { formatBrazilPhone, isValidBrazilPhone } from "@/hooks/useBrazilPhone";
+import { supabase } from "@/lib/supabase";
 
 type Step = 1 | 2 | 3 | 4;
 
@@ -68,6 +69,8 @@ export default function CadastroPage() {
     endDate: "",
   });
   const [courseError, setCourseError] = useState("");
+  const [submitError, setSubmitError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
 
   const update = (field: keyof FormData, value: string) => {
@@ -117,9 +120,46 @@ export default function CadastroPage() {
     else if (step === 3) setStep(4);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateStep4()) return;
+
+    setSubmitError("");
+    setSubmitting(true);
+
+    const { error } = await supabase.auth.signUp({
+      email: form.email,
+      password: form.password,
+      options: {
+        data: {
+          role: "candidato",
+          full_name: form.fullName,
+          phone: form.phone,
+          birth_date: form.birthDate,
+          gender: form.gender,
+          is_pcd: form.isPCD === "sim",
+          neighborhood: form.neighborhood,
+          city: form.city,
+          education_level: form.educationLevel,
+          availability: form.availability,
+          salary_expectation: form.salaryExpectation,
+          experiences: form.experiences,
+          courses,
+        },
+      },
+    });
+
+    setSubmitting(false);
+
+    if (error) {
+      if (error.message.includes("already registered") || error.message.includes("already been registered")) {
+        setSubmitError("Este e-mail já está cadastrado. Tente fazer login.");
+      } else {
+        setSubmitError(error.message);
+      }
+      return;
+    }
+
     navigate("/verificar-email");
   };
 
@@ -509,15 +549,32 @@ export default function CadastroPage() {
               ) : (
                 <button
                   type="submit"
-                  className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-6 py-2.5 rounded-lg transition-colors cursor-pointer whitespace-nowrap"
+                  disabled={submitting}
+                  className={`flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-6 py-2.5 rounded-lg transition-colors cursor-pointer whitespace-nowrap ${submitting ? "opacity-70 cursor-not-allowed" : ""}`}
                 >
-                  <div className="w-4 h-4 flex items-center justify-center">
-                    <i className="ri-check-line text-sm"></i>
-                  </div>
-                  Criar minha conta
+                  {submitting ? (
+                    <>
+                      <i className="ri-loader-4-line animate-spin text-sm"></i>
+                      Criando conta...
+                    </>
+                  ) : (
+                    <>
+                      <div className="w-4 h-4 flex items-center justify-center">
+                        <i className="ri-check-line text-sm"></i>
+                      </div>
+                      Criar minha conta
+                    </>
+                  )}
                 </button>
               )}
             </div>
+
+            {submitError && (
+              <div className="mt-4 bg-red-50 border border-red-100 rounded-lg px-4 py-3 flex items-center gap-2">
+                <i className="ri-error-warning-line text-red-500 text-sm shrink-0"></i>
+                <p className="text-red-600 text-xs">{submitError}</p>
+              </div>
+            )}
           </form>
         </div>
 

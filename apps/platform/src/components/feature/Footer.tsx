@@ -111,7 +111,7 @@ export default function Footer() {
                 <div className="w-4 h-4 flex items-center justify-center">
                   <i className="ri-mail-line text-emerald-400"></i>
                 </div>
-                contato@vagasoeste.com.br
+                contato@santarem.app
               </li>
               <li className="flex items-start gap-2 text-stone-400 text-sm">
                 <div className="w-4 h-4 flex items-center justify-center mt-0.5">

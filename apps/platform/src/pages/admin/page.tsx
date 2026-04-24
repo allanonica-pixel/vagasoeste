@@ -25,19 +25,8 @@ export default function AdminPage() {
   const [section, setSection] = useState<AdminSection>("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Guard: bloqueia acesso direto à rota /admin sem autenticação
-  // Em produção, substituir por verificação real de sessão Supabase
-  const isAuthenticated = sessionStorage.getItem("vagasoeste_admin_auth") === "true";
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-        <div className="text-center">
-          <i className="ri-lock-line text-gray-600 text-4xl mb-4 block"></i>
-          <p className="text-gray-500 text-sm">Acesso não autorizado.</p>
-        </div>
-      </div>
-    );
-  }
+  // Guard movido para o router (PrivateRoute allowedRoles={["admin"]}).
+  // Este componente só renderiza se o usuário já está autenticado como admin.
 
   return (
     <div className="min-h-screen bg-gray-50 flex">

@@ -45,7 +45,7 @@ export default function CompanyValidationModal({ company, action, onConfirm, onC
         cnpj: company.cnpj,
         motivo: isApprove ? undefined : finalMotivo,
         pendingJobs: company.pendingJobs,
-        loginUrl: "https://vagasoeste.com.br/login",
+        loginUrl: "https://santarem.app/login",
       });
       setEmailStatus(result.success ? "sent" : "error");
     }
@@ -58,11 +58,11 @@ export default function CompanyValidationModal({ company, action, onConfirm, onC
   const emailPreview = isApprove
     ? {
         subject: `✅ Cadastro aprovado — Bem-vinda à VagasOeste, ${company.name}!`,
-        body: `Olá, ${company.contactName}!\n\nÓtima notícia! O cadastro da empresa ${company.name} (CNPJ: ${company.cnpj}) foi aprovado pela equipe VagasOeste.\n\nA partir de agora:\n• Suas vagas cadastradas já estão disponíveis no site público\n• Candidatos de Santarém e região já podem se candidatar\n• Você pode acessar o painel definitivo com suas credenciais\n\nAcesse: vagasoeste.com.br/empresa/dashboard\n\nQualquer dúvida, entre em contato pelo WhatsApp: (93) 99999-9999\n\nEquipe VagasOeste`,
+        body: `Olá, ${company.contactName}!\n\nÓtima notícia! O cadastro da empresa ${company.name} (CNPJ: ${company.cnpj}) foi aprovado pela equipe VagasOeste.\n\nA partir de agora:\n• Suas vagas cadastradas já estão disponíveis no site público\n• Candidatos de Santarém e região já podem se candidatar\n• Você pode acessar o painel definitivo com suas credenciais\n\nAcesse: santarem.app/empresa/dashboard\n\nQualquer dúvida, entre em contato pelo WhatsApp: (93) 99999-9999\n\nEquipe VagasOeste`,
       }
     : {
         subject: `❌ Pré-cadastro não aprovado — VagasOeste`,
-        body: `Olá, ${company.contactName}.\n\nInformamos que o pré-cadastro da empresa ${company.name} (CNPJ: ${company.cnpj}) não foi aprovado pela equipe VagasOeste.\n\nMotivo: ${finalMotivo || "[motivo será preenchido]"}\n\nCaso queira regularizar a situação ou tenha dúvidas, entre em contato com nossa equipe:\n• WhatsApp: (93) 99999-9999\n• Email: contato@vagasoeste.com.br\n\nEquipe VagasOeste`,
+        body: `Olá, ${company.contactName}.\n\nInformamos que o pré-cadastro da empresa ${company.name} (CNPJ: ${company.cnpj}) não foi aprovado pela equipe VagasOeste.\n\nMotivo: ${finalMotivo || "[motivo será preenchido]"}\n\nCaso queira regularizar a situação ou tenha dúvidas, entre em contato com nossa equipe:\n• WhatsApp: (93) 99999-9999\n• Email: contato@santarem.app\n\nEquipe VagasOeste`,
       };
 
   return (

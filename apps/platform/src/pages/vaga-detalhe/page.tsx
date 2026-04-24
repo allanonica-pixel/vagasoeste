@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import Navbar from "@/components/feature/Navbar";
 import Footer from "@/components/feature/Footer";
 import { mockJobs } from "@/mocks/jobs";
+import { useAuth } from "@/contexts/AuthContext";
+import { api } from "@/lib/api";
 
 const CONTRACT_COLORS: Record<string, string> = {
   CLT: "bg-emerald-100 text-emerald-700",
@@ -78,7 +80,7 @@ function getJobDetails(id: string) {
 type ApplyStep = "idle" | "choose" | "login" | "register" | "logged_in_confirm" | "success";
 
 function JobPostingSchema({ job, details }: { job: typeof mockJobs[0]; details: ReturnType<typeof getJobDetails> }) {
-  const jobUrl = `https://vagasoeste.com.br/vagas/${job.id}`;
+  const jobUrl = `https://santarem.app/vagas/${job.id}`;
   const datePosted = job.createdAt;
   const validThrough = new Date(new Date(job.createdAt).setMonth(new Date(job.createdAt).getMonth() + 2))
     .toISOString()
@@ -104,11 +106,11 @@ function JobPostingSchema({ job, details }: { job: typeof mockJobs[0]; details: 
     "hiringOrganization": {
       "@type": "Organization",
       "name": "VagasOeste",
-      "url": "https://vagasoeste.com.br",
-      "sameAs": "https://vagasoeste.com.br",
+      "url": "https://santarem.app",
+      "sameAs": "https://santarem.app",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://vagasoeste.com.br/logo.png",
+        "url": "https://santarem.app/logo.png",
       },
     },
     "jobLocation": {
@@ -164,13 +166,13 @@ function JobPostingSchema({ job, details }: { job: typeof mockJobs[0]; details: 
         "@type": "ListItem",
         "position": 1,
         "name": "Início",
-        "item": "https://vagasoeste.com.br/",
+        "item": "https://santarem.app/",
       },
       {
         "@type": "ListItem",
         "position": 2,
         "name": "Vagas",
-        "item": "https://vagasoeste.com.br/vagas",
+        "item": "https://santarem.app/vagas",
       },
       {
         "@type": "ListItem",
@@ -315,17 +317,22 @@ function VagaFAQSection({ job, details }: { job: typeof mockJobs[0]; details: Re
 export default function VagaDetalhePage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user, role, session, signIn } = useAuth();
   const [applyStep, setApplyStep] = useState<ApplyStep>("idle");
 
-  // Detecta se o usuário está logado como candidato
-  const isLoggedIn = sessionStorage.getItem("vagasoeste_user_auth") === "candidato";
+  // Candidato autenticado pode candidatar-se diretamente
+  const isLoggedIn = !!user && role === "candidato";
 
-  // Login form state
+  // Login form state (modal inline)
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [loginError, setLoginError] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
   const [showLoginPwd, setShowLoginPwd] = useState(false);
+
+  // Candidatura state
+  const [applyLoading, setApplyLoading] = useState(false);
+  const [applyError, setApplyError] = useState("");
 
   const job = mockJobs.find((j) => j.id === id);
   const details = job ? getJobDetails(job.id) : null;
@@ -353,7 +360,7 @@ export default function VagaDetalhePage() {
       canonical.rel = "canonical";
       document.head.appendChild(canonical);
     }
-    canonical.href = `https://vagasoeste.com.br/vagas/${job.id}`;
+    canonical.href = `https://santarem.app/vagas/${job.id}`;
 
     // OG tags
     const ogTitle = document.querySelector("meta[property='og:title']");
@@ -393,18 +400,41 @@ export default function VagaDetalhePage() {
 
   const relatedJobs = mockJobs.filter((j) => j.sector === job.sector && j.id !== job.id).slice(0, 3);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError("");
     setLoginLoading(true);
-    setTimeout(() => {
-      if (loginEmail === "candidato@email.com" && loginPassword === "vagasoeste") {
-        setApplyStep("logged_in_confirm");
-      } else {
-        setLoginError("Email ou senha incorretos.");
-      }
+
+    const { error: authError, role: signedRole } = await signIn(loginEmail, loginPassword);
+
+    if (authError) {
+      setLoginError("Email ou senha incorretos.");
       setLoginLoading(false);
-    }, 800);
+      return;
+    }
+
+    if (signedRole !== "candidato") {
+      setLoginError("Apenas candidatos podem se candidatar a vagas.");
+      setLoginLoading(false);
+      return;
+    }
+
+    setApplyStep("logged_in_confirm");
+    setLoginLoading(false);
+  };
+
+  const handleConfirmApply = async () => {
+    if (!id || !session?.access_token) return;
+    setApplyLoading(true);
+    setApplyError("");
+    try {
+      await api.applications.create(id, session.access_token);
+      setApplyStep("success");
+    } catch (err) {
+      setApplyError(err instanceof Error ? err.message : "Erro ao enviar candidatura.");
+    } finally {
+      setApplyLoading(false);
+    }
   };
 
   const closeModal = () => {
@@ -848,12 +878,6 @@ export default function VagaDetalhePage() {
                   </p>
                 </div>
 
-                <div className="mt-3 bg-amber-50 rounded-lg px-3 py-2 text-center">
-                  <p className="text-xs text-amber-700">
-                    <i className="ri-magic-line mr-1"></i>
-                    Demo: candidato@email.com / vagasoeste
-                  </p>
-                </div>
               </div>
             )}
 
@@ -884,11 +908,23 @@ export default function VagaDetalhePage() {
                   ))}
                 </div>
 
+                {applyError && (
+                  <div className="bg-red-50 border border-red-100 rounded-lg px-4 py-3 flex items-center gap-2 mb-3">
+                    <i className="ri-error-warning-line text-red-500 text-sm shrink-0"></i>
+                    <p className="text-red-600 text-xs">{applyError}</p>
+                  </div>
+                )}
                 <button
-                  onClick={() => setApplyStep("success")}
-                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl text-sm cursor-pointer transition-colors whitespace-nowrap mb-3"
+                  onClick={handleConfirmApply}
+                  disabled={applyLoading}
+                  className={`w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl text-sm cursor-pointer transition-colors whitespace-nowrap mb-3 ${applyLoading ? "opacity-70 cursor-not-allowed" : ""}`}
                 >
-                  Confirmar candidatura!
+                  {applyLoading ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <i className="ri-loader-4-line animate-spin text-sm"></i>
+                      Enviando...
+                    </span>
+                  ) : "Confirmar candidatura!"}
                 </button>
                 <button onClick={closeModal} className="w-full text-gray-400 hover:text-gray-600 text-sm py-2 cursor-pointer transition-colors">
                   Cancelar

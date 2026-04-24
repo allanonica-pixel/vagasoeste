@@ -25,13 +25,13 @@ export default function BlogPage() {
     name: "Blog VagasOeste — Dicas de Emprego em Santarém",
     description:
       "Artigos e dicas sobre emprego, currículo, entrevistas e mercado de trabalho em Santarém e região oeste do Pará.",
-    url: "https://vagasoeste.com.br/blog",
+    url: "https://santarem.app/blog",
     publisher: {
       "@type": "Organization",
       name: "VagasOeste",
       logo: {
         "@type": "ImageObject",
-        url: "https://vagasoeste.com.br/logo.png",
+        url: "https://santarem.app/logo.png",
       },
     },
     blogPost: mockBlogPosts.map((p) => ({
@@ -40,7 +40,7 @@ export default function BlogPage() {
       description: p.excerpt,
       datePublished: p.publishedAt,
       author: { "@type": "Organization", name: p.author },
-      url: `https://vagasoeste.com.br/blog/${p.slug}`,
+      url: `https://santarem.app/blog/${p.slug}`,
     })),
   };
 

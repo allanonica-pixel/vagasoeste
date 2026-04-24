@@ -63,6 +63,9 @@ export default function LoginPage() {
   const [secret, setSecret] = useState("");
   const [enrollFactorId, setEnrollFactorId] = useState("");
 
+  // ── Destino pós-MFA (candidato ou empresa) ───────────────────
+  const [mfaDestination, setMfaDestination] = useState("/empresa/dashboard");
+
   // ── UI ───────────────────────────────────────────────────────
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -175,14 +178,37 @@ export default function LoginPage() {
       return;
     }
 
-    // Candidato → redireciona direto
+    // Candidato → verificar MFA opcional, depois redirecionar
     if (signedRole === "candidato") {
       const redirect = searchParams.get("redirect");
-      navigate(redirect ? decodeURIComponent(redirect) : "/plataforma", { replace: true });
+      const destination = redirect ? decodeURIComponent(redirect) : "/plataforma";
+
+      const { data: factors } = await supabase.auth.mfa.listFactors();
+      const verifiedFactor = factors?.totp?.find((f) => f.status === "verified");
+
+      if (verifiedFactor) {
+        // Tem 2FA ativo → exige verificação
+        setFactorId(verifiedFactor.id);
+        const { data: challenge } = await supabase.auth.mfa.challenge({
+          factorId: verifiedFactor.id,
+        });
+        if (challenge) {
+          setChallengeId(challenge.id);
+          setMfaDestination(destination);
+          setSubmitting(false);
+          setStep("verify-mfa");
+          return;
+        }
+      }
+
+      navigate(destination, { replace: true });
       return;
     }
 
-    // Empresa → verificar primeiro acesso, depois MFA
+    // Empresa → definir destino pós-MFA e verificar primeiro acesso
+    const redirect = searchParams.get("redirect");
+    setMfaDestination(redirect ? decodeURIComponent(redirect) : "/empresa/dashboard");
+
     const { data: { user: currentUser } } = await supabase.auth.getUser();
     const isFirstAccess = currentUser?.user_metadata?.first_access === true;
 
@@ -290,8 +316,7 @@ export default function LoginPage() {
       return;
     }
 
-    const redirect = searchParams.get("redirect");
-    navigate(redirect ? decodeURIComponent(redirect) : "/empresa/dashboard", { replace: true });
+    navigate(mfaDestination, { replace: true });
   };
 
   const pwdStrength = getStrength(newPassword);
@@ -401,11 +426,12 @@ export default function LoginPage() {
                     <div>
                       <div className="flex items-center justify-between mb-1.5">
                         <label className="text-sm font-medium text-gray-700">Senha</label>
-                        {userType === "empresa" && (
-                          <Link to="/esqueci-senha" className="text-xs text-sky-600 hover:text-sky-700 hover:underline">
-                            Esqueci minha senha
-                          </Link>
-                        )}
+                        <Link
+                          to="/esqueci-senha"
+                          className={`text-xs hover:underline ${userType === "empresa" ? "text-sky-600 hover:text-sky-700" : "text-emerald-600 hover:text-emerald-700"}`}
+                        >
+                          Esqueci minha senha
+                        </Link>
                       </div>
                       <div className="relative">
                         <input
@@ -646,7 +672,7 @@ export default function LoginPage() {
                 <div className="p-6">
                   <p className="text-sm text-gray-600 mb-5">
                     Abra o <strong>Google Authenticator</strong> e insira o código de{" "}
-                    <strong>VagasOeste: Empresas</strong>.
+                    <strong>{userType === "empresa" ? "VagasOeste: Empresas" : "VagasOeste: Candidato"}</strong>.
                   </p>
 
                   <form onSubmit={handleVerifyMfa} className="space-y-4">

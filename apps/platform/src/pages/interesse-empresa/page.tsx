@@ -518,7 +518,7 @@ export default function InteresseEmpresaPage() {
                 </div>
               </a>
               <a
-                href="mailto:contato@vagasoeste.com.br"
+                href="mailto:contato@santarem.app"
                 className="flex items-center gap-3 bg-gray-50 border border-gray-100 rounded-xl p-4 cursor-pointer hover:bg-gray-100 transition-colors"
               >
                 <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center shrink-0">
@@ -526,7 +526,7 @@ export default function InteresseEmpresaPage() {
                 </div>
                 <div>
                   <p className="font-semibold text-gray-900 text-sm">Email</p>
-                  <p className="text-gray-500 text-xs">contato@vagasoeste.com.br</p>
+                  <p className="text-gray-500 text-xs">contato@santarem.app</p>
                 </div>
                 <div className="ml-auto w-5 h-5 flex items-center justify-center">
                   <i className="ri-arrow-right-line text-gray-400 text-sm"></i>

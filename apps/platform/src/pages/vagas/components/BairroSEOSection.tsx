@@ -58,13 +58,13 @@ export default function BairroSEOSection({ bairro, jobCount }: BairroSEOSectionP
       "@type": "ItemList",
       "name": `Vagas de Emprego no ${bairro}, Santarém/PA`,
       "description": description || `Vagas de emprego no bairro ${bairro} em Santarém, Pará.`,
-      "url": `https://vagasoeste.com.br/vagas?bairro=${encodeURIComponent(bairro)}`,
+      "url": `https://santarem.app/vagas?bairro=${encodeURIComponent(bairro)}`,
       "numberOfItems": jobCount,
       "itemListElement": sectors.map((sector, i) => ({
         "@type": "ListItem",
         "position": i + 1,
         "name": `Vagas de ${sector} no ${bairro}`,
-        "url": `https://vagasoeste.com.br/vagas?bairro=${encodeURIComponent(bairro)}&setor=${encodeURIComponent(sector)}`,
+        "url": `https://santarem.app/vagas?bairro=${encodeURIComponent(bairro)}&setor=${encodeURIComponent(sector)}`,
       })),
     });
 
