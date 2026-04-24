@@ -1,49 +1,316 @@
-import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
+import QRCode from "qrcode";
 import AnimatedSection from "@/components/base/AnimatedSection";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/lib/supabase";
+
+// ──────────────────────────────────────────────────────────────
+// Tipos
+// ──────────────────────────────────────────────────────────────
 
 type UserType = "candidato" | "empresa";
+type LoginStep = "credentials" | "change-password" | "enroll-mfa" | "verify-mfa";
 
-const DEMO_CREDENTIALS: Record<UserType, { email: string; password: string; redirect: string }> = {
-  candidato: { email: "candidato@email.com", password: "vagasoeste", redirect: "/plataforma" },
-  empresa: { email: "empresa@email.com", password: "vagasoeste", redirect: "/empresa/dashboard" },
-};
+// ──────────────────────────────────────────────────────────────
+// Helpers
+// ──────────────────────────────────────────────────────────────
+
+function getStrength(pwd: string) {
+  if (pwd.length === 0) return 0;
+  let score = 0;
+  if (pwd.length >= 8) score++;
+  if (/[A-Z]/.test(pwd)) score++;
+  if (/[0-9]/.test(pwd)) score++;
+  if (/[^A-Za-z0-9]/.test(pwd)) score++;
+  return score;
+}
+
+const strengthLabels = ["", "Fraca", "Razoável", "Boa", "Forte"];
+const strengthBarColors = ["", "bg-red-400", "bg-amber-400", "bg-sky-400", "bg-emerald-500"];
+const strengthTextColors = ["", "text-red-500", "text-amber-500", "text-sky-500", "text-emerald-600"];
+
+// ──────────────────────────────────────────────────────────────
+// Componente principal
+// ──────────────────────────────────────────────────────────────
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { signIn, user, role, loading } = useAuth();
+
   const [userType, setUserType] = useState<UserType>("candidato");
+  const [step, setStep] = useState<LoginStep>("credentials");
+
+  // ── Credenciais ──────────────────────────────────────────────
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [attempts, setAttempts] = useState(0);
+  const [blocked, setBlocked] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // ── Troca de senha ───────────────────────────────────────────
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showNewPwd, setShowNewPwd] = useState(false);
+  const [showConfirmPwd, setShowConfirmPwd] = useState(false);
+
+  // ── MFA ──────────────────────────────────────────────────────
+  const [totpCode, setTotpCode] = useState("");
+  const [factorId, setFactorId] = useState("");
+  const [challengeId, setChallengeId] = useState("");
+  const [qrDataUrl, setQrDataUrl] = useState("");
+  const [secret, setSecret] = useState("");
+  const [enrollFactorId, setEnrollFactorId] = useState("");
+
+  // ── UI ───────────────────────────────────────────────────────
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const initialized = useRef(false);
+
+  // ── Helpers MFA ──────────────────────────────────────────────
+
+  const startEnrollment = useCallback(async () => {
+    const { data: enroll, error: enrollErr } = await supabase.auth.mfa.enroll({
+      factorType: "totp",
+      friendlyName: "VagasOeste Empresas",
+    });
+    if (enrollErr || !enroll) {
+      setError("Erro ao configurar autenticador. Tente novamente.");
+      return;
+    }
+    setEnrollFactorId(enroll.id);
+    setSecret(enroll.totp.secret);
+    const customUri = `otpauth://totp/VagasOeste%3AEmpresas?secret=${enroll.totp.secret}&issuer=VagasOeste`;
+    const qr = await QRCode.toDataURL(customUri, { width: 192, margin: 1 });
+    setQrDataUrl(qr);
+    setStep("enroll-mfa");
+  }, []);
+
+  const goToMfaStep = useCallback(async () => {
+    const { data: factors } = await supabase.auth.mfa.listFactors();
+    const verifiedFactor = factors?.totp?.find((f) => f.status === "verified");
+
+    if (verifiedFactor) {
+      setFactorId(verifiedFactor.id);
+      const { data: challenge, error: challengeErr } = await supabase.auth.mfa.challenge({
+        factorId: verifiedFactor.id,
+      });
+      if (challengeErr || !challenge) {
+        setError("Erro ao iniciar verificação MFA. Tente novamente.");
+        return;
+      }
+      setChallengeId(challenge.id);
+      setStep("verify-mfa");
+    } else {
+      await startEnrollment();
+    }
+  }, [startEnrollment]);
+
+  // ── Verifica sessão já ativa no carregamento ──────────────────
+
+  useEffect(() => {
+    if (loading || initialized.current) return;
+    initialized.current = true;
+    if (!user || !role) return;
+
+    if (role === "candidato") {
+      const redirect = searchParams.get("redirect");
+      navigate(redirect ? decodeURIComponent(redirect) : "/plataforma", { replace: true });
+      return;
+    }
+
+    if (role === "empresa") {
+      setUserType("empresa");
+      supabase.auth.mfa.getAuthenticatorAssuranceLevel().then(async ({ data }) => {
+        if (data?.currentLevel === "aal2") {
+          const redirect = searchParams.get("redirect");
+          navigate(redirect ? decodeURIComponent(redirect) : "/empresa/dashboard", { replace: true });
+        } else {
+          // AAL1 → ir direto para o passo MFA (sem re-solicitar senha)
+          await goToMfaStep();
+        }
+      });
+    }
+  }, [loading, user, role, navigate, searchParams, goToMfaStep]);
+
+  // ──────────────────────────────────────────────────────────────
+  // PASSO 1 — Credenciais
+  // ──────────────────────────────────────────────────────────────
+
+  const handleCredentials = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (blocked) return;
+    setError("");
+    setSubmitting(true);
+
+    // Jitter anti-timing
+    await new Promise((r) => setTimeout(r, 400 + Math.random() * 300));
+
+    const { error: authError, role: signedRole } = await signIn(email, password);
+
+    if (authError || !signedRole) {
+      const next = attempts + 1;
+      setAttempts(next);
+      if (next >= 5) {
+        setBlocked(true);
+        setError("Muitas tentativas. Aguarde alguns minutos antes de tentar novamente.");
+      } else {
+        setError(`Email ou senha incorretos. (${next}/5 tentativas)`);
+      }
+      setSubmitting(false);
+      return;
+    }
+
+    // Role incompatível com o tipo selecionado
+    if (signedRole !== userType) {
+      setError(
+        userType === "candidato"
+          ? "Esta conta é de empresa. Selecione 'Empresa' para entrar."
+          : "Esta conta é de candidato. Selecione 'Candidato' para entrar."
+      );
+      await supabase.auth.signOut();
+      setSubmitting(false);
+      return;
+    }
+
+    // Candidato → redireciona direto
+    if (signedRole === "candidato") {
+      const redirect = searchParams.get("redirect");
+      navigate(redirect ? decodeURIComponent(redirect) : "/plataforma", { replace: true });
+      return;
+    }
+
+    // Empresa → verificar primeiro acesso, depois MFA
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    const isFirstAccess = currentUser?.user_metadata?.first_access === true;
+
+    if (isFirstAccess) {
+      setSubmitting(false);
+      setStep("change-password");
+      return;
+    }
+
+    await goToMfaStep();
+    setSubmitting(false);
+  };
+
+  // ──────────────────────────────────────────────────────────────
+  // PASSO 2 — Troca de senha provisória
+  // ──────────────────────────────────────────────────────────────
+
+  const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    setLoading(true);
 
-    setTimeout(() => {
-      const creds = DEMO_CREDENTIALS[userType];
-      if (email === creds.email && password === creds.password) {
-        sessionStorage.setItem("vagasoeste_user_auth", userType);
-        navigate(creds.redirect);
-      } else {
-        setError("Email ou senha incorretos. Verifique suas credenciais.");
-      }
-      setLoading(false);
-    }, 800);
+    if (newPassword.length < 8) {
+      setError("A senha deve ter pelo menos 8 caracteres.");
+      return;
+    }
+    if (!/[A-Z]/.test(newPassword) || !/[0-9]/.test(newPassword)) {
+      setError("Use pelo menos uma letra maiúscula e um número.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setError("As senhas não coincidem.");
+      return;
+    }
+
+    setSubmitting(true);
+
+    const { error: updateErr } = await supabase.auth.updateUser({
+      password: newPassword,
+      data: { first_access: false },
+    });
+
+    if (updateErr) {
+      setError("Erro ao salvar nova senha. Tente novamente.");
+      setSubmitting(false);
+      return;
+    }
+
+    await goToMfaStep();
+    setSubmitting(false);
   };
 
-  const typeConfig: Record<UserType, { label: string; icon: string; bg: string }> = {
-    candidato: { label: "Candidato", icon: "ri-user-line", bg: "bg-emerald-600" },
-    empresa:   { label: "Empresa",   icon: "ri-building-line", bg: "bg-sky-600" },
+  // ──────────────────────────────────────────────────────────────
+  // PASSO 3A — Confirmar enrollment MFA (primeiro acesso)
+  // ──────────────────────────────────────────────────────────────
+
+  const handleEnrollMfa = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setSubmitting(true);
+
+    const { data: challenge, error: challengeErr } = await supabase.auth.mfa.challenge({
+      factorId: enrollFactorId,
+    });
+    if (challengeErr || !challenge) {
+      setError("Erro ao criar desafio. Tente novamente.");
+      setSubmitting(false);
+      return;
+    }
+
+    const { error: verifyErr } = await supabase.auth.mfa.verify({
+      factorId: enrollFactorId,
+      challengeId: challenge.id,
+      code: totpCode.replace(/\s/g, ""),
+    });
+
+    if (verifyErr) {
+      setError("Código incorreto. Verifique o app e tente novamente.");
+      setTotpCode("");
+      setSubmitting(false);
+      return;
+    }
+
+    navigate("/empresa/dashboard", { replace: true });
   };
 
-  const redirectLabels: Record<UserType, string> = {
-    candidato: "Você será redirecionado para a plataforma do candidato",
-    empresa:   "Você será redirecionado para o painel da empresa",
+  // ──────────────────────────────────────────────────────────────
+  // PASSO 3B — Verificar código TOTP (acessos subsequentes)
+  // ──────────────────────────────────────────────────────────────
+
+  const handleVerifyMfa = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setSubmitting(true);
+
+    const { error: verifyErr } = await supabase.auth.mfa.verify({
+      factorId,
+      challengeId,
+      code: totpCode.replace(/\s/g, ""),
+    });
+
+    if (verifyErr) {
+      setError("Código incorreto ou expirado. Aguarde o próximo código e tente novamente.");
+      setTotpCode("");
+      setSubmitting(false);
+      return;
+    }
+
+    const redirect = searchParams.get("redirect");
+    navigate(redirect ? decodeURIComponent(redirect) : "/empresa/dashboard", { replace: true });
   };
+
+  const pwdStrength = getStrength(newPassword);
+
+  // ── Loading inicial ──────────────────────────────────────────
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <i className="ri-loader-4-line animate-spin text-gray-400 text-3xl"></i>
+      </div>
+    );
+  }
+
+  const isEmpresaFlow = userType === "empresa" && step !== "credentials";
+
+  // ──────────────────────────────────────────────────────────────
+  // Render
+  // ──────────────────────────────────────────────────────────────
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -58,125 +325,398 @@ export default function LoginPage() {
               Vagas<span className="text-emerald-600">Oeste</span>
             </span>
           </Link>
-          <div className="ml-auto flex items-center gap-4">
-            <Link to="/vagas" className="text-xs text-gray-500 hover:text-gray-700 cursor-pointer">
-              Ver vagas
-            </Link>
-            <Link to="/cadastro" className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 cursor-pointer">
-              Criar conta
-            </Link>
-          </div>
+          {!isEmpresaFlow && (
+            <div className="ml-auto flex items-center gap-4">
+              <Link to="/vagas" className="text-xs text-gray-500 hover:text-gray-700">
+                Ver vagas
+              </Link>
+              <Link to="/cadastro" className="text-xs font-semibold text-emerald-600 hover:text-emerald-700">
+                Criar conta
+              </Link>
+            </div>
+          )}
         </div>
       </header>
 
       <div className="flex-1 flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md">
           <AnimatedSection variant="fade-up">
-            {/* Logo */}
-            <div className="text-center mb-8">
-              <div className={`w-16 h-16 rounded-2xl ${typeConfig[userType].bg} flex items-center justify-center mx-auto mb-4 transition-colors duration-300`}>
-                <i className={`${typeConfig[userType].icon} text-white text-2xl`}></i>
-              </div>
-              <h1 className="text-2xl font-bold text-gray-900">Bem-vindo de volta</h1>
-              <p className="text-gray-600 text-sm mt-1">Acesse sua conta VagasOeste</p>
-            </div>
 
-            {/* Type Selector */}
-            <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-6">
-              {(["candidato", "empresa"] as UserType[]).map((type) => (
-                <button
-                  key={type}
-                  onClick={() => { setUserType(type); setEmail(""); setPassword(""); setError(""); }}
-                  className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                    userType === type ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
-                  }`}
-                >
-                  <i className={`${typeConfig[type].icon} text-xs`}></i>
-                  {typeConfig[type].label}
-                </button>
-              ))}
-            </div>
-
-            {/* Redirect hint */}
-            <div className="flex items-center gap-2 bg-gray-100 rounded-lg px-3 py-2 mb-4">
-              <i className="ri-arrow-right-circle-line text-gray-400 text-sm shrink-0"></i>
-              <p className="text-xs text-gray-500">{redirectLabels[userType]}</p>
-            </div>
-
-            {/* Form */}
-            <div className="bg-white rounded-2xl border border-gray-100 p-6">
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-700 mb-1.5 block">Email</label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="seu@email.com"
-                    required
-                    className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-800 outline-none focus:border-emerald-400 transition-colors"
-                  />
+            {/* ── STEP: Credenciais ────────────────────────────── */}
+            {step === "credentials" && (
+              <>
+                <div className="text-center mb-8">
+                  <div className={`w-16 h-16 rounded-2xl ${userType === "candidato" ? "bg-emerald-600" : "bg-sky-600"} flex items-center justify-center mx-auto mb-4 transition-colors duration-300`}>
+                    <i className={`${userType === "candidato" ? "ri-user-line" : "ri-building-line"} text-white text-2xl`}></i>
+                  </div>
+                  <h1 className="text-2xl font-bold text-gray-900">Bem-vindo de volta</h1>
+                  <p className="text-gray-600 text-sm mt-1">Acesse sua conta VagasOeste</p>
                 </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700 mb-1.5 block">Senha</label>
-                  <div className="relative">
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="••••••••"
-                      required
-                      className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-800 outline-none focus:border-emerald-400 transition-colors pr-10"
-                    />
+
+                {/* Seletor de tipo */}
+                <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-6">
+                  {(["candidato", "empresa"] as UserType[]).map((type) => (
                     <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-gray-600"
+                      key={type}
+                      onClick={() => {
+                        setUserType(type);
+                        setEmail(""); setPassword(""); setError("");
+                        setAttempts(0); setBlocked(false);
+                      }}
+                      className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                        userType === type ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                      }`}
                     >
-                      <i className={`${showPassword ? "ri-eye-off-line" : "ri-eye-line"} text-sm`}></i>
+                      <i className={`${type === "candidato" ? "ri-user-line" : "ri-building-line"} text-xs`}></i>
+                      {type === "candidato" ? "Candidato" : "Empresa"}
                     </button>
-                  </div>
+                  ))}
                 </div>
 
-                {error && (
-                  <div className="bg-red-50 border border-red-100 rounded-lg px-4 py-3 flex items-center gap-2">
-                    <i className="ri-error-warning-line text-red-500 text-sm shrink-0"></i>
-                    <p className="text-red-600 text-xs">{error}</p>
-                  </div>
+                <div className="flex items-center gap-2 bg-gray-100 rounded-lg px-3 py-2 mb-4">
+                  <i className="ri-arrow-right-circle-line text-gray-400 text-sm shrink-0"></i>
+                  <p className="text-xs text-gray-500">
+                    {userType === "candidato"
+                      ? "Você será redirecionado para a plataforma do candidato"
+                      : "Você será redirecionado para o painel da empresa"}
+                  </p>
+                </div>
+
+                <div className="bg-white rounded-2xl border border-gray-100 p-6">
+                  <form onSubmit={handleCredentials} className="space-y-4">
+                    <div>
+                      <label className="text-sm font-medium text-gray-700 mb-1.5 block">Email</label>
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="seu@email.com"
+                        required
+                        disabled={blocked}
+                        autoComplete="email"
+                        className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-800 outline-none focus:border-sky-400 focus:border-emerald-400 transition-colors disabled:opacity-50"
+                      />
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-sm font-medium text-gray-700">Senha</label>
+                        {userType === "empresa" && (
+                          <Link to="/esqueci-senha" className="text-xs text-sky-600 hover:text-sky-700 hover:underline">
+                            Esqueci minha senha
+                          </Link>
+                        )}
+                      </div>
+                      <div className="relative">
+                        <input
+                          type={showPassword ? "text" : "password"}
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          placeholder="••••••••"
+                          required
+                          disabled={blocked}
+                          autoComplete="current-password"
+                          className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-800 outline-none focus:border-emerald-400 transition-colors pr-10 disabled:opacity-50"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-gray-600"
+                        >
+                          <i className={`${showPassword ? "ri-eye-off-line" : "ri-eye-line"} text-sm`}></i>
+                        </button>
+                      </div>
+                    </div>
+
+                    {error && <ErrorBox message={error} />}
+
+                    <button
+                      type="submit"
+                      disabled={submitting || blocked}
+                      className={`w-full ${userType === "candidato" ? "bg-emerald-600 hover:bg-emerald-700" : "bg-sky-600 hover:bg-sky-700"} disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl text-sm transition-all cursor-pointer`}
+                    >
+                      {submitting ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <i className="ri-loader-4-line animate-spin text-sm"></i>
+                          Verificando...
+                        </span>
+                      ) : blocked ? "Acesso temporariamente bloqueado" : (
+                        <span className="flex items-center justify-center gap-2">
+                          <i className={`${userType === "candidato" ? "ri-user-line" : "ri-building-line"} text-sm`}></i>
+                          Entrar como {userType === "candidato" ? "Candidato" : "Empresa"}
+                        </span>
+                      )}
+                    </button>
+                  </form>
+                </div>
+
+                {userType === "candidato" && (
+                  <p className="text-center text-sm text-gray-500 mt-4">
+                    Não tem conta?{" "}
+                    <Link to="/cadastro" className="text-emerald-600 font-semibold hover:underline">
+                      Cadastre-se grátis
+                    </Link>
+                  </p>
                 )}
 
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className={`w-full ${typeConfig[userType].bg} hover:opacity-90 text-white font-bold py-3 rounded-xl text-sm transition-all cursor-pointer ${loading ? "opacity-70 cursor-not-allowed" : ""}`}
-                >
-                  {loading ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <i className="ri-loader-4-line animate-spin text-sm"></i>
-                      Entrando...
-                    </span>
-                  ) : (
-                    <span className="flex items-center justify-center gap-2">
-                      <i className={`${typeConfig[userType].icon} text-sm`}></i>
-                      Entrar como {typeConfig[userType].label}
-                    </span>
-                  )}
-                </button>
-              </form>
-            </div>
-
-            {/* Register link */}
-            {userType === "candidato" && (
-              <p className="text-center text-sm text-gray-500 mt-4">
-                Não tem conta?{" "}
-                <Link to="/cadastro" className="text-emerald-600 font-semibold hover:underline">
-                  Cadastre-se grátis
-                </Link>
-              </p>
+                {userType === "empresa" && (
+                  <p className="text-center text-xs text-gray-400 mt-4">
+                    Problemas no acesso? Entre em contato com o suporte VagasOeste.
+                  </p>
+                )}
+              </>
             )}
+
+            {/* ── STEP: Trocar senha provisória ─────────────────── */}
+            {step === "change-password" && (
+              <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+                <div className="bg-gradient-to-r from-sky-600 to-sky-500 px-6 py-6 text-center">
+                  <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-3">
+                    <i className="ri-lock-password-line text-white text-xl"></i>
+                  </div>
+                  <h2 className="text-white font-bold text-lg">Crie sua senha permanente</h2>
+                  <p className="text-sky-100 text-xs mt-1">Passo 1 de 2 — Segurança da conta</p>
+                </div>
+
+                <div className="p-6">
+                  <div className="bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 mb-5 flex items-start gap-3">
+                    <i className="ri-information-line text-amber-500 text-sm shrink-0 mt-0.5"></i>
+                    <p className="text-amber-700 text-xs leading-relaxed">
+                      Este é seu primeiro acesso. Defina uma senha pessoal e segura para continuar. A senha provisória será invalidada.
+                    </p>
+                  </div>
+
+                  <form onSubmit={handleChangePassword} className="space-y-4">
+                    <div>
+                      <label className="text-sm font-medium text-gray-700 mb-1.5 block">Nova senha</label>
+                      <div className="relative">
+                        <input
+                          type={showNewPwd ? "text" : "password"}
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          placeholder="Mínimo 8 caracteres"
+                          required
+                          autoFocus
+                          className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-800 outline-none focus:border-sky-400 transition-colors pr-10"
+                        />
+                        <button type="button" onClick={() => setShowNewPwd(!showNewPwd)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-gray-600">
+                          <i className={`${showNewPwd ? "ri-eye-off-line" : "ri-eye-line"} text-sm`}></i>
+                        </button>
+                      </div>
+                      {newPassword.length > 0 && (
+                        <div className="mt-2">
+                          <div className="flex gap-1 mb-1">
+                            {[1, 2, 3, 4].map((s) => (
+                              <div key={s} className={`h-1 flex-1 rounded-full transition-colors ${s <= pwdStrength ? strengthBarColors[pwdStrength] : "bg-gray-100"}`}></div>
+                            ))}
+                          </div>
+                          <p className={`text-xs font-medium ${strengthTextColors[pwdStrength]}`}>
+                            Força: {strengthLabels[pwdStrength]}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-medium text-gray-700 mb-1.5 block">Confirmar senha</label>
+                      <div className="relative">
+                        <input
+                          type={showConfirmPwd ? "text" : "password"}
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          placeholder="Repita a nova senha"
+                          required
+                          className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-800 outline-none focus:border-sky-400 transition-colors pr-10"
+                        />
+                        <button type="button" onClick={() => setShowConfirmPwd(!showConfirmPwd)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-gray-600">
+                          <i className={`${showConfirmPwd ? "ri-eye-off-line" : "ri-eye-line"} text-sm`}></i>
+                        </button>
+                      </div>
+                      {confirmPassword.length > 0 && newPassword !== confirmPassword && (
+                        <p className="text-xs text-red-500 mt-1">As senhas não coincidem</p>
+                      )}
+                      {confirmPassword.length >= 8 && newPassword === confirmPassword && (
+                        <p className="text-xs text-emerald-600 mt-1 flex items-center gap-1">
+                          <i className="ri-check-line"></i> Senhas coincidem
+                        </p>
+                      )}
+                    </div>
+
+                    {error && <ErrorBox message={error} />}
+
+                    <button
+                      type="submit"
+                      disabled={submitting}
+                      className="w-full bg-sky-600 hover:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl text-sm transition-all cursor-pointer"
+                    >
+                      {submitting ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <i className="ri-loader-4-line animate-spin text-sm"></i>
+                          Salvando...
+                        </span>
+                      ) : "Salvar senha e continuar →"}
+                    </button>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            {/* ── STEP: Configurar MFA (primeiro acesso) ───────── */}
+            {step === "enroll-mfa" && (
+              <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+                <div className="bg-gradient-to-r from-sky-600 to-sky-500 px-6 py-6 text-center">
+                  <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-3">
+                    <i className="ri-smartphone-line text-white text-xl"></i>
+                  </div>
+                  <h2 className="text-white font-bold text-lg">Configure o autenticador</h2>
+                  <p className="text-sky-100 text-xs mt-1">Passo 2 de 2 — Verificação em 2 etapas</p>
+                </div>
+
+                <div className="p-6">
+                  <p className="text-sm text-gray-600 mb-4">
+                    Escaneie o QR code com <strong>Google Authenticator</strong> ou <strong>Authy</strong>. Faça isso uma única vez.
+                  </p>
+
+                  {qrDataUrl && (
+                    <div className="bg-white border border-gray-100 rounded-xl p-3 mb-4 flex items-center justify-center">
+                      <img src={qrDataUrl} alt="QR code para autenticador" className="w-48 h-48" />
+                    </div>
+                  )}
+
+                  {secret && (
+                    <div className="bg-gray-50 border border-gray-100 rounded-lg px-3 py-2.5 mb-5">
+                      <p className="text-xs text-gray-400 mb-1">Ou insira a chave manualmente:</p>
+                      <p className="text-xs font-mono text-gray-700 break-all select-all">{secret}</p>
+                    </div>
+                  )}
+
+                  <form onSubmit={handleEnrollMfa} className="space-y-4">
+                    <div>
+                      <label className="text-sm font-medium text-gray-700 mb-1.5 block">
+                        Código de 6 dígitos do app
+                      </label>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9 ]{6,7}"
+                        value={totpCode}
+                        onChange={(e) => setTotpCode(e.target.value)}
+                        placeholder="000 000"
+                        maxLength={7}
+                        required
+                        autoFocus
+                        autoComplete="one-time-code"
+                        className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-800 outline-none focus:border-sky-400 transition-colors text-center tracking-widest font-mono"
+                      />
+                      <p className="text-xs text-gray-400 mt-1 text-center">O código muda a cada 30 segundos</p>
+                    </div>
+
+                    {error && <ErrorBox message={error} />}
+
+                    <button
+                      type="submit"
+                      disabled={submitting}
+                      className="w-full bg-sky-600 hover:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl text-sm transition-all cursor-pointer"
+                    >
+                      {submitting ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <i className="ri-loader-4-line animate-spin text-sm"></i>
+                          Verificando...
+                        </span>
+                      ) : "Ativar e acessar o painel →"}
+                    </button>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            {/* ── STEP: Verificar TOTP (acessos normais) ───────── */}
+            {step === "verify-mfa" && (
+              <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+                <div className="bg-gradient-to-r from-sky-600 to-sky-500 px-6 py-6 text-center">
+                  <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-3">
+                    <i className="ri-shield-check-line text-white text-xl"></i>
+                  </div>
+                  <h2 className="text-white font-bold text-lg">Verificação em 2 etapas</h2>
+                  <p className="text-sky-100 text-xs mt-1">Autenticação adicional requerida</p>
+                </div>
+
+                <div className="p-6">
+                  <p className="text-sm text-gray-600 mb-5">
+                    Abra o <strong>Google Authenticator</strong> e insira o código de{" "}
+                    <strong>VagasOeste: Empresas</strong>.
+                  </p>
+
+                  <form onSubmit={handleVerifyMfa} className="space-y-4">
+                    <div>
+                      <label className="text-sm font-medium text-gray-700 mb-1.5 block">Código TOTP</label>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9 ]{6,7}"
+                        value={totpCode}
+                        onChange={(e) => setTotpCode(e.target.value)}
+                        placeholder="000 000"
+                        maxLength={7}
+                        required
+                        autoFocus
+                        autoComplete="one-time-code"
+                        className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-800 outline-none focus:border-sky-400 transition-colors text-center tracking-widest font-mono"
+                      />
+                      <p className="text-xs text-gray-400 mt-1.5 text-center">
+                        O código muda a cada 30 segundos
+                      </p>
+                    </div>
+
+                    {error && <ErrorBox message={error} />}
+
+                    <button
+                      type="submit"
+                      disabled={submitting}
+                      className="w-full bg-sky-600 hover:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl text-sm transition-all cursor-pointer"
+                    >
+                      {submitting ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <i className="ri-loader-4-line animate-spin text-sm"></i>
+                          Verificando...
+                        </span>
+                      ) : "Verificar e acessar →"}
+                    </button>
+                  </form>
+
+                  <button
+                    onClick={async () => {
+                      await supabase.auth.signOut();
+                      setStep("credentials");
+                      setTotpCode("");
+                      setError("");
+                    }}
+                    className="mt-4 w-full text-center text-xs text-gray-400 hover:text-gray-600 cursor-pointer transition-colors"
+                  >
+                    ← Usar outra conta
+                  </button>
+                </div>
+              </div>
+            )}
+
           </AnimatedSection>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ──────────────────────────────────────────────────────────────
+// Sub-componentes
+// ──────────────────────────────────────────────────────────────
+
+function ErrorBox({ message }: { message: string }) {
+  return (
+    <div className="bg-red-50 border border-red-100 rounded-lg px-4 py-3 flex items-center gap-2">
+      <i className="ri-error-warning-line text-red-500 text-sm shrink-0"></i>
+      <p className="text-red-600 text-xs">{message}</p>
     </div>
   );
 }

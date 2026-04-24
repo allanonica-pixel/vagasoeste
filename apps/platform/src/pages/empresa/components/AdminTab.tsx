@@ -1,4 +1,10 @@
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/lib/supabase";
+
+// ──────────────────────────────────────────────────────────────
+// Tipos
+// ──────────────────────────────────────────────────────────────
 
 interface Solicitation {
   id: string;
@@ -13,6 +19,10 @@ interface Solicitation {
   contactDetails?: string;
 }
 
+// ──────────────────────────────────────────────────────────────
+// Mock data (será substituído por dados reais da API)
+// ──────────────────────────────────────────────────────────────
+
 const mockSolicitations: Solicitation[] = [
   {
     id: "s1",
@@ -23,7 +33,8 @@ const mockSolicitations: Solicitation[] = [
     requestedAt: "2026-04-14",
     status: "done",
     notes: "Pré-entrevista realizada com sucesso.",
-    interviewReport: "Candidato demonstrou excelente domínio de técnicas de vendas e boa comunicação. Perfil alinhado com a vaga. Recomendamos fortemente para a próxima etapa. Mostrou proatividade e conhecimento do mercado local de Santarém.",
+    interviewReport:
+      "Candidato demonstrou excelente domínio de técnicas de vendas e boa comunicação. Perfil alinhado com a vaga. Recomendamos fortemente para a próxima etapa.",
   },
   {
     id: "s2",
@@ -54,6 +65,247 @@ const STATUS_CONFIG = {
   scheduled: { label: "Agendado", color: "bg-amber-100 text-amber-700" },
   done: { label: "Concluído", color: "bg-emerald-100 text-emerald-700" },
 };
+
+// ──────────────────────────────────────────────────────────────
+// Seção: Gestão de Usuários
+// ──────────────────────────────────────────────────────────────
+
+function UserManagementSection() {
+  const { user } = useAuth();
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteRole, setInviteRole] = useState<"rh">("rh");
+  const [inviting, setInviting] = useState(false);
+  const [inviteSuccess, setInviteSuccess] = useState(false);
+  const [inviteError, setInviteError] = useState("");
+  const [showInviteForm, setShowInviteForm] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [mfaInfo, setMfaInfo] = useState<"loading" | "active" | "inactive">("loading");
+
+  // Verifica status do MFA na montagem
+  useState(() => {
+    supabase.auth.mfa.listFactors().then(({ data }) => {
+      const hasVerified = data?.totp?.some((f) => f.status === "verified");
+      setMfaInfo(hasVerified ? "active" : "inactive");
+    });
+  });
+
+  const handleInvite = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setInviteError("");
+    setInviting(true);
+
+    // Envia para o backend API (endpoint a implementar no serviço)
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL ?? "https://api.santarem.app"}/v1/empresa/invite-user`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: inviteEmail,
+          role: inviteRole,
+          gestorId: user?.id,
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.message ?? "Erro ao enviar convite.");
+      }
+
+      setInviteSuccess(true);
+      setShowInviteForm(false);
+      setInviteEmail("");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Erro ao enviar convite. Tente novamente.";
+      setInviteError(message);
+    } finally {
+      setInviting(false);
+    }
+  };
+
+  const handleChangePassword = async () => {
+    setChangingPassword(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(user?.email ?? "", {
+      redirectTo: `${window.location.origin}/redefinir-senha`,
+    });
+    setChangingPassword(false);
+    if (!error) {
+      alert(`Email de redefinição enviado para ${user?.email}. Verifique sua caixa de entrada.`);
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-100 p-5 mb-8">
+      <div className="flex items-center gap-2 mb-5">
+        <div className="w-7 h-7 flex items-center justify-center rounded-lg bg-sky-50">
+          <i className="ri-team-line text-sky-600 text-sm"></i>
+        </div>
+        <h3 className="font-bold text-gray-900 text-base">Gestão de Acesso</h3>
+      </div>
+
+      {/* Usuário atual (Gestor) */}
+      <div className="mb-5">
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+          Sua conta (Gestor)
+        </p>
+        <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-sky-100 flex items-center justify-center shrink-0">
+              <i className="ri-user-star-line text-sky-600 text-sm"></i>
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-gray-900">{user?.email}</p>
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className="text-xs text-sky-600 font-medium bg-sky-50 border border-sky-100 px-2 py-0.5 rounded-full">
+                  Gestor
+                </span>
+                {mfaInfo === "active" && (
+                  <span className="text-xs text-emerald-600 font-medium bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full flex items-center gap-1">
+                    <i className="ri-shield-check-line text-xs"></i>
+                    MFA ativo
+                  </span>
+                )}
+                {mfaInfo === "inactive" && (
+                  <span className="text-xs text-red-600 font-medium bg-red-50 border border-red-100 px-2 py-0.5 rounded-full flex items-center gap-1">
+                    <i className="ri-shield-cross-line text-xs"></i>
+                    MFA inativo
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+          <button
+            onClick={handleChangePassword}
+            disabled={changingPassword}
+            className="flex items-center gap-1.5 text-xs text-gray-600 hover:text-sky-700 border border-gray-200 hover:border-sky-300 px-3 py-1.5 rounded-lg cursor-pointer transition-colors disabled:opacity-50 whitespace-nowrap"
+          >
+            {changingPassword ? (
+              <i className="ri-loader-4-line animate-spin text-xs"></i>
+            ) : (
+              <i className="ri-lock-password-line text-xs"></i>
+            )}
+            Redefinir senha
+          </button>
+        </div>
+      </div>
+
+      {/* Acesso adicional (colaborador) */}
+      <div>
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+          Acesso adicional (1 colaborador)
+        </p>
+
+        {inviteSuccess ? (
+          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+              <i className="ri-mail-check-line text-emerald-600 text-sm"></i>
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-emerald-900">Convite enviado!</p>
+              <p className="text-xs text-emerald-700 mt-0.5">
+                O colaborador receberá um email com instruções para configurar acesso e MFA.
+              </p>
+            </div>
+          </div>
+        ) : showInviteForm ? (
+          <div className="bg-gray-50 border border-gray-100 rounded-xl p-4">
+            <form onSubmit={handleInvite} className="space-y-3">
+              <div>
+                <label className="text-xs font-medium text-gray-700 mb-1 block">
+                  Email do colaborador
+                </label>
+                <input
+                  type="email"
+                  value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
+                  placeholder="colaborador@empresa.com"
+                  required
+                  autoFocus
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 outline-none focus:border-sky-400 transition-colors bg-white"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-700 mb-1 block">Perfil</label>
+                <select
+                  value={inviteRole}
+                  onChange={(e) => setInviteRole(e.target.value as "rh")}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 outline-none focus:border-sky-400 bg-white cursor-pointer"
+                >
+                  <option value="rh">RH — Visualiza candidatos e vagas</option>
+                </select>
+                <p className="text-xs text-gray-400 mt-1">
+                  Ações administrativas são restritas ao Gestor.
+                </p>
+              </div>
+
+              {inviteError && (
+                <div className="bg-red-50 border border-red-100 rounded-lg px-3 py-2.5 flex items-center gap-2">
+                  <i className="ri-error-warning-line text-red-500 text-sm shrink-0"></i>
+                  <p className="text-red-600 text-xs">{inviteError}</p>
+                </div>
+              )}
+
+              <div className="flex gap-2 pt-1">
+                <button
+                  type="submit"
+                  disabled={inviting}
+                  className="flex-1 bg-sky-600 hover:bg-sky-700 disabled:opacity-50 text-white font-semibold py-2 rounded-lg text-xs cursor-pointer transition-colors"
+                >
+                  {inviting ? (
+                    <span className="flex items-center justify-center gap-1.5">
+                      <i className="ri-loader-4-line animate-spin text-xs"></i>
+                      Enviando...
+                    </span>
+                  ) : (
+                    <span className="flex items-center justify-center gap-1.5">
+                      <i className="ri-mail-send-line text-xs"></i>
+                      Enviar convite
+                    </span>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setShowInviteForm(false); setInviteError(""); setInviteEmail(""); }}
+                  className="px-4 py-2 border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-lg text-xs cursor-pointer transition-colors"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          </div>
+        ) : (
+          <div className="border-2 border-dashed border-gray-200 rounded-xl p-5 text-center hover:border-sky-200 transition-colors">
+            <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-2">
+              <i className="ri-user-add-line text-gray-400 text-sm"></i>
+            </div>
+            <p className="text-sm text-gray-600 font-medium mb-1">Nenhum colaborador cadastrado</p>
+            <p className="text-xs text-gray-400 mb-3">
+              Adicione um colaborador (RH) para compartilhar o acesso ao painel.
+            </p>
+            <button
+              onClick={() => setShowInviteForm(true)}
+              className="inline-flex items-center gap-1.5 bg-sky-600 hover:bg-sky-700 text-white font-semibold px-4 py-2 rounded-lg text-xs cursor-pointer transition-colors"
+            >
+              <i className="ri-user-add-line text-xs"></i>
+              Convidar colaborador
+            </button>
+          </div>
+        )}
+
+        <div className="mt-3 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2.5 flex items-start gap-2">
+          <i className="ri-shield-keyhole-line text-amber-500 text-xs shrink-0 mt-0.5"></i>
+          <p className="text-xs text-amber-700 leading-relaxed">
+            O colaborador deverá configurar senha própria e autenticador MFA no primeiro acesso.
+            Ações críticas (gerenciar usuários, alterar dados da empresa) são restritas ao Gestor.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ──────────────────────────────────────────────────────────────
+// Componente principal: AdminTab
+// ──────────────────────────────────────────────────────────────
 
 export default function AdminTab() {
   const [solicitations, setSolicitations] = useState<Solicitation[]>(mockSolicitations);
@@ -96,21 +348,26 @@ export default function AdminTab() {
 
   return (
     <div>
-      {/* Header */}
+      {/* ── Gestão de Usuários ─────────────────────────────── */}
+      <UserManagementSection />
+
+      {/* ── Solicitações VagasOeste ───────────────────────── */}
       <div className="mb-5">
         <div className="flex items-center gap-2 mb-1">
           <div className="w-6 h-6 flex items-center justify-center">
             <i className="ri-admin-line text-emerald-600 text-base"></i>
           </div>
-          <h2 className="font-bold text-gray-900 text-lg">Painel Administrativo VagasOeste</h2>
+          <h2 className="font-bold text-gray-900 text-lg">Solicitações — VagasOeste</h2>
         </div>
-        <p className="text-gray-500 text-sm">Gerencie todas as solicitações de contato e pré-entrevistas das empresas parceiras.</p>
+        <p className="text-gray-500 text-sm">
+          Acompanhe o status das solicitações de contato e pré-entrevistas.
+        </p>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4 mb-6">
         {[
-          { label: "Total de Solicitações", value: solicitations.length, icon: "ri-file-list-line", color: "text-gray-700" },
+          { label: "Total", value: solicitations.length, icon: "ri-file-list-line", color: "text-gray-700" },
           { label: "Pendentes", value: solicitations.filter((s) => s.status === "pending").length, icon: "ri-time-line", color: "text-amber-600" },
           { label: "Concluídas", value: solicitations.filter((s) => s.status === "done").length, icon: "ri-checkbox-circle-line", color: "text-emerald-600" },
         ].map((stat) => (
@@ -124,7 +381,7 @@ export default function AdminTab() {
         ))}
       </div>
 
-      {/* Filters */}
+      {/* Filtros */}
       <div className="bg-white rounded-xl border border-gray-100 p-4 mb-5 flex flex-wrap gap-3">
         <div>
           <label className="text-xs text-gray-500 mb-1 block">Tipo</label>
@@ -154,7 +411,7 @@ export default function AdminTab() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* List */}
+        {/* Lista */}
         <div className="space-y-3">
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
             {filtered.length} solicitaç{filtered.length !== 1 ? "ões" : "ão"}
@@ -189,12 +446,12 @@ export default function AdminTab() {
           )}
         </div>
 
-        {/* Detail */}
+        {/* Detalhe */}
         <div>
           {selectedSol ? (
             <div className="bg-white rounded-xl border border-gray-100 p-5">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-bold text-gray-900">Detalhes da Solicitação</h3>
+                <h3 className="font-bold text-gray-900">Detalhes</h3>
                 <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${STATUS_CONFIG[selectedSol.status].color}`}>
                   {STATUS_CONFIG[selectedSol.status].label}
                 </span>
@@ -206,16 +463,15 @@ export default function AdminTab() {
                   { label: "Empresa", value: selectedSol.companyName },
                   { label: "Candidato", value: selectedSol.candidateRef },
                   { label: "Vaga", value: selectedSol.jobTitle },
-                  { label: "Data da Solicitação", value: selectedSol.requestedAt },
+                  { label: "Data", value: selectedSol.requestedAt },
                 ].map((item) => (
                   <div key={item.label} className="flex items-start gap-2">
-                    <span className="text-xs text-gray-400 w-32 shrink-0 pt-0.5">{item.label}:</span>
+                    <span className="text-xs text-gray-400 w-24 shrink-0 pt-0.5">{item.label}:</span>
                     <span className="text-sm text-gray-800 font-medium">{item.value}</span>
                   </div>
                 ))}
               </div>
 
-              {/* Status change */}
               <div className="mb-4">
                 <label className="text-xs font-semibold text-gray-500 mb-1.5 block">Atualizar Status</label>
                 <div className="flex gap-2 flex-wrap">
@@ -235,7 +491,6 @@ export default function AdminTab() {
                 </div>
               </div>
 
-              {/* Notes */}
               <div className="mb-4">
                 <label className="text-xs font-semibold text-gray-500 mb-1.5 block">Observações</label>
                 <textarea
@@ -243,12 +498,11 @@ export default function AdminTab() {
                   onChange={(e) => setEditNotes(e.target.value)}
                   rows={2}
                   maxLength={500}
-                  placeholder="Adicione observações sobre esta solicitação..."
+                  placeholder="Adicione observações..."
                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 outline-none focus:border-emerald-400 resize-none"
                 />
               </div>
 
-              {/* Interview Report */}
               {selectedSol.type === "interview" && (
                 <div className="mb-4">
                   <label className="text-xs font-semibold text-gray-500 mb-1.5 block">Relato da Pré-entrevista</label>
@@ -257,7 +511,7 @@ export default function AdminTab() {
                     onChange={(e) => setEditReport(e.target.value)}
                     rows={5}
                     maxLength={500}
-                    placeholder="Descreva detalhadamente como foi a pré-entrevista, impressões do candidato, pontos fortes e fracos..."
+                    placeholder="Descreva como foi a pré-entrevista..."
                     className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 outline-none focus:border-emerald-400 resize-none"
                   />
                   <p className="text-gray-400 text-xs mt-1 text-right">{editReport.length}/500</p>

@@ -1,4 +1,5 @@
 import type { RouteObject } from "react-router-dom";
+import PrivateRoute from "../components/PrivateRoute";
 import NotFound from "../pages/NotFound";
 import Home from "../pages/home/page";
 import VagasPage from "../pages/vagas/page";
@@ -20,99 +21,80 @@ import PreCadastroPage from "../pages/pre-cadastro/page";
 import InteresseEmpresaPage from "../pages/interesse-empresa/page";
 import BlogPage from "../pages/blog/page";
 import BlogPostPage from "../pages/blog/post";
+import EsqueciSenhaPage from "../pages/esqueci-senha/page";
+import RedefinirSenhaPage from "../pages/redefinir-senha/page";
 
 const routes: RouteObject[] = [
-  {
-    path: "/",
-    element: <Home />,
-  },
-  {
-    path: "/vagas",
-    element: <VagasPage />,
-  },
-  {
-    path: "/vagas/:id",
-    element: <VagaDetalhePage />,
-  },
-  {
-    path: "/cadastro",
-    element: <CadastroPage />,
-  },
-  {
-    path: "/verificar-email",
-    element: <VerificarEmailPage />,
-  },
+  // ── Públicas ────────────────────────────────────────────────
+  { path: "/", element: <Home /> },
+  { path: "/vagas", element: <VagasPage /> },
+  { path: "/vagas/:id", element: <VagaDetalhePage /> },
+  { path: "/cadastro", element: <CadastroPage /> },
+  { path: "/verificar-email", element: <VerificarEmailPage /> },
+  { path: "/login", element: <LoginPage /> },
+  { path: "/dicas-de-vaga", element: <DicasDeVagaPage /> },
+  { path: "/crie-seu-curriculo", element: <CrieSeuCurriculoPage /> },
+  { path: "/curriculo-avulso", element: <CurriculoAvulsoPage /> },
+  { path: "/como-funciona", element: <ComoFuncionaPage /> },
+  { path: "/para-empresas", element: <ParaEmpresasPage /> },
+  { path: "/pre-cadastro", element: <PreCadastroPage /> },
+  { path: "/interesse-empresa", element: <InteresseEmpresaPage /> },
+  { path: "/blog", element: <BlogPage /> },
+  { path: "/blog/:slug", element: <BlogPostPage /> },
+  { path: "/esqueci-senha", element: <EsqueciSenhaPage /> },
+  { path: "/redefinir-senha", element: <RedefinirSenhaPage /> },
+
+  // ── Candidato ───────────────────────────────────────────────
   {
     path: "/plataforma",
-    element: <PlataformaPage />,
+    element: (
+      <PrivateRoute allowedRoles={["candidato"]}>
+        <PlataformaPage />
+      </PrivateRoute>
+    ),
   },
   {
     path: "/plataforma/perfil",
-    element: <CandidatoPerfilPage />,
+    element: (
+      <PrivateRoute allowedRoles={["candidato"]}>
+        <CandidatoPerfilPage />
+      </PrivateRoute>
+    ),
   },
+
+  // ── Empresa ─────────────────────────────────────────────────
   {
     path: "/empresa/dashboard",
-    element: <EmpresaPage />,
+    element: (
+      <PrivateRoute allowedRoles={["empresa"]} requireMfa>
+        <EmpresaPage />
+      </PrivateRoute>
+    ),
   },
+
+  // ── Admin ───────────────────────────────────────────────────
   {
-    path: "/dicas-de-vaga",
-    element: <DicasDeVagaPage />,
-  },
-  {
-    path: "/crie-seu-curriculo",
-    element: <CrieSeuCurriculoPage />,
-  },
-  {
-    path: "/curriculo-avulso",
-    element: <CurriculoAvulsoPage />,
-  },
-  {
-    path: "/login",
-    element: <LoginPage />,
-  },
-  {
-    // /admin → 404. O painel real está numa rota secreta abaixo.
+    // /admin → 404. Painel real está na rota secreta abaixo.
     path: "/admin",
     element: <NotFound />,
   },
   {
-    // URL secreta de login — não linkada em nenhum lugar do sistema
+    // URL de login admin — não linkada em nenhum lugar do sistema
     path: "/acesso-restrito",
     element: <AcessoRestritoPage />,
   },
   {
-    // Painel admin real — rota obscura, só acessível após login em /acesso-restrito
+    // Painel admin real — só acessível após login em /acesso-restrito
     path: "/vo-painel",
-    element: <AdminPage />,
+    element: (
+      <PrivateRoute allowedRoles={["admin"]} redirectTo="/acesso-restrito" requireMfa>
+        <AdminPage />
+      </PrivateRoute>
+    ),
   },
-  {
-    path: "/como-funciona",
-    element: <ComoFuncionaPage />,
-  },
-  {
-    path: "/para-empresas",
-    element: <ParaEmpresasPage />,
-  },
-  {
-    path: "/pre-cadastro",
-    element: <PreCadastroPage />,
-  },
-  {
-    path: "/interesse-empresa",
-    element: <InteresseEmpresaPage />,
-  },
-  {
-    path: "/blog",
-    element: <BlogPage />,
-  },
-  {
-    path: "/blog/:slug",
-    element: <BlogPostPage />,
-  },
-  {
-    path: "*",
-    element: <NotFound />,
-  },
+
+  // ── Catch-all ───────────────────────────────────────────────
+  { path: "*", element: <NotFound /> },
 ];
 
 export default routes;

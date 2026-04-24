@@ -2,16 +2,15 @@ import { useState } from "react";
 import CompanyJobsTab from "./components/CompanyJobsTab";
 import CandidatesTab from "./components/CandidatesTab";
 import AdminTab from "./components/AdminTab";
-import ChangePasswordModal from "./components/ChangePasswordModal";
+import { useAuth } from "@/contexts/AuthContext";
 import { mockCandidates } from "@/mocks/candidates";
 
 type Tab = "candidatos" | "vagas" | "admin";
 
 export default function EmpresaPage() {
+  const { user, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>("candidatos");
   const [notifDismissed, setNotifDismissed] = useState(false);
-  // Simula primeiro acesso com senha provisória
-  const [isFirstAccess, setIsFirstAccess] = useState(true);
 
   // Count new (pendente) candidates not yet viewed
   const newCandidatesCount = mockCandidates.filter(
@@ -26,8 +25,6 @@ export default function EmpresaPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* First access - change password modal */}
-      {isFirstAccess && <ChangePasswordModal onSuccess={() => setIsFirstAccess(false)} />}
 
       {/* Navbar */}
       <header className="bg-white border-b border-gray-100 sticky top-0 z-40">
@@ -54,9 +51,16 @@ export default function EmpresaPage() {
                 </span>
               </div>
             )}
-            <span className="text-xs text-gray-700 hidden sm:block">Empresa Parceira</span>
-            <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center cursor-pointer">
-              <i className="ri-building-line text-emerald-600 text-sm"></i>
+            <span className="text-xs text-gray-700 hidden sm:block truncate max-w-[160px]">
+              {user?.email ?? "Empresa Parceira"}
+            </span>
+            <div
+              className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center cursor-pointer hover:bg-red-50 group"
+              title="Sair"
+              onClick={() => signOut()}
+            >
+              <i className="ri-building-line text-emerald-600 text-sm group-hover:hidden"></i>
+              <i className="ri-logout-box-r-line text-red-500 text-sm hidden group-hover:block"></i>
             </div>
           </div>
         </div>

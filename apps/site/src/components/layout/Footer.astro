@@ -1,6 +1,4 @@
 ---
-import NewsletterForm from '../islands/NewsletterForm';
-
 const footerLinks = [
   { label: 'Vagas Disponíveis', href: '/vagas' },
   { label: 'Como Funciona', href: '/como-funciona' },
@@ -20,10 +18,10 @@ const socialLinks = [
 
 <footer class="bg-stone-900 text-white">
   <div class="max-w-7xl mx-auto px-4 md:px-6 py-10">
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
 
-      <!-- Brand + Newsletter (ilha React para interatividade do form) -->
-      <div class="md:col-span-2">
+      <!-- Brand -->
+      <div>
         <a href="/" class="flex items-center gap-2 mb-4">
           <div class="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center shrink-0">
             <i class="ri-briefcase-line text-sm text-white"></i>
@@ -32,13 +30,10 @@ const socialLinks = [
             Vagas<span class="text-emerald-400">Oeste</span>
           </span>
         </a>
-        <p class="text-stone-400 text-sm leading-relaxed mb-6 max-w-sm">
+        <p class="text-stone-400 text-sm leading-relaxed max-w-sm">
           A plataforma que conecta candidatos a vagas de emprego em Santarém e região oeste do Pará
           com segurança, anonimato e agilidade.
         </p>
-        <p class="text-sm font-semibold text-white mb-3">Receba vagas no seu email</p>
-        <!-- Newsletter: ilha React pois tem estado (input + fetch) -->
-        <NewsletterForm client:idle />
       </div>
 
       <!-- Links -->
@@ -68,7 +63,7 @@ const socialLinks = [
           </li>
           <li class="flex items-center gap-2 text-stone-400 text-sm">
             <i class="ri-mail-line text-emerald-400 text-base shrink-0"></i>
-            contato@vagasoeste.com.br
+            contato@santarem.app
           </li>
           <li class="flex items-start gap-2 text-stone-400 text-sm">
             <i class="ri-map-pin-line text-emerald-400 text-base shrink-0 mt-0.5"></i>

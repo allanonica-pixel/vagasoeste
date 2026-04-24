@@ -10,6 +10,7 @@ interface JobsFilterProps {
   initialCidade?: string;
   initialBairro?: string;
   initialQ?: string;
+  initialSetor?: string;
 }
 
 const LOCATIONS: Record<string, Record<string, string[]>> = {
@@ -42,6 +43,7 @@ export default function JobsFilter({
   initialCidade = '',
   initialBairro = '',
   initialQ = '',
+  initialSetor = '',
 }: JobsFilterProps) {
   // Location state
   const [estado, setEstado] = useState(initialEstado);
@@ -64,11 +66,11 @@ export default function JobsFilter({
 
   // Content filters
   const [query, setQuery] = useState(initialQ);
-  const [sector, setSector] = useState('');
+  const [sector, setSector] = useState(initialSetor);
   const [neighborhood, setNeighborhood] = useState('');
   const [contract, setContract] = useState('');
   const [sort, setSort] = useState<SortKey>('recente');
-  const [showFilters, setShowFilters] = useState(false);
+  const [showFilters, setShowFilters] = useState(!!initialSetor);
 
   const hasLocationFilter = !!(estado || cidade || bairroLoc);
 

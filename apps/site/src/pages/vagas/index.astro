@@ -16,7 +16,8 @@ const url = Astro.url;
 const initialEstado = url.searchParams.get('estado') ?? '';
 const initialCidade = url.searchParams.get('cidade') ?? '';
 const initialBairro = url.searchParams.get('bairro') ?? '';
-const initialQ     = url.searchParams.get('q') ?? '';
+const initialQ      = url.searchParams.get('q')      ?? '';
+const initialSetor  = url.searchParams.get('setor')  ?? '';
 
 const itemListSchema = {
   '@context': 'https://schema.org',
@@ -27,7 +28,7 @@ const itemListSchema = {
   itemListElement: jobs.slice(0, 10).map((job, i) => ({
     '@type': 'ListItem',
     position: i + 1,
-    url: `https://vagasoeste.com.br/vagas/${job.id}`,
+    url: `https://santarem.app/vagas/${job.id}`,
     name: `${job.title} em ${job.neighborhood}, ${job.city}`,
   })),
 };
@@ -81,6 +82,7 @@ const itemListSchema = {
         initialCidade={initialCidade}
         initialBairro={initialBairro}
         initialQ={initialQ}
+        initialSetor={initialSetor}
       />
     </div>
   </section>
@@ -92,7 +94,7 @@ const itemListSchema = {
       <p class="text-sm text-gray-600 mb-4">
         Cadastre-se gratuitamente e receba alertas quando novas vagas forem publicadas na sua área.
       </p>
-      <a href="https://app.vagasoeste.com.br/cadastro" class="btn-primary">
+      <a href="https://app.santarem.app/cadastro" class="btn-primary">
         <i class="ri-user-add-line"></i>
         Criar conta e receber alertas
       </a>
