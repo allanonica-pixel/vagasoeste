@@ -1,0 +1,42 @@
+# fly.staging.toml — VagasOeste API (ambiente de staging)
+# Deploy: fly deploy --config fly.staging.toml
+
+app = "vagasoeste-api-staging"
+primary_region = "gru"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "8080"
+  NODE_ENV = "staging"
+  LOG_LABEL = "api-staging"
+
+# Secrets (nunca em texto aqui — usar: fly secrets set KEY=value -a vagasoeste-api-staging)
+# APP_URL=https://app.santarem.app
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0    # staging dorme quando não usado
+
+  [http_service.concurrency]
+    type = "requests"
+    hard_limit = 50
+    soft_limit = 40
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"
+
+[checks]
+  [checks.health]
+    grace_period = "10s"
+    interval = "30s"
+    method = "GET"
+    path = "/health"
+    port = 8080
+    timeout = "5s"
+    type = "http"

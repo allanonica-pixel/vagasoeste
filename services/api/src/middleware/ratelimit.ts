@@ -64,7 +64,7 @@ export const rateLimit = (opts: RateLimitOptions) =>
         RETURNING count
       `);
 
-      const count = Number((result.rows[0] as { count: number }).count);
+      const count = Number((result[0] as { count: number }).count);
 
       // Adiciona headers informativos (padrão de mercado)
       c.header('X-RateLimit-Limit',     String(opts.limit));

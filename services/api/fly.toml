@@ -1,0 +1,48 @@
+# fly.toml — VagasOeste API
+# Documentação: https://fly.io/docs/reference/configuration/
+
+app = "vagasoeste-api"
+primary_region = "gru"   # São Paulo — mais próximo de Santarém/PA
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "8080"
+  NODE_ENV = "production"
+  LOG_LABEL = "api-prod"
+
+# Secrets (nunca em texto aqui — usar: fly secrets set KEY=value)
+# SUPABASE_URL
+# SUPABASE_ANON_KEY
+# SUPABASE_SERVICE_ROLE_KEY
+# DATABASE_URL
+# ALLOWED_ORIGINS
+# API_SECRET
+# APP_URL=https://app.santarem.app
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = true   # Para quando idle → economiza custo
+  auto_start_machines = true  # Liga automaticamente na requisição
+  min_machines_running = 0    # Zero custo quando sem tráfego (dev/staging)
+
+  [http_service.concurrency]
+    type = "requests"
+    hard_limit = 200
+    soft_limit = 150
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"
+
+[checks]
+  [checks.health]
+    grace_period = "10s"
+    interval = "30s"
+    method = "GET"
+    path = "/health"
+    port = 8080
+    timeout = "5s"
+    type = "http"

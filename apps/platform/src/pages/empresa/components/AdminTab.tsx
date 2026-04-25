@@ -1,6 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
+
+// ──────────────────────────────────────────────────────────────
+// Tipo: sub-usuário retornado pela API
+// ──────────────────────────────────────────────────────────────
+
+interface SubUser {
+  id: string;
+  email: string;
+  mfaEnabled: boolean;
+  createdAt: string;
+  isMain: boolean;
+}
 
 // ──────────────────────────────────────────────────────────────
 // Tipos
@@ -71,38 +83,72 @@ const STATUS_CONFIG = {
 // ──────────────────────────────────────────────────────────────
 
 function UserManagementSection() {
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState<"rh">("rh");
   const [inviting, setInviting] = useState(false);
-  const [inviteSuccess, setInviteSuccess] = useState(false);
   const [inviteError, setInviteError] = useState("");
   const [showInviteForm, setShowInviteForm] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
   const [mfaInfo, setMfaInfo] = useState<"loading" | "active" | "inactive">("loading");
+  const [subUsers, setSubUsers] = useState<SubUser[]>([]);
+  const [loadingUsers, setLoadingUsers] = useState(true);
+  const [removingId, setRemovingId] = useState<string | null>(null);
+  const [removeError, setRemoveError] = useState("");
 
-  // Verifica status do MFA na montagem
-  useState(() => {
+  // Sub-usuários não podem gerenciar acesso
+  const isSubUser = Boolean(user?.app_metadata?.company_id);
+
+  const apiUrl = import.meta.env.VITE_API_URL ?? "https://api.santarem.app";
+
+  // Cabeçalho de autenticação
+  const authHeader = () => ({
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${session?.access_token ?? ""}`,
+  });
+
+  // Carrega lista de colaboradores
+  const fetchSubUsers = useCallback(async () => {
+    if (isSubUser || !session?.access_token) return;
+    setLoadingUsers(true);
+    try {
+      const res = await fetch(`${apiUrl}/v1/empresa/users`, {
+        headers: authHeader(),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        // Exclui o gestor principal da lista (ele aparece na seção "Sua conta")
+        setSubUsers((data.data ?? []).filter((u: SubUser) => !u.isMain));
+      }
+    } catch {
+      // silencia — lista fica vazia
+    } finally {
+      setLoadingUsers(false);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.access_token, isSubUser]);
+
+  // Verifica MFA e carrega colaboradores na montagem
+  useEffect(() => {
     supabase.auth.mfa.listFactors().then(({ data }) => {
       const hasVerified = data?.totp?.some((f) => f.status === "verified");
       setMfaInfo(hasVerified ? "active" : "inactive");
     });
-  });
+    fetchSubUsers();
+  }, [fetchSubUsers]);
 
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
     setInviteError("");
     setInviting(true);
 
-    // Envia para o backend API (endpoint a implementar no serviço)
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL ?? "https://api.santarem.app"}/v1/empresa/invite-user`, {
+      const response = await fetch(`${apiUrl}/v1/empresa/invite-user`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeader(),
         body: JSON.stringify({
           email: inviteEmail,
           role: inviteRole,
-          gestorId: user?.id,
         }),
       });
 
@@ -111,14 +157,36 @@ function UserManagementSection() {
         throw new Error(data.message ?? "Erro ao enviar convite.");
       }
 
-      setInviteSuccess(true);
       setShowInviteForm(false);
       setInviteEmail("");
+      // Recarrega lista para mostrar novo colaborador
+      await fetchSubUsers();
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Erro ao enviar convite. Tente novamente.";
       setInviteError(message);
     } finally {
       setInviting(false);
+    }
+  };
+
+  const handleRemoveUser = async (userId: string) => {
+    setRemoveError("");
+    setRemovingId(userId);
+    try {
+      const res = await fetch(`${apiUrl}/v1/empresa/users/${userId}`, {
+        method: "DELETE",
+        headers: authHeader(),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message ?? "Erro ao remover colaborador.");
+      }
+      setSubUsers((prev) => prev.filter((u) => u.id !== userId));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Erro ao remover colaborador.";
+      setRemoveError(message);
+    } finally {
+      setRemovingId(null);
     }
   };
 
@@ -142,21 +210,21 @@ function UserManagementSection() {
         <h3 className="font-bold text-gray-900 text-base">Gestão de Acesso</h3>
       </div>
 
-      {/* Usuário atual (Gestor) */}
+      {/* Usuário atual */}
       <div className="mb-5">
         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
-          Sua conta (Gestor)
+          Sua conta ({isSubUser ? "Colaborador RH" : "Gestor"})
         </p>
         <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-full bg-sky-100 flex items-center justify-center shrink-0">
-              <i className="ri-user-star-line text-sky-600 text-sm"></i>
+              <i className={`${isSubUser ? "ri-user-line" : "ri-user-star-line"} text-sky-600 text-sm`}></i>
             </div>
             <div>
               <p className="text-sm font-semibold text-gray-900">{user?.email}</p>
               <div className="flex items-center gap-2 mt-0.5">
                 <span className="text-xs text-sky-600 font-medium bg-sky-50 border border-sky-100 px-2 py-0.5 rounded-full">
-                  Gestor
+                  {isSubUser ? "RH" : "Gestor"}
                 </span>
                 {mfaInfo === "active" && (
                   <span className="text-xs text-emerald-600 font-medium bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full flex items-center gap-1">
@@ -188,117 +256,170 @@ function UserManagementSection() {
         </div>
       </div>
 
-      {/* Acesso adicional (colaborador) */}
-      <div>
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
-          Acesso adicional (1 colaborador)
-        </p>
+      {/* Colaboradores — apenas Gestor pode gerenciar */}
+      {!isSubUser && (
+        <div>
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+            Acesso adicional (1 colaborador)
+          </p>
 
-        {inviteSuccess ? (
-          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
-              <i className="ri-mail-check-line text-emerald-600 text-sm"></i>
+          {/* Lista de colaboradores existentes */}
+          {loadingUsers ? (
+            <div className="flex items-center gap-2 py-4 text-gray-400 text-sm">
+              <i className="ri-loader-4-line animate-spin text-base"></i>
+              Carregando...
             </div>
-            <div>
-              <p className="text-sm font-semibold text-emerald-900">Convite enviado!</p>
-              <p className="text-xs text-emerald-700 mt-0.5">
-                O colaborador receberá um email com instruções para configurar acesso e MFA.
-              </p>
-            </div>
-          </div>
-        ) : showInviteForm ? (
-          <div className="bg-gray-50 border border-gray-100 rounded-xl p-4">
-            <form onSubmit={handleInvite} className="space-y-3">
-              <div>
-                <label className="text-xs font-medium text-gray-700 mb-1 block">
-                  Email do colaborador
-                </label>
-                <input
-                  type="email"
-                  value={inviteEmail}
-                  onChange={(e) => setInviteEmail(e.target.value)}
-                  placeholder="colaborador@empresa.com"
-                  required
-                  autoFocus
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 outline-none focus:border-sky-400 transition-colors bg-white"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-medium text-gray-700 mb-1 block">Perfil</label>
-                <select
-                  value={inviteRole}
-                  onChange={(e) => setInviteRole(e.target.value as "rh")}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 outline-none focus:border-sky-400 bg-white cursor-pointer"
+          ) : subUsers.length > 0 ? (
+            <div className="space-y-2 mb-4">
+              {subUsers.map((su) => (
+                <div
+                  key={su.id}
+                  className="bg-gray-50 border border-gray-100 rounded-xl p-4 flex items-center justify-between gap-3"
                 >
-                  <option value="rh">RH — Visualiza candidatos e vagas</option>
-                </select>
-                <p className="text-xs text-gray-400 mt-1">
-                  Ações administrativas são restritas ao Gestor.
-                </p>
-              </div>
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center shrink-0">
+                      <i className="ri-user-line text-violet-600 text-sm"></i>
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-gray-900 truncate">{su.email}</p>
+                      <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                        <span className="text-xs text-violet-600 font-medium bg-violet-50 border border-violet-100 px-2 py-0.5 rounded-full">
+                          RH
+                        </span>
+                        {su.mfaEnabled ? (
+                          <span className="text-xs text-emerald-600 font-medium bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full flex items-center gap-1">
+                            <i className="ri-shield-check-line text-xs"></i>
+                            MFA ativo
+                          </span>
+                        ) : (
+                          <span className="text-xs text-amber-600 font-medium bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-full flex items-center gap-1">
+                            <i className="ri-shield-line text-xs"></i>
+                            Aguardando MFA
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleRemoveUser(su.id)}
+                    disabled={removingId === su.id}
+                    className="flex items-center gap-1.5 text-xs text-red-500 hover:text-red-700 border border-red-100 hover:border-red-300 px-3 py-1.5 rounded-lg cursor-pointer transition-colors disabled:opacity-50 whitespace-nowrap shrink-0"
+                    title="Remover colaborador"
+                  >
+                    {removingId === su.id ? (
+                      <i className="ri-loader-4-line animate-spin text-xs"></i>
+                    ) : (
+                      <i className="ri-user-unfollow-line text-xs"></i>
+                    )}
+                    Remover
+                  </button>
+                </div>
+              ))}
 
-              {inviteError && (
+              {removeError && (
                 <div className="bg-red-50 border border-red-100 rounded-lg px-3 py-2.5 flex items-center gap-2">
                   <i className="ri-error-warning-line text-red-500 text-sm shrink-0"></i>
-                  <p className="text-red-600 text-xs">{inviteError}</p>
+                  <p className="text-red-600 text-xs">{removeError}</p>
                 </div>
               )}
-
-              <div className="flex gap-2 pt-1">
-                <button
-                  type="submit"
-                  disabled={inviting}
-                  className="flex-1 bg-sky-600 hover:bg-sky-700 disabled:opacity-50 text-white font-semibold py-2 rounded-lg text-xs cursor-pointer transition-colors"
-                >
-                  {inviting ? (
-                    <span className="flex items-center justify-center gap-1.5">
-                      <i className="ri-loader-4-line animate-spin text-xs"></i>
-                      Enviando...
-                    </span>
-                  ) : (
-                    <span className="flex items-center justify-center gap-1.5">
-                      <i className="ri-mail-send-line text-xs"></i>
-                      Enviar convite
-                    </span>
-                  )}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setShowInviteForm(false); setInviteError(""); setInviteEmail(""); }}
-                  className="px-4 py-2 border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-lg text-xs cursor-pointer transition-colors"
-                >
-                  Cancelar
-                </button>
-              </div>
-            </form>
-          </div>
-        ) : (
-          <div className="border-2 border-dashed border-gray-200 rounded-xl p-5 text-center hover:border-sky-200 transition-colors">
-            <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-2">
-              <i className="ri-user-add-line text-gray-400 text-sm"></i>
             </div>
-            <p className="text-sm text-gray-600 font-medium mb-1">Nenhum colaborador cadastrado</p>
-            <p className="text-xs text-gray-400 mb-3">
-              Adicione um colaborador (RH) para compartilhar o acesso ao painel.
-            </p>
-            <button
-              onClick={() => setShowInviteForm(true)}
-              className="inline-flex items-center gap-1.5 bg-sky-600 hover:bg-sky-700 text-white font-semibold px-4 py-2 rounded-lg text-xs cursor-pointer transition-colors"
-            >
-              <i className="ri-user-add-line text-xs"></i>
-              Convidar colaborador
-            </button>
-          </div>
-        )}
+          ) : null}
 
-        <div className="mt-3 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2.5 flex items-start gap-2">
-          <i className="ri-shield-keyhole-line text-amber-500 text-xs shrink-0 mt-0.5"></i>
-          <p className="text-xs text-amber-700 leading-relaxed">
-            O colaborador deverá configurar senha própria e autenticador MFA no primeiro acesso.
-            Ações críticas (gerenciar usuários, alterar dados da empresa) são restritas ao Gestor.
-          </p>
+          {/* Formulário de convite ou botão para abrir */}
+          {showInviteForm ? (
+            <div className="bg-gray-50 border border-gray-100 rounded-xl p-4">
+              <form onSubmit={handleInvite} className="space-y-3">
+                <div>
+                  <label className="text-xs font-medium text-gray-700 mb-1 block">
+                    Email do colaborador
+                  </label>
+                  <input
+                    type="email"
+                    value={inviteEmail}
+                    onChange={(e) => setInviteEmail(e.target.value)}
+                    placeholder="colaborador@empresa.com"
+                    required
+                    autoFocus
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 outline-none focus:border-sky-400 transition-colors bg-white"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-gray-700 mb-1 block">Perfil</label>
+                  <select
+                    value={inviteRole}
+                    onChange={(e) => setInviteRole(e.target.value as "rh")}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 outline-none focus:border-sky-400 bg-white cursor-pointer"
+                  >
+                    <option value="rh">RH — Visualiza candidatos e vagas</option>
+                  </select>
+                  <p className="text-xs text-gray-400 mt-1">
+                    Ações administrativas são restritas ao Gestor.
+                  </p>
+                </div>
+
+                {inviteError && (
+                  <div className="bg-red-50 border border-red-100 rounded-lg px-3 py-2.5 flex items-center gap-2">
+                    <i className="ri-error-warning-line text-red-500 text-sm shrink-0"></i>
+                    <p className="text-red-600 text-xs">{inviteError}</p>
+                  </div>
+                )}
+
+                <div className="flex gap-2 pt-1">
+                  <button
+                    type="submit"
+                    disabled={inviting}
+                    className="flex-1 bg-sky-600 hover:bg-sky-700 disabled:opacity-50 text-white font-semibold py-2 rounded-lg text-xs cursor-pointer transition-colors"
+                  >
+                    {inviting ? (
+                      <span className="flex items-center justify-center gap-1.5">
+                        <i className="ri-loader-4-line animate-spin text-xs"></i>
+                        Enviando...
+                      </span>
+                    ) : (
+                      <span className="flex items-center justify-center gap-1.5">
+                        <i className="ri-mail-send-line text-xs"></i>
+                        Enviar convite
+                      </span>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setShowInviteForm(false); setInviteError(""); setInviteEmail(""); }}
+                    className="px-4 py-2 border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-lg text-xs cursor-pointer transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </form>
+            </div>
+          ) : subUsers.length === 0 ? (
+            <div className="border-2 border-dashed border-gray-200 rounded-xl p-5 text-center hover:border-sky-200 transition-colors">
+              <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-2">
+                <i className="ri-user-add-line text-gray-400 text-sm"></i>
+              </div>
+              <p className="text-sm text-gray-600 font-medium mb-1">Nenhum colaborador cadastrado</p>
+              <p className="text-xs text-gray-400 mb-3">
+                Adicione um colaborador (RH) para compartilhar o acesso ao painel.
+              </p>
+              <button
+                onClick={() => setShowInviteForm(true)}
+                className="inline-flex items-center gap-1.5 bg-sky-600 hover:bg-sky-700 text-white font-semibold px-4 py-2 rounded-lg text-xs cursor-pointer transition-colors"
+              >
+                <i className="ri-user-add-line text-xs"></i>
+                Convidar colaborador
+              </button>
+            </div>
+          ) : null}
+
+          <div className="mt-3 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2.5 flex items-start gap-2">
+            <i className="ri-shield-keyhole-line text-amber-500 text-xs shrink-0 mt-0.5"></i>
+            <p className="text-xs text-amber-700 leading-relaxed">
+              O colaborador deverá configurar senha própria e autenticador MFA no primeiro acesso.
+              Ações críticas (gerenciar usuários, alterar dados da empresa) são restritas ao Gestor.
+            </p>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

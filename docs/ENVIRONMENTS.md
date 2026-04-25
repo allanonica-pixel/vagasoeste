@@ -58,6 +58,7 @@ SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
 SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5scWRqb3hhd3pvZWdmeGloaWVmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NzA3Mjk5NiwiZXhwIjoyMDkyNjQ4OTk2fQ.HfUVAq_TycYE_vDLlfZ0f-7D6tNF_54tljsHi-6TmCY
 DATABASE_URL=postgresql://postgres.nlqdjoxawzoegfxihief:DXs82Shj43S1brrI@aws-1-sa-east-1.pooler.supabase.com:6543/postgres
 ALLOWED_ORIGINS=http://localhost:4321,http://localhost:5173
+APP_URL=http://localhost:5173
 API_SECRET=dev-secret-local-nao-usar-em-prod
 LOG_LABEL=api-dev
 ```
