@@ -17,9 +17,9 @@ const breadcrumbSchema = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Início', item: 'https://vagasoeste.com.br/' },
-    { '@type': 'ListItem', position: 2, name: 'Vagas', item: 'https://vagasoeste.com.br/vagas' },
-    { '@type': 'ListItem', position: 3, name: `${job.title} em ${job.neighborhood}`, item: `https://vagasoeste.com.br/vagas/${job.id}` },
+    { '@type': 'ListItem', position: 1, name: 'Início', item: 'https://santarem.app/' },
+    { '@type': 'ListItem', position: 2, name: 'Vagas', item: 'https://santarem.app/vagas' },
+    { '@type': 'ListItem', position: 3, name: `${job.title} em ${job.neighborhood}`, item: `https://santarem.app/vagas/${job.id}` },
   ],
 };
 
@@ -52,7 +52,7 @@ const contractColorClass = {
   description={seoDesc}
   keywords={`${job.title}, vaga ${job.city}, emprego ${job.neighborhood}, ${job.area}, ${job.contractType}, vagas Santarém`}
   schema={[jobSchema, breadcrumbSchema, faqSchema]}
-  canonicalURL={`https://vagasoeste.com.br/vagas/${job.id}`}
+  canonicalURL={`https://santarem.app/vagas/${job.id}`}
 >
 
   <!-- Breadcrumb visual -->
@@ -199,14 +199,14 @@ const contractColorClass = {
 
             <div class="space-y-2 mb-5">
               <a
-                href={`https://app.vagasoeste.com.br/cadastro?jobId=${job.id}`}
+                href={`https://app.santarem.app/cadastro?jobId=${job.id}`}
                 class="btn-primary w-full justify-center"
               >
                 <i class="ri-user-add-line"></i>
                 Criar conta e candidatar
               </a>
               <a
-                href={`https://app.vagasoeste.com.br/login?redirect=/plataforma&jobId=${job.id}`}
+                href={`https://app.santarem.app/login?redirect=/plataforma&jobId=${job.id}`}
                 class="btn-secondary w-full justify-center"
               >
                 <i class="ri-login-box-line"></i>

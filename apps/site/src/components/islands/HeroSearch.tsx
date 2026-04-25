@@ -1,23 +1,30 @@
 import { useState } from 'react';
 
-const LOCATIONS = {
-  Pará: {
-    Santarém: ['Centro', 'Maracanã', 'Jardim Santarém', 'Aldeia', 'Santa Clara', 'Aparecida'],
-  },
-} as const;
+const LOCATIONS: Record<string, string[]> = {
+  Pará: ['Santarém'],
+};
+
+const SETORES = [
+  'Saúde',
+  'Comércio',
+  'Construção Civil',
+  'Serviços',
+  'Logística',
+  'Alimentação',
+  'Tecnologia',
+  'Indústria',
+];
 
 type Estado = keyof typeof LOCATIONS;
-type Cidade = keyof (typeof LOCATIONS)[Estado];
 
 export default function HeroSearch() {
   const [search, setSearch] = useState('');
   const [estado, setEstado] = useState<Estado | ''>('');
-  const [cidade, setCidade] = useState<Cidade | ''>('');
-  const [bairro, setBairro] = useState('');
+  const [cidade, setCidade] = useState('');
+  const [setor, setSetor] = useState('');
 
   const estados = Object.keys(LOCATIONS) as Estado[];
-  const cidades = estado ? (Object.keys(LOCATIONS[estado]) as Cidade[]) : [];
-  const bairros = estado && cidade ? LOCATIONS[estado][cidade as Cidade] : [];
+  const cidades = estado ? (LOCATIONS[estado] ?? []) : [];
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,15 +32,22 @@ export default function HeroSearch() {
     if (search) params.set('q', search);
     if (estado) params.set('estado', estado);
     if (cidade) params.set('cidade', cidade);
-    if (bairro) params.set('bairro', bairro);
+    if (setor) params.set('setor', setor);
     window.location.href = `/vagas${params.toString() ? `?${params.toString()}` : ''}`;
   };
 
-  const quickAreas = ['Administrativo', 'Vendas', 'Logística', 'TI', 'Saúde', 'Construção'];
+  const quickSetores = [
+    { label: 'Saúde',            icon: 'ri-heart-pulse-line'  },
+    { label: 'Comércio',         icon: 'ri-store-2-line'       },
+    { label: 'Construção Civil', icon: 'ri-building-4-line'    },
+    { label: 'Serviços',         icon: 'ri-tools-line'         },
+    { label: 'Logística',        icon: 'ri-truck-line'         },
+    { label: 'Tecnologia',       icon: 'ri-computer-line'      },
+  ];
 
   return (
     <form onSubmit={handleSearch} className="w-full max-w-3xl">
-      {/* Filtros de Localização */}
+      {/* Filtros de Localização + Setor */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-2">
         <div className="flex items-center gap-2 bg-white rounded-lg px-3 py-2">
           <i className="ri-map-pin-line text-emerald-600 text-sm shrink-0"></i>
@@ -42,7 +56,6 @@ export default function HeroSearch() {
             onChange={(e) => {
               setEstado(e.target.value as Estado | '');
               setCidade('');
-              setBairro('');
             }}
             className="flex-1 text-sm text-gray-700 outline-none bg-transparent cursor-pointer"
             aria-label="Estado"
@@ -58,10 +71,7 @@ export default function HeroSearch() {
           <i className="ri-building-2-line text-emerald-600 text-sm shrink-0"></i>
           <select
             value={cidade}
-            onChange={(e) => {
-              setCidade(e.target.value as Cidade | '');
-              setBairro('');
-            }}
+            onChange={(e) => setCidade(e.target.value)}
             disabled={!estado}
             className="flex-1 text-sm text-gray-700 outline-none bg-transparent cursor-pointer disabled:opacity-50"
             aria-label="Cidade"
@@ -74,17 +84,16 @@ export default function HeroSearch() {
         </div>
 
         <div className="flex items-center gap-2 bg-white rounded-lg px-3 py-2">
-          <i className="ri-home-4-line text-emerald-600 text-sm shrink-0"></i>
+          <i className="ri-briefcase-line text-emerald-600 text-sm shrink-0"></i>
           <select
-            value={bairro}
-            onChange={(e) => setBairro(e.target.value)}
-            disabled={!cidade}
-            className="flex-1 text-sm text-gray-700 outline-none bg-transparent cursor-pointer disabled:opacity-50"
-            aria-label="Bairro"
+            value={setor}
+            onChange={(e) => setSetor(e.target.value)}
+            className="flex-1 text-sm text-gray-700 outline-none bg-transparent cursor-pointer"
+            aria-label="Setor"
           >
-            <option value="">Bairro</option>
-            {bairros.map((b) => (
-              <option key={b} value={b}>{b}</option>
+            <option value="">Setor</option>
+            {SETORES.map((s) => (
+              <option key={s} value={s}>{s}</option>
             ))}
           </select>
         </div>
@@ -111,18 +120,19 @@ export default function HeroSearch() {
         </button>
       </div>
 
-      {/* Quick Tags */}
+      {/* Quick Setores */}
       <div className="flex flex-wrap justify-center gap-1.5 mt-3">
-        {quickAreas.map((tag) => (
+        {quickSetores.map((s) => (
           <button
-            key={tag}
+            key={s.label}
             type="button"
             onClick={() => {
-              window.location.href = `/vagas?area=${encodeURIComponent(tag)}`;
+              window.location.href = `/vagas?setor=${encodeURIComponent(s.label)}`;
             }}
-            className="bg-white/10 hover:bg-white/20 border border-white/20 text-white/90 text-xs px-2.5 py-1 rounded-full transition-colors whitespace-nowrap"
+            className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white/90 text-xs px-2.5 py-1 rounded-full transition-colors whitespace-nowrap"
           >
-            {tag}
+            <i className={`${s.icon} text-xs`}></i>
+            {s.label}
           </button>
         ))}
       </div>

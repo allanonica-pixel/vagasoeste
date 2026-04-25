@@ -4,19 +4,17 @@ import type { Job } from '../../lib/jobs';
 interface JobsFilterProps {
   initialJobs: Job[];
   sectors: string[];
-  neighborhoods: string[];
   contractTypes: string[];
   initialEstado?: string;
   initialCidade?: string;
-  initialBairro?: string;
   initialQ?: string;
   initialSetor?: string;
+  initialFuncao?: string;
+  initialCnh?: string;
 }
 
-const LOCATIONS: Record<string, Record<string, string[]>> = {
-  Pará: {
-    Santarém: ['Centro', 'Maracanã', 'Jardim Santarém', 'Aldeia', 'Santa Clara', 'Aparecida'],
-  },
+const LOCATIONS: Record<string, string[]> = {
+  Pará: ['Santarém'],
 };
 
 const CONTRACT_COLORS: Record<string, string> = {
@@ -37,53 +35,80 @@ function extractSalary(salaryRange: string): number {
 export default function JobsFilter({
   initialJobs,
   sectors,
-  neighborhoods,
   contractTypes,
   initialEstado = '',
   initialCidade = '',
-  initialBairro = '',
   initialQ = '',
   initialSetor = '',
+  initialFuncao = '',
+  initialCnh = '',
 }: JobsFilterProps) {
-  // Location state
+  // ── Filtros de localização + setor (barra principal) ──
   const [estado, setEstado] = useState(initialEstado);
   const [cidade, setCidade] = useState(initialCidade);
-  const [bairroLoc, setBairroLoc] = useState(initialBairro);
+  const [sector, setSector] = useState(initialSetor);
 
   const estados = Object.keys(LOCATIONS);
-  const cidades = estado ? Object.keys(LOCATIONS[estado] ?? {}) : [];
-  const bairrosLoc = estado && cidade ? (LOCATIONS[estado]?.[cidade] ?? []) : [];
+  const cidades = estado ? (LOCATIONS[estado] ?? []) : [];
 
   const handleEstadoChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setEstado(e.target.value);
     setCidade('');
-    setBairroLoc('');
-  };
-  const handleCidadeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setCidade(e.target.value);
-    setBairroLoc('');
   };
 
-  // Content filters
+  // ── Filtros de conteúdo ──
   const [query, setQuery] = useState(initialQ);
-  const [sector, setSector] = useState(initialSetor);
-  const [neighborhood, setNeighborhood] = useState('');
+  const [funcao, setFuncao] = useState(initialFuncao);
   const [contract, setContract] = useState('');
+  const [requiresCnh, setRequiresCnh] = useState(initialCnh === 'true');
   const [sort, setSort] = useState<SortKey>('recente');
-  const [showFilters, setShowFilters] = useState(!!initialSetor);
+  const [showFilters, setShowFilters] = useState(!!(initialFuncao || initialCnh));
 
-  const hasLocationFilter = !!(estado || cidade || bairroLoc);
+  const hasLocationFilter = !!(estado || cidade || sector);
+  const hasContentFilters = !!(query || funcao || contract || requiresCnh);
+  const hasAnyFilter = hasLocationFilter || hasContentFilters;
 
+  // ── Breadcrumb ──
+  const filterBreadcrumb = [
+    estado ? `Estado: ${estado}` : null,
+    cidade ? `Cidade: ${cidade}` : null,
+    sector ? `Setor: ${sector}` : null,
+  ]
+    .filter(Boolean)
+    .join(' · ');
+
+  // ── Filtro + ordenação ──
   const filtered = useMemo(() => {
     let jobs = initialJobs.filter((j) => {
+      // Busca textual
       const q = query.toLowerCase();
-      if (q && !j.title.toLowerCase().includes(q) && !j.area.toLowerCase().includes(q) && !j.description.toLowerCase().includes(q)) return false;
+      if (
+        q &&
+        !j.title.toLowerCase().includes(q) &&
+        !j.area.toLowerCase().includes(q) &&
+        !j.description.toLowerCase().includes(q)
+      )
+        return false;
+
+      // Setor (barra principal)
       if (sector && j.sector !== sector) return false;
-      if (neighborhood && j.neighborhood !== neighborhood) return false;
+
+      // Função/Cargo (Mais Filtros)
+      if (funcao) {
+        const fq = funcao.toLowerCase().replace(/\(.*?\)/g, '').trim();
+        if (!j.title.toLowerCase().includes(fq) && !j.area.toLowerCase().includes(fq))
+          return false;
+      }
+
+      // Tipo de contrato
       if (contract && j.contractType !== contract) return false;
-      // Location
+
+      // CNH obrigatória
+      if (requiresCnh && !j.requirements.toLowerCase().includes('cnh')) return false;
+
+      // Cidade
       if (cidade && j.city !== cidade) return false;
-      if (bairroLoc && j.neighborhood !== bairroLoc) return false;
+
       return true;
     });
 
@@ -94,36 +119,25 @@ export default function JobsFilter({
     });
 
     return jobs;
-  }, [initialJobs, query, sector, neighborhood, contract, sort, cidade, bairroLoc]);
-
-  const hasContentFilters = !!(query || sector || neighborhood || contract);
+  }, [initialJobs, query, sector, funcao, contract, requiresCnh, sort, cidade]);
 
   const clearAllFilters = () => {
     setEstado('');
     setCidade('');
-    setBairroLoc('');
-    setQuery('');
     setSector('');
-    setNeighborhood('');
+    setQuery('');
+    setFuncao('');
     setContract('');
+    setRequiresCnh(false);
   };
 
   const goHome = () => {
     window.location.href = '/';
   };
 
-  // Breadcrumb text
-  const filterBreadcrumb = [
-    estado ? `Estado: ${estado}` : null,
-    `Cidade: ${cidade || 'Todas'}`,
-    `Bairro: ${bairroLoc || 'Todos'}`,
-  ]
-    .filter(Boolean)
-    .join(' · ');
-
   return (
     <div>
-      {/* ── Filter Breadcrumb (acima dos filtros, visível quando localização ativa) ── */}
+      {/* ── Breadcrumb de filtros ativos ── */}
       {hasLocationFilter && (
         <div className="bg-emerald-800 -mx-4 md:-mx-6 px-4 md:px-6 py-2.5 mb-4 flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2 flex-wrap">
@@ -140,7 +154,7 @@ export default function JobsFilter({
         </div>
       )}
 
-      {/* ── Location Dropdowns ── */}
+      {/* ── Barra principal: Estado · Cidade · Setor ── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3">
         <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-lg px-3 py-2.5">
           <i className="ri-map-pin-line text-emerald-600 text-sm shrink-0"></i>
@@ -151,38 +165,45 @@ export default function JobsFilter({
             aria-label="Estado"
           >
             <option value="">Estado</option>
-            {estados.map((e) => <option key={e} value={e}>{e}</option>)}
+            {estados.map((e) => (
+              <option key={e} value={e}>{e}</option>
+            ))}
           </select>
         </div>
+
         <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-lg px-3 py-2.5">
           <i className="ri-building-2-line text-emerald-600 text-sm shrink-0"></i>
           <select
             value={cidade}
-            onChange={handleCidadeChange}
+            onChange={(e) => setCidade(e.target.value)}
             disabled={!estado}
             className="flex-1 text-sm text-gray-700 outline-none bg-transparent cursor-pointer disabled:opacity-50"
             aria-label="Cidade"
           >
             <option value="">Cidade</option>
-            {cidades.map((c) => <option key={c} value={c}>{c}</option>)}
+            {cidades.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
           </select>
         </div>
+
         <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-lg px-3 py-2.5">
-          <i className="ri-home-4-line text-emerald-600 text-sm shrink-0"></i>
+          <i className="ri-briefcase-line text-emerald-600 text-sm shrink-0"></i>
           <select
-            value={bairroLoc}
-            onChange={(e) => setBairroLoc(e.target.value)}
-            disabled={!cidade}
-            className="flex-1 text-sm text-gray-700 outline-none bg-transparent cursor-pointer disabled:opacity-50"
-            aria-label="Bairro"
+            value={sector}
+            onChange={(e) => setSector(e.target.value)}
+            className="flex-1 text-sm text-gray-700 outline-none bg-transparent cursor-pointer"
+            aria-label="Setor"
           >
-            <option value="">Bairro</option>
-            {bairrosLoc.map((b) => <option key={b} value={b}>{b}</option>)}
+            <option value="">Setor</option>
+            {sectors.map((s) => (
+              <option key={s} value={s}>{s}</option>
+            ))}
           </select>
         </div>
       </div>
 
-      {/* ── Search + Filters Toggle + Sort ── */}
+      {/* ── Busca + Mais Filtros + Ordenação ── */}
       <div className="flex flex-col sm:flex-row gap-2 mb-3">
         <div className="flex-1 flex items-center gap-2 bg-white border border-gray-200 rounded-lg px-3 py-2.5">
           <i className="ri-search-line text-gray-400 text-sm shrink-0"></i>
@@ -195,18 +216,27 @@ export default function JobsFilter({
             aria-label="Buscar vagas"
           />
           {query && (
-            <button onClick={() => setQuery('')} className="text-gray-400 hover:text-gray-600 cursor-pointer">
+            <button
+              onClick={() => setQuery('')}
+              className="text-gray-400 hover:text-gray-600 cursor-pointer"
+            >
               <i className="ri-close-line text-sm"></i>
             </button>
           )}
         </div>
         <button
           onClick={() => setShowFilters(!showFilters)}
-          className={`flex items-center gap-2 px-4 py-2.5 border rounded-lg text-sm font-medium transition-colors cursor-pointer whitespace-nowrap ${showFilters ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}
+          className={`flex items-center gap-2 px-4 py-2.5 border rounded-lg text-sm font-medium transition-colors cursor-pointer whitespace-nowrap ${
+            showFilters
+              ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
+              : 'border-gray-200 text-gray-700 hover:bg-gray-50'
+          }`}
         >
           <i className="ri-filter-3-line"></i>
           Mais filtros
-          {hasContentFilters && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>}
+          {hasContentFilters && (
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+          )}
         </button>
         <select
           value={sort}
@@ -220,37 +250,79 @@ export default function JobsFilter({
         </select>
       </div>
 
-      {/* ── Extra Filters Panel ── */}
+      {/* ── Painel de Mais Filtros: Função/Cargo · Tipo de Contrato · CNH ── */}
       {showFilters && (
-        <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {/* Função/Cargo */}
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Setor</label>
-            <select value={sector} onChange={(e) => setSector(e.target.value)}
-              className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm text-gray-700 outline-none bg-white cursor-pointer">
-              <option value="">Todos os setores</option>
-              {sectors.map((s) => <option key={s} value={s}>{s}</option>)}
-            </select>
+            <label className="block text-xs font-medium text-gray-700 mb-1.5">
+              Função / Cargo
+            </label>
+            <div className="relative">
+              <i className="ri-user-search-line absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+              <input
+                type="text"
+                value={funcao}
+                onChange={(e) => setFuncao(e.target.value)}
+                placeholder="Ex: Vendedor, Recepcionista..."
+                className="w-full border border-gray-200 rounded-md pl-8 pr-3 py-2 text-sm text-gray-700 outline-none bg-white placeholder-gray-400 focus:border-emerald-400"
+              />
+              {funcao && (
+                <button
+                  onClick={() => setFuncao('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
+                >
+                  <i className="ri-close-line text-sm"></i>
+                </button>
+              )}
+            </div>
           </div>
+
+          {/* Tipo de Contrato */}
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Bairro</label>
-            <select value={neighborhood} onChange={(e) => setNeighborhood(e.target.value)}
-              className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm text-gray-700 outline-none bg-white cursor-pointer">
-              <option value="">Todos os bairros</option>
-              {neighborhoods.map((n) => <option key={n} value={n}>{n}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Tipo de contrato</label>
-            <select value={contract} onChange={(e) => setContract(e.target.value)}
-              className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm text-gray-700 outline-none bg-white cursor-pointer">
+            <label className="block text-xs font-medium text-gray-700 mb-1.5">
+              Tipo de Contrato
+            </label>
+            <select
+              value={contract}
+              onChange={(e) => setContract(e.target.value)}
+              className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm text-gray-700 outline-none bg-white cursor-pointer"
+            >
               <option value="">Todos os contratos</option>
-              {contractTypes.map((c) => <option key={c} value={c}>{c}</option>)}
+              {contractTypes.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
             </select>
+          </div>
+
+          {/* Necessário CNH */}
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1.5">
+              Habilitação (CNH)
+            </label>
+            <label className="flex items-center gap-3 p-2.5 border border-gray-200 rounded-md bg-white cursor-pointer hover:border-emerald-300 transition-colors">
+              <div
+                className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${
+                  requiresCnh
+                    ? 'bg-emerald-600 border-emerald-600'
+                    : 'border-gray-300'
+                }`}
+              >
+                {requiresCnh && <i className="ri-check-line text-white text-xs"></i>}
+              </div>
+              <input
+                type="checkbox"
+                checked={requiresCnh}
+                onChange={(e) => setRequiresCnh(e.target.checked)}
+                className="sr-only"
+              />
+              <span className="text-sm text-gray-700">Necessário CNH</span>
+            </label>
           </div>
         </div>
       )}
 
-      {/* ── Sector Quick Filters ── */}
+      {/* ── Sector Quick Pills ── */}
       <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1 mb-4">
         {['Todos', ...sectors].map((s) => (
           <button
@@ -267,12 +339,13 @@ export default function JobsFilter({
         ))}
       </div>
 
-      {/* ── Results count + Clear ── */}
+      {/* ── Contagem de resultados + Limpar ── */}
       <div className="flex items-center justify-between mb-4">
         <p className="text-sm text-gray-600">
-          <span className="font-semibold text-gray-900">{filtered.length}</span> vaga{filtered.length !== 1 ? 's' : ''} encontrada{filtered.length !== 1 ? 's' : ''}
+          <span className="font-semibold text-gray-900">{filtered.length}</span>{' '}
+          vaga{filtered.length !== 1 ? 's' : ''} encontrada{filtered.length !== 1 ? 's' : ''}
         </p>
-        {(hasContentFilters || hasLocationFilter) && (
+        {hasAnyFilter && (
           <button
             onClick={clearAllFilters}
             className="text-xs text-emerald-600 hover:text-emerald-700 font-medium flex items-center gap-1 cursor-pointer"
@@ -283,14 +356,19 @@ export default function JobsFilter({
         )}
       </div>
 
-      {/* ── Jobs Grid ── */}
+      {/* ── Grid de vagas ── */}
       {filtered.length === 0 ? (
         <div className="text-center py-16">
           <i className="ri-search-line text-4xl text-gray-300 mb-3 block"></i>
           <p className="text-gray-500 font-medium">Nenhuma vaga encontrada</p>
-          <p className="text-gray-400 text-sm mt-1 mb-4">Tente outros filtros ou palavras-chave</p>
-          <button onClick={goHome} className="text-sm text-emerald-600 font-medium hover:underline cursor-pointer">
-            Limpar filtros e voltar ao início
+          <p className="text-gray-400 text-sm mt-1 mb-4">
+            Tente outros filtros ou palavras-chave
+          </p>
+          <button
+            onClick={clearAllFilters}
+            className="text-sm text-emerald-600 font-medium hover:underline cursor-pointer"
+          >
+            Limpar filtros
           </button>
         </div>
       ) : (
@@ -303,10 +381,16 @@ export default function JobsFilter({
             >
               <div className="flex items-start justify-between gap-2 mb-3">
                 <div>
-                  <h2 className="font-bold text-gray-900 text-lg leading-tight mb-1">{job.title}</h2>
+                  <h2 className="font-bold text-gray-900 text-lg leading-tight mb-1">
+                    {job.title}
+                  </h2>
                   <p className="text-base font-medium text-gray-600">{job.area}</p>
                 </div>
-                <span className={`shrink-0 inline-flex items-center px-2.5 py-1 rounded-full text-sm font-medium ${CONTRACT_COLORS[job.contractType] ?? 'bg-gray-100 text-gray-600'}`}>
+                <span
+                  className={`shrink-0 inline-flex items-center px-2.5 py-1 rounded-full text-sm font-medium ${
+                    CONTRACT_COLORS[job.contractType] ?? 'bg-gray-100 text-gray-600'
+                  }`}
+                >
                   {job.contractType}
                 </span>
               </div>
@@ -322,11 +406,16 @@ export default function JobsFilter({
                 </span>
               </div>
 
-              <p className="text-sm text-gray-500 line-clamp-3 mb-4 leading-relaxed">{job.description}</p>
+              <p className="text-sm text-gray-500 line-clamp-3 mb-4 leading-relaxed">
+                {job.description}
+              </p>
 
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-400">
-                  {new Date(job.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
+                  {new Date(job.createdAt).toLocaleDateString('pt-BR', {
+                    day: '2-digit',
+                    month: 'short',
+                  })}
                 </span>
                 <span className="text-base font-semibold text-emerald-600 group-hover:underline flex items-center gap-1 transition-colors">
                   Ver vaga

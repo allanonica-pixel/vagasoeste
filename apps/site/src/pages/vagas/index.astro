@@ -1,23 +1,23 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import JobsFilter from '../../components/islands/JobsFilter';
-import { getAllJobs, getUniqueSectors, getUniqueNeighborhoods, getUniqueContractTypes } from '../../lib/jobs';
+import { getAllJobs, getUniqueSectors, getUniqueContractTypes } from '../../lib/jobs';
 
 // SSR — vagas mudam frequentemente, precisamos de dados frescos
 export const prerender = false;
 
 const jobs = await getAllJobs();
 const sectors = getUniqueSectors(jobs);
-const neighborhoods = getUniqueNeighborhoods(jobs);
 const contractTypes = getUniqueContractTypes(jobs);
 
-// Lê filtros de localização da URL para pré-popular o componente
+// Lê filtros da URL para pré-popular o componente
 const url = Astro.url;
 const initialEstado = url.searchParams.get('estado') ?? '';
 const initialCidade = url.searchParams.get('cidade') ?? '';
-const initialBairro = url.searchParams.get('bairro') ?? '';
 const initialQ      = url.searchParams.get('q')      ?? '';
 const initialSetor  = url.searchParams.get('setor')  ?? '';
+const initialFuncao = url.searchParams.get('funcao') ?? '';
+const initialCnh    = url.searchParams.get('cnh')    ?? '';
 
 const itemListSchema = {
   '@context': 'https://schema.org',
@@ -76,13 +76,13 @@ const itemListSchema = {
         client:load
         initialJobs={jobs}
         sectors={sectors}
-        neighborhoods={neighborhoods}
         contractTypes={contractTypes}
         initialEstado={initialEstado}
         initialCidade={initialCidade}
-        initialBairro={initialBairro}
         initialQ={initialQ}
         initialSetor={initialSetor}
+        initialFuncao={initialFuncao}
+        initialCnh={initialCnh}
       />
     </div>
   </section>

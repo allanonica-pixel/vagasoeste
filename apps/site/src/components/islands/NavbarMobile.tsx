@@ -39,14 +39,14 @@ export default function NavbarMobile({ navLinks }: NavbarMobileProps) {
           ))}
           <div className="flex flex-col gap-2 pt-3 mt-1 border-t border-gray-100">
             <a
-              href="https://app.vagasoeste.com.br/login"
+              href="https://app.santarem.app/login"
               className="text-sm font-medium text-center py-2.5 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
               onClick={() => setOpen(false)}
             >
               Entrar
             </a>
             <a
-              href="https://app.vagasoeste.com.br/cadastro"
+              href="https://app.santarem.app/cadastro"
               className="text-sm font-semibold text-center py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors"
               onClick={() => setOpen(false)}
             >

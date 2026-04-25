@@ -157,8 +157,8 @@ export function buildJobSchema(job: Job): object {
   return {
     '@context': 'https://schema.org',
     '@type': 'JobPosting',
-    '@id': `https://vagasoeste.com.br/vagas/${job.id}`,
-    url: `https://vagasoeste.com.br/vagas/${job.id}`,
+    '@id': `https://santarem.app/vagas/${job.id}`,
+    url: `https://santarem.app/vagas/${job.id}`,
     title: job.title,
     description: job.description,
     datePosted: job.createdAt,
@@ -168,10 +168,10 @@ export function buildJobSchema(job: Job): object {
     hiringOrganization: {
       '@type': 'Organization',
       name: 'VagasOeste',
-      url: 'https://vagasoeste.com.br',
+      url: 'https://santarem.app',
       logo: {
         '@type': 'ImageObject',
-        url: 'https://vagasoeste.com.br/logo.png',
+        url: 'https://santarem.app/logo.png',
       },
     },
     jobLocation: {

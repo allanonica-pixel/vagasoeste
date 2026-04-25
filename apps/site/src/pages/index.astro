@@ -3,6 +3,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import HeroSearch from '../components/islands/HeroSearch';
 import HomepageJobs from '../components/islands/HomepageJobs';
 import TestimonialsSlider from '../components/islands/TestimonialsSlider';
+import SectorCards from '../components/islands/SectorCards';
 import { getAllJobs, getUniqueSectors } from '../lib/jobs';
 import { supabase } from '../lib/supabase';
 import { getFeaturedPosts } from '../lib/blog';
@@ -12,7 +13,7 @@ export const prerender = true;
 
 const jobs = await getAllJobs();
 const featuredPosts = await getFeaturedPosts(3);
-const appUrl = import.meta.env.PUBLIC_APP_URL ?? 'https://app.vagasoeste.com.br';
+const appUrl = import.meta.env.PUBLIC_APP_URL ?? 'https://app.santarem.app';
 
 // Mock fallback para quando o Supabase ainda não tiver vagas cadastradas
 const mockFallbackJobs = [
@@ -29,25 +30,19 @@ const mockFallbackJobs = [
 const displayJobs = jobs.length > 0 ? jobs.slice(0, 8) : mockFallbackJobs;
 const totalJobCount = jobs.length > 0 ? jobs.length : 12;
 
-// Bairros: tenta Supabase, cai no fallback se vazio/erro
-const fallbackNeighborhoods = [
-  { name: 'Centro', job_count: 0, image_url: 'https://readdy.ai/api/search-image?query=Santarem%20Para%20Brazil%20city%20center%20downtown%20commercial%20street%20urban%20area%20daytime%20tropical%20Amazon%20region%20buildings%20movement%20people%20warm%20light&width=400&height=300&seq=n1&orientation=landscape' },
-  { name: 'Maracanã', job_count: 0, image_url: 'https://readdy.ai/api/search-image?query=Santarem%20Para%20Brazil%20Maracana%20neighborhood%20residential%20street%20urban%20area%20daytime%20tropical%20Amazon%20region%20green%20trees%20houses%20warm%20light&width=400&height=300&seq=n2&orientation=landscape' },
-  { name: 'Jardim Santarém', job_count: 0, image_url: 'https://readdy.ai/api/search-image?query=Santarem%20Para%20Brazil%20Jardim%20neighborhood%20residential%20street%20urban%20area%20daytime%20tropical%20Amazon%20region%20houses%20gardens%20calm%20warm%20light&width=400&height=300&seq=n3&orientation=landscape' },
-  { name: 'Aldeia', job_count: 0, image_url: 'https://readdy.ai/api/search-image?query=Santarem%20Para%20Brazil%20Aldeia%20neighborhood%20residential%20street%20urban%20area%20daytime%20tropical%20Amazon%20region%20houses%20community%20warm%20light&width=400&height=300&seq=n4&orientation=landscape' },
-  { name: 'Santa Clara', job_count: 0, image_url: 'https://readdy.ai/api/search-image?query=Santarem%20Para%20Brazil%20Santa%20Clara%20neighborhood%20residential%20commercial%20street%20urban%20area%20daytime%20tropical%20Amazon%20region%20warm%20light&width=400&height=300&seq=n5&orientation=landscape' },
-  { name: 'Aparecida', job_count: 0, image_url: 'https://readdy.ai/api/search-image?query=Santarem%20Para%20Brazil%20Aparecida%20neighborhood%20residential%20street%20urban%20area%20daytime%20tropical%20Amazon%20region%20houses%20calm%20warm%20light&width=400&height=300&seq=n6&orientation=landscape' },
-];
+// Contagem de vagas reais por setor — passada para a island SectorCards
+const rawSectorCounts = jobs.reduce((acc: Record<string, number>, job) => {
+  if (job.sector) acc[job.sector] = (acc[job.sector] ?? 0) + 1;
+  return acc;
+}, {});
 
-const { data: neighborhoodsRaw } = await supabase
-  .from('neighborhoods')
-  .select('name, city, description, image_url, job_count')
-  .order('name');
+// Fallback mock para quando não há vagas no banco ainda
+const mockSectorCounts: Record<string, number> = {
+  'Comércio': 4, 'Logística': 2, 'Saúde': 1, 'Serviços': 1,
+  'Tecnologia': 1, 'Alimentação': 1, 'Construção Civil': 1, 'Indústria': 1,
+};
 
-const neighborhoods =
-  neighborhoodsRaw && neighborhoodsRaw.length > 0
-    ? neighborhoodsRaw
-    : fallbackNeighborhoods;
+const sectorCounts = jobs.length > 0 ? rawSectorCounts : mockSectorCounts;
 
 const stats = [
   { label: 'Vagas Ativas', value: `${totalJobCount}+` },
@@ -120,8 +115,8 @@ const organizationSchema = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
   name: 'VagasOeste',
-  url: 'https://vagasoeste.com.br',
-  logo: 'https://vagasoeste.com.br/logo.png',
+  url: 'https://santarem.app',
+  logo: 'https://santarem.app/logo.png',
   description: 'Plataforma de empregos em Santarém e região oeste do Pará com processo seletivo anônimo e seguro.',
   areaServed: {
     '@type': 'Place',
@@ -138,10 +133,10 @@ const websiteSchema = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
   name: 'VagasOeste',
-  url: 'https://vagasoeste.com.br',
+  url: 'https://santarem.app',
   potentialAction: {
     '@type': 'SearchAction',
-    target: { '@type': 'EntryPoint', urlTemplate: 'https://vagasoeste.com.br/vagas?q={search_term_string}' },
+    target: { '@type': 'EntryPoint', urlTemplate: 'https://santarem.app/vagas?q={search_term_string}' },
     'query-input': 'required name=search_term_string',
   },
 };
@@ -177,11 +172,11 @@ const websiteSchema = {
       </div>
 
       <h1 class="text-2xl md:text-4xl font-bold text-white leading-tight mb-3 max-w-2xl text-balance">
-        Encontre sua vaga{' '}
-        <span class="text-emerald-300">no bairro certo</span> da sua cidade
+        As melhores vagas em{' '}
+        <span class="text-emerald-300">Santarém e região</span>, em um só lugar
       </h1>
       <p class="text-white/75 text-sm md:text-base max-w-lg mb-6 leading-relaxed">
-        Vagas reais em Santarém/PA. Você vê o bairro e a função — a empresa fica anônima até você ser selecionado.
+        Vagas reais com informações claras sobre função e área de atuação. Acompanhe cada etapa da sua candidatura em tempo real.
       </p>
 
       <!-- Formulário de busca: ilha React -->
@@ -203,50 +198,25 @@ const websiteSchema = {
     </div>
   </section>
 
-  <!-- ─────────────────── VAGAS POR BAIRRO (layout plataforma) ──────── -->
-  <section class="py-20 bg-white" aria-labelledby="bairros-title">
+  <!-- ─────────────────── ÁREAS DE ATUAÇÃO (Por Setor / Por Função) ── -->
+  <section class="py-20 bg-white" aria-labelledby="setores-title">
     <div class="max-w-7xl mx-auto px-4 md:px-6">
-      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-12">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
         <div>
-          <span class="text-emerald-600 text-xs font-semibold uppercase tracking-widest">Localização</span>
-          <h2 id="bairros-title" class="text-3xl md:text-4xl font-bold text-gray-900 mt-2">Vagas por Bairro</h2>
+          <span class="text-emerald-600 text-xs font-semibold uppercase tracking-widest">Áreas de atuação</span>
+          <h2 id="setores-title" class="text-3xl md:text-4xl font-bold text-gray-900 mt-2">Explore por Setor ou Função</h2>
           <p class="text-gray-700 text-sm mt-2 max-w-md">
-            Você vê o bairro da empresa, mas o nome dela fica anônimo até você ser selecionado.
+            Selecione um setor ou função, escolha a localidade e veja as vagas disponíveis.
           </p>
         </div>
         <a href="/vagas" class="text-sm font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-1 whitespace-nowrap">
-          Ver todos os bairros
+          Ver todas as vagas
           <i class="ri-arrow-right-line text-sm"></i>
         </a>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {neighborhoods.slice(0, 6).map((bairro) => (
-          <a
-            href={`/vagas?bairro=${encodeURIComponent(bairro.name)}`}
-            class="group relative rounded-xl overflow-hidden block"
-            style="height: 220px;"
-          >
-            <img
-              src={bairro.image_url ?? ''}
-              alt={`Vagas em ${bairro.name}, Santarém PA`}
-              class="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
-              loading="lazy"
-            />
-            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
-            <!-- Default -->
-            <div class="absolute bottom-0 left-0 right-0 p-5">
-              <div class="flex items-center gap-1 mb-1">
-                <i class="ri-map-pin-line text-emerald-400 text-xs"></i>
-                <span class="text-white/70 text-xs">
-                  {bairro.job_count != null && bairro.job_count > 0 ? `${bairro.job_count} vagas` : 'Ver vagas'}
-                </span>
-              </div>
-              <h3 class="text-white font-bold text-xl">{bairro.name}</h3>
-            </div>
-          </a>
-        ))}
-      </div>
+      <!-- Island interativa com abas + modal de localização -->
+      <SectorCards client:load sectorCounts={sectorCounts} />
 
       <!-- Aviso de anonimato -->
       <div class="mt-8 flex items-center gap-3 bg-emerald-50 border border-emerald-100 rounded-xl p-4">

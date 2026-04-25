@@ -38,7 +38,7 @@ const jobListSchema = jobs.length > 0 ? {
   itemListElement: jobs.map((job, i) => ({
     '@type': 'ListItem',
     position: i + 1,
-    url: `https://vagasoeste.com.br/vagas/${job.id}`,
+    url: `https://santarem.app/vagas/${job.id}`,
     name: `${job.title} em ${job.neighborhood}, ${job.city}`,
   })),
 } : null;
@@ -47,9 +47,9 @@ const breadcrumbSchema = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Início', item: 'https://vagasoeste.com.br/' },
-    { '@type': 'ListItem', position: 2, name: 'Vagas', item: 'https://vagasoeste.com.br/vagas' },
-    { '@type': 'ListItem', position: 3, name: cityName, item: `https://vagasoeste.com.br/vagas?cidade=${encodeURIComponent(cityName)}` },
+    { '@type': 'ListItem', position: 1, name: 'Início', item: 'https://santarem.app/' },
+    { '@type': 'ListItem', position: 2, name: 'Vagas', item: 'https://santarem.app/vagas' },
+    { '@type': 'ListItem', position: 3, name: cityName, item: `https://santarem.app/vagas?cidade=${encodeURIComponent(cityName)}` },
     { '@type': 'ListItem', position: 4, name: `${cargoName} em ${cityName}`, item: Astro.url.href },
   ],
 };
@@ -62,7 +62,7 @@ const schemas = [breadcrumbSchema, ...(jobListSchema ? [jobListSchema] : [])];
   description={seoDesc}
   keywords={`vagas ${cargoName} ${cityName}, emprego ${cargoName} Pará, ${cargoName} Santarém PA, vagas ${cargo} ${cidade}`}
   schema={schemas}
-  canonicalURL={`https://vagasoeste.com.br/vagas/${cidade}/${cargo}`}
+  canonicalURL={`https://santarem.app/vagas/${cidade}/${cargo}`}
 >
 
   <!-- Hero / Breadcrumb -->
@@ -97,7 +97,7 @@ const schemas = [breadcrumbSchema, ...(jobListSchema ? [jobListSchema] : [])];
           <p class="text-sm text-gray-500 mb-6">Mas novas vagas são publicadas diariamente!</p>
           <div class="flex flex-col sm:flex-row gap-3 justify-center">
             <a href="/vagas" class="btn-secondary">Ver todas as vagas</a>
-            <a href="https://app.vagasoeste.com.br/cadastro" class="btn-primary">Criar conta e receber alertas</a>
+            <a href="https://app.santarem.app/cadastro" class="btn-primary">Criar conta e receber alertas</a>
           </div>
         </div>
       ) : (
@@ -166,7 +166,7 @@ const schemas = [breadcrumbSchema, ...(jobListSchema ? [jobListSchema] : [])];
     <div class="max-w-xl mx-auto px-4 text-center">
       <h2 class="text-lg font-bold text-gray-900 mb-2">Não encontrou o que procurava?</h2>
       <p class="text-sm text-gray-600 mb-4">Cadastre-se e receba alertas quando novas vagas de {cargoName} forem publicadas.</p>
-      <a href="https://app.vagasoeste.com.br/cadastro" class="btn-primary">
+      <a href="https://app.santarem.app/cadastro" class="btn-primary">
         <i class="ri-user-add-line"></i>
         Criar conta e receber alertas
       </a>
