@@ -1,60 +1,85 @@
-import { mockAffiliateLinks } from "@/mocks/jobs";
+const courses = [
+  {
+    title: "Excel Completo",
+    platform: "Udemy",
+    discount: "85% OFF",
+    href: "#afiliado-excel",
+    icon: "ri-table-2",
+    gradient: "from-emerald-900 to-emerald-700",
+  },
+  {
+    title: "Inglês para o Mercado",
+    platform: "Hotmart",
+    discount: "60% OFF",
+    href: "#afiliado-ingles",
+    icon: "ri-translate-2",
+    gradient: "from-blue-900 to-blue-700",
+  },
+  {
+    title: "Pacote Office Profissional",
+    platform: "Hotmart",
+    discount: "70% OFF",
+    href: "#afiliado-office",
+    icon: "ri-computer-line",
+    gradient: "from-violet-900 to-violet-700",
+  },
+];
 
 export default function AffiliateSection() {
   return (
-    <section className="py-20 bg-white">
+    <section className="py-14 bg-white">
       <div className="max-w-7xl mx-auto px-4 md:px-6">
         {/* Header */}
-        <div className="text-center mb-12">
-          <span className="text-amber-600 text-xs font-semibold uppercase tracking-widest">Capacitação</span>
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mt-2 mb-3">
+        <div className="text-center mb-10">
+          <p className="text-xs font-semibold text-emerald-600 uppercase tracking-wide mb-1">
+            Desenvolvimento profissional
+          </p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
             Aumente suas chances com cursos
           </h2>
-          <p className="text-gray-700 text-base max-w-xl mx-auto">
-            Candidatos com cursos e certificações têm até 3x mais chances de serem selecionados. Confira nossas recomendações.
+          <p className="text-sm text-gray-500 max-w-md mx-auto">
+            Candidatos com certificações têm até{" "}
+            <strong>3x mais chances</strong> de serem selecionados.
           </p>
         </div>
 
         {/* Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {mockAffiliateLinks.map((item) => (
+          {courses.map((course) => (
             <a
-              key={item.id}
-              href={item.url}
-              rel="nofollow"
+              key={course.title}
+              href={course.href}
+              rel="nofollow noopener noreferrer"
               target="_blank"
-              className="group rounded-xl border border-gray-100 overflow-hidden hover:border-amber-200 transition-all cursor-pointer block"
+              className="group bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow overflow-hidden block"
             >
-              <div className="relative" style={{ height: "160px" }}>
-                <img
-                  src={item.image}
-                  alt={item.title}
-                  className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
-                />
-                <div className="absolute top-3 right-3 bg-amber-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">
-                  {item.discount}
+              {/* Gradient cover */}
+              <div className="relative">
+                <div
+                  className={`w-full h-44 bg-gradient-to-br ${course.gradient} flex items-center justify-center transition-opacity duration-300 group-hover:opacity-90`}
+                >
+                  <i className={`${course.icon} text-5xl text-white/70`}></i>
                 </div>
+                <span className="absolute top-3 right-3 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                  {course.discount}
+                </span>
               </div>
+
               <div className="p-5">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">{item.platform}</span>
-                </div>
-                <h3 className="font-bold text-gray-900 text-base mb-1">{item.title}</h3>
-                <p className="text-gray-700 text-sm mb-4">{item.description}</p>
-                <div className="flex items-center gap-1 text-amber-600 font-semibold text-sm group-hover:gap-2 transition-all">
-                  Ver curso
-                  <div className="w-4 h-4 flex items-center justify-center">
-                    <i className="ri-arrow-right-line text-sm"></i>
-                  </div>
-                </div>
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 mb-2">
+                  {course.platform}
+                </span>
+                <h3 className="font-bold text-gray-900 text-sm leading-snug mb-3">{course.title}</h3>
+                <span className="text-sm font-semibold text-emerald-600 flex items-center gap-1">
+                  Ver curso <i className="ri-external-link-line text-xs"></i>
+                </span>
               </div>
             </a>
           ))}
         </div>
 
-        {/* Disclaimer */}
-        <p className="text-center text-gray-400 text-xs mt-6">
-          * Links de afiliados. Ao comprar através desses links, você apoia a VagasOeste sem custo adicional.
+        <p className="text-center text-xs text-gray-400 mt-6">
+          * Links de afiliado — a VagasOeste pode receber comissão sem custo adicional para você.
         </p>
       </div>
     </section>

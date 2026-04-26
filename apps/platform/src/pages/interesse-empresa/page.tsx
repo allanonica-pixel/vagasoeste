@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import Navbar from "@/components/feature/Navbar";
 import Footer from "@/components/feature/Footer";
 import { formatBrazilPhone, isValidBrazilPhone } from "@/hooks/useBrazilPhone";
+import { supabase } from "@/lib/supabase";
 
 const SECTORS = [
   "Comércio", "Saúde", "Tecnologia", "Logística", "Alimentação",
@@ -86,28 +87,33 @@ export default function InteresseEmpresaPage() {
     if (!validate()) return;
     setStatus("submitting");
 
-    const body = new URLSearchParams();
-    body.append("nomeEmpresa", form.nomeEmpresa);
-    body.append("setor", form.setor);
-    body.append("porte", form.porte);
-    body.append("responsavel", form.responsavel);
-    body.append("cargo", form.cargo);
-    body.append("email", form.email);
-    body.append("whatsapp", form.whatsapp);
-    body.append("vagas", form.vagas);
-    body.append("mensagem", form.mensagem);
-    body.append("comoConheceu", form.comoConheceu);
+    // Monta mensagem completa incluindo campos extras
+    const mensagemFinal = [
+      form.mensagem,
+      form.porte ? `Porte: ${form.porte}` : "",
+      form.comoConheceu ? `Como conheceu: ${form.comoConheceu}` : "",
+    ]
+      .filter(Boolean)
+      .join("\n\n");
 
     try {
-      const res = await fetch("https://readdy.ai/api/form/d7gkibigm6d735ptot10", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: body.toString(),
+      const { error } = await supabase.from("empresa_pre_cadastros").insert({
+        company_name: form.nomeEmpresa,
+        setores: [form.setor],
+        contact_name: form.responsavel,
+        contact_role: form.cargo,
+        contact_email: form.email,
+        contact_whatsapp: form.whatsapp,
+        vacancies_qty: form.vagas,
+        message: mensagemFinal || null,
+        status: "pendente",
       });
-      if (res.ok) {
-        setStatus("success");
-      } else {
+
+      if (error) {
+        console.error("Supabase insert error:", error);
         setStatus("error");
+      } else {
+        setStatus("success");
       }
     } catch {
       setStatus("error");
@@ -173,15 +179,11 @@ export default function InteresseEmpresaPage() {
       <Navbar />
 
       {/* Hero */}
-      <div
-        className="relative pt-16 overflow-hidden"
-        style={{
-          backgroundImage: `url(https://readdy.ai/api/search-image?query=professional%20business%20meeting%20handshake%20partnership%20agreement%20modern%20office%20bright%20natural%20light%20warm%20tones%20corporate%20success%20team%20collaboration&width=1440&height=500&seq=ie-hero-1&orientation=landscape)`,
-          backgroundSize: "cover",
-          backgroundPosition: "center top",
-        }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-r from-emerald-900/85 via-emerald-900/70 to-emerald-900/40"></div>
+      <div className="relative pt-16 overflow-hidden bg-emerald-950">
+        <div className="absolute inset-0 bg-gradient-to-br from-emerald-900 via-emerald-950 to-gray-900">
+          <div className="absolute top-0 left-1/3 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-emerald-400/5 rounded-full blur-3xl"></div>
+        </div>
         <div className="relative max-w-5xl mx-auto px-4 md:px-6 pt-24 pb-14">
           <div className="flex items-center gap-2 text-emerald-300 text-xs mb-4">
             <Link to="/" className="hover:text-white transition-colors cursor-pointer">Início</Link>

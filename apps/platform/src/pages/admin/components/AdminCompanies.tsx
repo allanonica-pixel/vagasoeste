@@ -1,8 +1,48 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AnimatedSection from "@/components/base/AnimatedSection";
-import { mockAdminCompanies, AdminCompany, mockAdminJobs } from "@/mocks/adminData";
+import { AdminCompany, mockAdminJobs } from "@/mocks/adminData";
 import CompanyValidationModal from "@/pages/admin/components/CompanyValidationModal";
 import CompanyDetailPanel from "@/pages/admin/components/CompanyDetailPanel";
+import { supabase } from "@/lib/supabase";
+
+// Mapeia uma linha da tabela empresa_pre_cadastros para a interface AdminCompany
+function mapRow(row: Record<string, unknown>): AdminCompany {
+  const createdAt = typeof row.created_at === "string" ? row.created_at.split("T")[0] : "—";
+  const updatedAt = typeof row.updated_at === "string" ? row.updated_at.split("T")[0] : undefined;
+  const dbStatus = row.status as string;
+  const uiStatus: AdminCompany["status"] =
+    dbStatus === "aprovado" ? "ativo" : dbStatus === "rejeitado" ? "rejeitado" : "pendente";
+
+  const logradouro = typeof row.logradouro === "string" ? row.logradouro : "";
+  const numero = typeof row.numero === "string" ? row.numero : "";
+  const endereco = [logradouro, numero].filter(Boolean).join(", ") || "—";
+
+  const setores = Array.isArray(row.setores) ? (row.setores as string[]) : [];
+
+  return {
+    id: String(row.id),
+    name: String(row.company_name ?? ""),
+    razaoSocial: String(row.razao_social ?? row.company_name ?? ""),
+    cnpj: String(row.cnpj ?? "—"),
+    sector: setores[0] ?? "—",
+    city: "Santarém",
+    neighborhood: String(row.bairro_empresa ?? row.neighborhood ?? "—"),
+    endereco,
+    email: String(row.contact_email ?? ""),
+    phone: "—",
+    whatsapp: String(row.contact_whatsapp ?? ""),
+    contactName: String(row.contact_name ?? ""),
+    contactRole: String(row.contact_role ?? ""),
+    activeJobs: 0,
+    pendingJobs: 0,
+    totalCandidates: 0,
+    registeredAt: createdAt,
+    status: uiStatus,
+    validadoEm: updatedAt,
+    plano: "basico",
+    senhaProvisoria: uiStatus === "pendente",
+  };
+}
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; dot: string }> = {
   ativo: { label: "Ativo", color: "bg-emerald-100 text-emerald-700", dot: "bg-emerald-500" },
@@ -20,13 +60,32 @@ const TABS = [
 ];
 
 export default function AdminCompanies() {
-  const [companies, setCompanies] = useState<AdminCompany[]>(mockAdminCompanies);
+  const [companies, setCompanies] = useState<AdminCompany[]>([]);
+  const [loading, setLoading] = useState(true);
   const [filterSector, setFilterSector] = useState("Todos");
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState("todos");
   const [selected, setSelected] = useState<string | null>(null);
   const [validationModal, setValidationModal] = useState<{ company: AdminCompany; action: "approve" | "reject" } | null>(null);
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
+
+  useEffect(() => {
+    async function fetchCompanies() {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("empresa_pre_cadastros")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Erro ao buscar empresas:", error);
+      } else if (data) {
+        setCompanies(data.map(mapRow));
+      }
+      setLoading(false);
+    }
+    fetchCompanies();
+  }, []);
 
   const pendingCount = companies.filter((c) => c.status === "pendente").length;
 
@@ -52,17 +111,33 @@ export default function AdminCompanies() {
     setValidationModal({ company, action: "reject" });
   };
 
-  const handleConfirmValidation = (action: "approve" | "reject", motivo?: string) => {
+  const handleConfirmValidation = async (action: "approve" | "reject", motivo?: string) => {
     if (!validationModal) return;
     const { company } = validationModal;
+    const dbStatus = action === "approve" ? "aprovado" : "rejeitado";
+    const uiStatus: AdminCompany["status"] = action === "approve" ? "ativo" : "rejeitado";
+    const now = new Date().toISOString();
 
+    // Persiste no Supabase
+    const { error } = await supabase
+      .from("empresa_pre_cadastros")
+      .update({ status: dbStatus, updated_at: now })
+      .eq("id", company.id);
+
+    if (error) {
+      console.error("Erro ao atualizar status da empresa:", error);
+      showToast("Erro ao salvar. Verifique a conexão e tente novamente.", "error");
+      return;
+    }
+
+    // Atualiza estado local
     setCompanies((prev) =>
       prev.map((c) =>
         c.id === company.id
           ? {
               ...c,
-              status: action === "approve" ? "ativo" : "rejeitado",
-              validadoEm: new Date().toISOString().split("T")[0],
+              status: uiStatus,
+              validadoEm: now.split("T")[0],
               motivoRejeicao: motivo,
               senhaProvisoria: false,
             }
@@ -105,6 +180,14 @@ export default function AdminCompanies() {
           </p>
         </div>
       </div>
+
+      {/* Loading */}
+      {loading && (
+        <div className="flex items-center gap-3 text-gray-500 text-sm py-6">
+          <i className="ri-loader-4-line animate-spin text-emerald-600 text-lg"></i>
+          Carregando empresas...
+        </div>
+      )}
 
       {/* Pending Alert */}
       {pendingCount > 0 && (

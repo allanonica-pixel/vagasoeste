@@ -1,65 +1,69 @@
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function CTASection() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isLoggedIn = !!user;
 
   return (
-    <section className="relative py-24 overflow-hidden">
-      <div className="absolute inset-0">
-        <img
-          src="https://readdy.ai/api/search-image?query=Brazilian%20professionals%20working%20together%20modern%20office%20diverse%20team%20collaboration%20warm%20natural%20light%20productive%20environment%20success%20career%20growth%20urban%20setting&width=1920&height=600&seq=cta-bg&orientation=landscape"
-          alt="Profissionais trabalhando"
-          className="w-full h-full object-cover object-top"
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-emerald-950/95 via-emerald-900/85 to-emerald-950/70"></div>
+    <section className="relative overflow-hidden py-20">
+      {/* Gradient background — sem imagem externa */}
+      <div className="absolute inset-0 bg-gradient-to-r from-emerald-950 to-emerald-900">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_20%_50%,rgba(16,185,129,0.15),transparent_60%)]"></div>
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6">
-        <div className="max-w-2xl">
-          <span className="text-emerald-300 text-xs font-semibold uppercase tracking-widest">Comece agora</span>
-          <h2 className="text-4xl md:text-5xl font-bold text-white mt-3 mb-5 leading-tight">
-            Sua próxima oportunidade está esperando por você
-          </h2>
-          <p className="text-white/70 text-lg mb-8 leading-relaxed">
-            Cadastre-se gratuitamente, candidate-se às vagas e receba atualizações pelo WhatsApp. A VagasOeste cuida do processo por você.
-          </p>
+      <div className="relative z-10 max-w-3xl mx-auto px-4 text-center">
+        <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 leading-tight">
+          Sua próxima oportunidade está{" "}
+          <span className="text-emerald-300">esperando por você</span>
+        </h2>
 
-          <div className="flex flex-col sm:flex-row gap-4">
+        {/* Trust signals */}
+        <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 mb-8 text-xs text-emerald-200">
+          <span className="flex items-center gap-1.5">
+            <i className="ri-check-line text-emerald-400"></i>
+            100% gratuito para candidatos
+          </span>
+          <span className="flex items-center gap-1.5">
+            <i className="ri-whatsapp-line text-emerald-400"></i>
+            Alertas no WhatsApp
+          </span>
+          <span className="flex items-center gap-1.5">
+            <i className="ri-shield-check-line text-emerald-400"></i>
+            Processo anônimo e seguro
+          </span>
+          <span className="flex items-center gap-1.5">
+            <i className="ri-verified-badge-line text-emerald-400"></i>
+            Empresas verificadas
+          </span>
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          {isLoggedIn ? (
+            <button
+              onClick={() => navigate("/plataforma")}
+              className="flex items-center justify-center gap-2 bg-white text-emerald-700 font-bold px-8 py-3 rounded-xl hover:bg-emerald-50 transition-colors cursor-pointer whitespace-nowrap text-sm"
+            >
+              <i className="ri-dashboard-line text-base"></i>
+              Ir para o meu painel
+            </button>
+          ) : (
             <button
               onClick={() => navigate("/cadastro")}
-              className="flex items-center justify-center gap-3 bg-white text-emerald-800 font-bold px-8 py-4 rounded-xl hover:bg-emerald-50 transition-colors cursor-pointer whitespace-nowrap"
+              className="flex items-center justify-center gap-2 bg-white text-emerald-700 font-bold px-8 py-3 rounded-xl hover:bg-emerald-50 transition-colors cursor-pointer whitespace-nowrap text-sm"
             >
-              <div className="w-5 h-5 flex items-center justify-center">
-                <i className="ri-user-add-line text-base"></i>
-              </div>
-              Criar meu cadastro grátis
+              <i className="ri-user-add-line text-base"></i>
+              Criar conta grátis
             </button>
-            <button
-              onClick={() => navigate("/vagas")}
-              className="flex items-center justify-center gap-3 border border-white/30 text-white font-semibold px-8 py-4 rounded-xl hover:bg-white/10 transition-colors cursor-pointer whitespace-nowrap"
-            >
-              <div className="w-5 h-5 flex items-center justify-center">
-                <i className="ri-search-line text-base"></i>
-              </div>
-              Ver vagas disponíveis
-            </button>
-          </div>
-
-          {/* Trust Signals */}
-          <div className="flex flex-wrap gap-6 mt-10">
-            {[
-              { icon: "ri-shield-check-line", text: "100% gratuito para candidatos" },
-              { icon: "ri-whatsapp-line", text: "Atualizações por WhatsApp" },
-              { icon: "ri-eye-off-line", text: "Processo anônimo e seguro" },
-            ].map((item) => (
-              <div key={item.text} className="flex items-center gap-2">
-                <div className="w-4 h-4 flex items-center justify-center">
-                  <i className={`${item.icon} text-emerald-300 text-sm`}></i>
-                </div>
-                <span className="text-white/70 text-sm">{item.text}</span>
-              </div>
-            ))}
-          </div>
+          )}
+          <button
+            onClick={() => navigate("/vagas")}
+            className="flex items-center justify-center gap-2 border border-white/30 text-white font-semibold px-8 py-3 rounded-xl hover:bg-white/10 transition-colors cursor-pointer whitespace-nowrap text-sm"
+          >
+            <i className="ri-briefcase-line text-base"></i>
+            Ver vagas
+          </button>
         </div>
       </div>
     </section>
