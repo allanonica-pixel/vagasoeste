@@ -1,6 +1,6 @@
 # VagasOeste — Plano e Histórico de Desenvolvimento
 
-> Última atualização: 2026-04-24
+> Última atualização: 2026-04-26
 > Documento de registro histórico das fases e decisões de produto.
 > Referência técnica atual: `platform_overview.md` e `sitemap.md`
 
@@ -114,17 +114,34 @@
   - Breadcrumb ativo mostra Estado · Cidade · Setor
 - **Footer:** newsletter removida; grid 3 colunas (era 4)
 
+### ✅ Fase 10 — Pré-Cadastro Empresa End-to-End + Home Plataforma Alinhada + Fix RLS
+- **Pré-cadastro de empresa end-to-end:**
+  - `/interesse-empresa` (plataforma) substituiu fluxo readdy.ai — INSERT direto em `empresa_pre_cadastros`
+  - `AdminCompanies.tsx` migrado de mockAdminCompanies para leitura/escrita real no Supabase
+  - Admin pode aprovar/rejeitar na aba "Pré-Cadastros Pendentes" com UPDATE no banco
+- **Home da plataforma alinhada ao site Astro:**
+  - 8 componentes reescritos ou criados (HeroSection, StatsBar, SectorSection, JobsSection, HowItWorksSection, AffiliateSection, TestimonialsSection, CTASection)
+  - Sem imagens externas — todo background via CSS gradientes emerald
+  - HeroSection: filtros Estado/Cidade/Setor + quick tags com ícones RemixIcon
+  - CTASection inteligente via `useAuth()`: logado → painel, visitante → cadastro
+  - JobsSection: Supabase real (jobs status='ativo') + fallback 8 mocks
+- **Deploy em produção:** santarem.app + app.santarem.app no ar
+- **Fix crítico RLS — migration 0006:**
+  - Função `is_admin()` SECURITY DEFINER criada em produção
+  - 6 policies admin recriadas usando `is_admin()` — eliminou "permission denied for table admin_users"
+  - Build Vercel passa sem erro; anon key retorna 200 em todas as tabelas
+
 ---
 
 ## Próximas fases (backlog)
 
-### Fase 10 — API Empresa + Backend Convite
+### Fase 11 — API Empresa + Backend Convite
 - `POST /v1/empresa/invite-user` — criar sub-usuário para empresa via service_role
 - `GET /v1/company/jobs/:id/applications` — painel empresa via API (sem Supabase direto)
 - View `company.application_view` com mascaramento progressivo de PII
 
-### Fase 11 — Aprovação de Empresa pelo Admin
-- UI no AdminPage para aprovar/rejeitar empresas
+### Fase 12 — Aprovação de Empresa pelo Admin
+- UI no AdminPage para aprovar/rejeitar empresas (AdminCompanies já tem UI de aprovação para pré-cadastros)
 - UPDATE `app_metadata.role = "empresa"` via Admin API
 - Email automático de aprovação com credenciais
 

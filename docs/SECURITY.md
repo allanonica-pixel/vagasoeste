@@ -242,10 +242,13 @@ Ver [RLS-POLICIES.md](RLS-POLICIES.md) para mapeamento completo.
 
 | Função | Schema | SECURITY | Propósito |
 |--------|--------|----------|-----------|
+| `is_admin()` | `public` | **DEFINER** | Verifica se o usuário atual é admin — usada em todas as policies admin |
 | `apply_to_job()` | `public` | DEFINER | Candidatura atômica com lock |
 | `publish_job()` | `company` | DEFINER | Publicar vaga com validação de plano |
 | `purge_expired()` | `media` | DEFINER | Limpar assets expirados |
 | `cleanup_rate_limit()` | `ops` | — | Limpar entradas antigas do rate limit |
+
+> **`is_admin()` é crítica para a segurança do RLS:** sem ela, qualquer query de `anon` que aciona uma policy admin causava `permission denied for table admin_users`, derrubando até queries de leitura pública de vagas. Ver `docs/RLS-POLICIES.md` para detalhes.
 
 > SECURITY DEFINER executa com os privilégios do owner da função, não do chamador. Isso garante que operações sensíveis passem por validações internas do SQL antes de qualquer escrita.
 
@@ -363,6 +366,12 @@ user_agent  TEXT
 ---
 
 ## 10. Vulnerabilidades conhecidas e mitigações
+
+### Corrigidas em 2026-04-26
+
+| CVE/Categoria | Severidade | Status | Correção |
+|---------------|-----------|--------|---------|
+| **`permission denied for table admin_users`** — RLS policies admin referenciam `admin_users` diretamente; role `anon` não tem SELECT, derrubando até queries públicas | 🔴 Crítico | ✅ Corrigido | **Migration 0006**: função `is_admin()` SECURITY DEFINER; 6 policies admin recriadas usando `is_admin()` |
 
 ### Corrigidas em 2026-04-25
 

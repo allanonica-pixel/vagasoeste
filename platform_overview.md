@@ -1,6 +1,6 @@
 # VagasOeste — Documentação Técnica da Plataforma
 
-> Versão: 4.0 | Data: 2026-04-24
+> Versão: 5.0 | Data: 2026-04-26
 > Stack real em produção (não React monolítico — monorepo com Astro + React Vite + Hono)
 
 ---
@@ -15,6 +15,11 @@
 | Plataforma (candidato/empresa/admin) | `apps/platform` | https://app.santarem.app | React 18 + Vite + TypeScript |
 | API | `services/api` | https://api.santarem.app | Hono + Node 22 + Drizzle |
 | Banco / Auth | — | jfyeheapyimdlickjozw.supabase.co | Supabase Pro |
+
+**Portas em desenvolvimento local:**
+- API: `localhost:3000` (PORT=3000 em services/api/.env)
+- Platform: `localhost:3001` (Vite configurado para 3000, mas como API ocupa 3000 primeiro, Vite sobe em 3001 automaticamente)
+- Site: `localhost:4321` (Astro padrão)
 
 ### Diferenciais do modelo de negócio
 
@@ -64,15 +69,31 @@ src/
 │                            signOut → supabase.auth.signOut
 │                            session → supabase.auth.getSession + onAuthStateChange
 ├── components/
-│   └── PrivateRoute.tsx  → guard por role + requireMfa (AAL2 check via mfa.getAuthenticatorAssuranceLevel)
-│                            se requireMfa e AAL < aal2 → redireciona para /login
+│   ├── PrivateRoute.tsx  → guard por role + requireMfa (AAL2 check via mfa.getAuthenticatorAssuranceLevel)
+│   │                        se requireMfa e AAL < aal2 → redireciona para /login
+│   ├── feature/
+│   │   ├── Navbar.tsx    → Navbar responsiva (NavbarMobile incluso), appUrl prop
+│   │   └── Footer.tsx
+│   └── ui/               → componentes de UI compartilhados
 ├── router/
 │   └── config.tsx        → todas as rotas; candidato sem requireMfa; empresa/admin com requireMfa
 ├── mocks/
 │   ├── candidates.ts     → dados mock para painel empresa (pendente migração para API real)
 │   ├── companyJobs.ts    → vagas mock da empresa
-│   └── adminData.ts      → dados mock do admin
+│   └── adminData.ts      → dados mock do admin (AdminCompanies já usa Supabase real)
 └── pages/
+    ├── home/
+    │   ├── page.tsx               → Home da plataforma (alinhada ao site Astro)
+    │   └── components/
+    │       ├── HeroSection.tsx    → Estado/Cidade/Setor + quick tags com ícones (idêntico ao site)
+    │       ├── StatsBar.tsx       → Barra de números: vagas ativas, candidatos, empresas
+    │       ├── SectorSection.tsx  → Abas "Por Setor"/"Por Função" com cards e ícones
+    │       ├── JobsSection.tsx    → Vagas do Supabase (status='ativo') + fallback mock
+    │       ├── HowItWorksSection.tsx → 6 passos do processo, 2 CTAs
+    │       ├── AffiliateSection.tsx  → 3 cursos afiliados (cards com gradiente)
+    │       ├── TestimonialsSection.tsx → 3 depoimentos com navegação e dots
+    │       ├── CTASection.tsx     → CTA inteligente: logado→painel, visitante→cadastro
+    │       └── NeighborhoodSection.tsx (OBSOLETO — não usado em home/page.tsx)
     ├── login/
     │   └── page.tsx      → multi-step login + MFA enroll/verify + rate limit
     ├── esqueci-senha/
@@ -80,14 +101,20 @@ src/
     ├── redefinir-senha/
     │   └── page.tsx      → PASSWORD_RECOVERY event + sessionReadyRef + updateUser
     ├── cadastro/
-    │   └── page.tsx      → 4 etapas + supabase.auth.signUp(user_metadata completo)
+    │   └── page.tsx      → 5 etapas + supabase.auth.signUp(user_metadata completo)
+    │                        Etapas: Dados Pessoais → Perfil → Experiências → Cursos → Senha
     ├── verificar-email/
+    ├── interesse-empresa/
+    │   └── page.tsx      → Formulário de interesse da empresa + OTP WhatsApp
+    │                        Submit: supabase.from("empresa_pre_cadastros").insert(...)
     ├── plataforma/
     │   ├── page.tsx      → displayName real + signOut + 4 abas
     │   └── components/
     │       ├── CandidatoPerfilPage.tsx  → aba Segurança (senha + 2FA opcional)
     │       ├── VagaDetalheModal.tsx
     │       └── ...outros
+    ├── vaga-detalhe/
+    │   └── page.tsx      → Detalhe de vaga por ID (usa mockJobs — pendente Supabase real)
     ├── empresa/
     │   ├── page.tsx      → signOut + UserManagementSection
     │   └── components/
@@ -96,7 +123,16 @@ src/
     │       └── CompanyJobsTab.tsx
     ├── acesso-restrito/   → login admin
     ├── admin/             → painel admin
-    └── ...páginas públicas
+    │   └── components/
+    │       ├── AdminCompanies.tsx  → MIGRADO para Supabase real (empresa_pre_cadastros)
+    │       ├── AdminCandidates.tsx → ainda usa mock
+    │       ├── AdminJobs.tsx       → ainda usa mock
+    │       ├── AdminNotifications.tsx
+    │       ├── AdminReports.tsx
+    │       ├── AdminSettings.tsx
+    │       ├── CompanyDetailPanel.tsx
+    │       └── CompanyValidationModal.tsx
+    └── ...outras páginas públicas (para-empresas, como-funciona, blog, etc.)
 ```
 
 ---
@@ -283,14 +319,22 @@ window.location.href = `/vagas?${params.toString()}`;
 
 ## 9. Dados Mock (apps/platform/src/mocks/)
 
-> Pendente migração para API real — usados no painel empresa e admin enquanto endpoints não estão prontos
+> Migração parcial — alguns módulos já usam Supabase real
 
-| Arquivo | Conteúdo |
-|---------|---------|
-| `candidates.ts` | Candidatos (para painel empresa) — sem nome/email/telefone visíveis |
-| `companyJobs.ts` | Vagas da empresa parceira |
-| `adminData.ts` | Empresas, candidatos (completos), vagas, notificações para o admin |
-| `blogPosts.ts` | Artigos do blog (substituídos por Supabase em produção real) |
+| Arquivo | Conteúdo | Status |
+|---------|---------|--------|
+| `candidates.ts` | Candidatos (para painel empresa) — sem nome/email/telefone visíveis | Mock pendente |
+| `companyJobs.ts` | Vagas da empresa parceira | Mock pendente |
+| `adminData.ts` | Empresas, candidatos (completos), vagas, notificações para o admin | **AdminCompanies migrado para Supabase** — resto mock |
+| `blogPosts.ts` | Artigos do blog (substituídos por Supabase em produção real) | Mock pendente |
+
+### Componentes já integrados ao Supabase real
+
+| Componente | Tabela | O que faz |
+|-----------|--------|-----------|
+| `AdminCompanies.tsx` | `empresa_pre_cadastros` | Lista pré-cadastros; valida/rejeita com UPDATE em status |
+| `interesse-empresa/page.tsx` | `empresa_pre_cadastros` | Submete formulário de interesse da empresa via INSERT |
+| `home/JobsSection.tsx` | `jobs` (status='ativo') | Busca vagas reais; fallback 8 mocks se tabela vazia |
 
 ---
 
@@ -311,9 +355,15 @@ window.location.href = `/vagas?${params.toString()}`;
 
 | Hash | Data | Descrição |
 |------|------|-----------|
+| `9282fbc` | 2026-04-26 | chore: re-trigger Vercel build após fix RLS produção |
+| `c870460` | 2026-04-26 | fix: corrige permission denied for table admin_users em todas as RLS |
+| `b3e35ea` | 2026-04-26 | feat: home plataforma alinhada ao site + pre-cadastro conectado ao Supabase |
+| `d7cf8ee` | 2026-04-25 | feat: remove rota e links de /pre-cadastro — substituído por /interesse-empresa |
+| `4926fd9` | 2026-04-25 | feat: cadastro 5 etapas, OTP WhatsApp, para-empresas, remove imagens externas |
+| `b559f35` | 2026-04-25 | feat: sub-user invite system + API service initial commit |
+| `f81e59e` | 2026-04-25 | docs: separação DEV/PROD — ENVIRONMENTS.md + .env.example atualizados |
+| `e2aea39` | 2026-04-25 | security: hardening completo — rate limit, headers, CSP, fail-closed, docs |
 | `e6d3d62` | 2026-04-24 | feat(site): abas Por Setor/Por Função com modal, hero copy, filtros Setor+CNH |
-| `3d65949` | 2026-04-24 | feat(platform): candidato 2FA opcional, esqueci/redefinir senha |
-| `5e2fd9d` | 2026-04-24 | feat(platform): empresa MFA obrigatório, login multi-step, redefinir senha |
 
 ---
 
@@ -322,9 +372,12 @@ window.location.href = `/vagas?${params.toString()}`;
 | Item | Prioridade | Observação |
 |------|-----------|-----------|
 | `POST /v1/empresa/invite-user` | Alta | UI pronta no AdminTab; backend não implementado |
-| Fluxo aprovação empresa pelo admin | Alta | UPDATE app_metadata.role = "empresa" via painel admin |
+| Fluxo aprovação empresa pelo admin | Alta | UPDATE app_metadata.role = "empresa" via painel admin; AdminCompanies já tem UI |
+| `vaga-detalhe/page.tsx` → Supabase real | Alta | Ainda usa mockJobs — candidato logado clica em vaga mas vê dados mock |
+| AdminCandidates + AdminJobs → Supabase real | Alta | Ainda usam mocks de adminData.ts |
 | MFA recovery (codes de emergência) | Média | Hoje: "contate o administrador" — fluxo completo pendente |
-| Sentry + Axiom + UptimeRobot | Média | Observabilidade — Fase 4 do roadmap |
-| Rate limiting na API Hono | Média | Hoje só no login client-side (5 tentativas) |
+| Sentry + Axiom + UptimeRobot | Média | Observabilidade — Fase 12 do roadmap |
+| Rate limiting na API Hono | Média | Já implementado na API (bucket apply/jobs_list); pendente conectar ao frontend |
 | Upload de mídia (foto/vídeo) | Baixa | Endpoint /v1/media/upload-url pendente |
 | Testes E2E do fluxo MFA | Baixa | Playwright ou Cypress |
+| Remover mensagem WhatsApp falsa em `/verificar-email` | Baixa | Tela exibe confirmação via WhatsApp mas OTP não está conectado ao cadastro |

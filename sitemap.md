@@ -1,6 +1,6 @@
 # VagasOeste — Sitemap Completo
 
-> Versão: 4.0 | Última atualização: 2026-04-24
+> Versão: 5.0 | Última atualização: 2026-04-26
 > Todas as rotas existentes na plataforma VagasOeste.
 > Stack: apps/site (Astro SSG/hybrid → santarem.app) + apps/platform (React Vite → app.santarem.app)
 
@@ -17,7 +17,7 @@
 | `/blog/:slug` | Artigo do Blog | Schema.org Article, compartilhamento, artigos relacionados | SSG |
 | `/como-funciona` | Como Funciona | Passo a passo, benefícios, FAQ accordion, CTA | SSG |
 | `/para-empresas` | Para Empresas | Processo, recursos, depoimentos, planos, FAQ | SSG |
-| `/interesse-empresa` | Falar com a Equipe | Formulário de interesse para empresas + sidebar contato | SSG |
+| `/interesse-empresa` | Falar com a Equipe | Formulário de interesse para empresas + sidebar contato (também existe como rota na plataforma) | SSG |
 | `/dicas-de-vaga` | Dicas de Vaga | Hero com stats, setores em alta em Santarém, dicas por categoria, artigos do blog | SSG |
 | `/crie-seu-curriculo` | Crie seu Currículo | Landing page — currículo avulso ou com cadastro | SSG |
 | `/curriculo-avulso` | Currículo Avulso | Editor completo 6 etapas sem cadastro + download PDF | SSG |
@@ -38,15 +38,34 @@
 
 ---
 
+## Plataforma (app.santarem.app) — Home Pública
+
+> A home da plataforma (`/`) é visível sem login e replica o conteúdo do site Astro.
+> Diferencial: candidato logado pode clicar em vagas e ver detalhes com opção de se candidatar.
+
+| Seção | Componente | Descrição |
+|-------|-----------|-----------|
+| Hero | `HeroSection.tsx` | Estado/Cidade/Setor + quick tags com ícones. `useNavigate` → `/vagas?setor=X` |
+| Stats | `StatsBar.tsx` | 4 números: vagas ativas, candidatos, empresas, contratações 2026 |
+| Setores | `SectorSection.tsx` | Abas "Por Setor" / "Por Função", cards com ícone + count |
+| Vagas | `JobsSection.tsx` | Busca Supabase `jobs` (status='ativo'); fallback 8 mocks se vazio. Cards → `/vagas/:id` |
+| Como funciona | `HowItWorksSection.tsx` | 6 passos, 2 CTAs: candidato e empresa |
+| Afiliados | `AffiliateSection.tsx` | 3 cursos (Excel/Udemy, Inglês/Hotmart, Office/Hotmart) |
+| Depoimentos | `TestimonialsSection.tsx` | 3 testemunhos com navegação e dots |
+| CTA Final | `CTASection.tsx` | Logado → "Ir para o meu painel"; Visitante → "Criar conta grátis" |
+
+---
+
 ## Plataforma (app.santarem.app) — Autenticação
 
 | URL | Título | Descrição |
 |-----|--------|-----------|
 | `/login` | Login | Multi-step: credentials → change-password (first_access) → enroll-mfa → verify-mfa. Rate limit 5 tentativas. "Esqueci minha senha" para candidato e empresa. |
-| `/cadastro` | Cadastro do Candidato | 4 etapas: dados pessoais → perfil → cursos → senha. supabase.auth.signUp |
+| `/cadastro` | Cadastro do Candidato | **5 etapas**: Dados Pessoais (CNH toggle) → Perfil Profissional (cidade/bairro, escolaridade, disponibilidade, salário) → Experiências Profissionais (com sanitização XSS e detecção de CPF/email/telefone) → Cursos → Senha. supabase.auth.signUp |
 | `/verificar-email` | Verificar Email | Aguardo confirmação de email pós-cadastro |
 | `/esqueci-senha` | Esqueci Minha Senha | Envia resetPasswordForEmail. Não revela se email existe. Rate 429 tratado silenciosamente |
 | `/redefinir-senha` | Redefinir Senha | Escuta PASSWORD_RECOVERY event via onAuthStateChange. sessionReadyRef anti-stale-closure. Timeout 6s para "link expirado" |
+| `/interesse-empresa` | Interesse Empresa | Formulário OTP WhatsApp (máquina de estados: idle→send→verify→resumo→submit). Submete para `empresa_pre_cadastros` via Supabase direto |
 
 ---
 
@@ -58,6 +77,7 @@
 |-----|--------|-----------|
 | `/plataforma` | Dashboard do Candidato | Header com nome real do usuário + signOut. Abas: Vagas Disponíveis, Minhas Candidaturas, Meu Currículo, Notificações |
 | `/plataforma/perfil` | Meu Perfil | Abas: Dados Pessoais, Cursos e Certificações, **Segurança** |
+| `/vagas/:id` | Detalhe da Vaga | Detalhe de vaga com botão "Candidatar-se" (rota platform) — dados ainda via mockJobs |
 
 ### Abas do Dashboard `/plataforma`
 
@@ -116,15 +136,15 @@
 
 ### Módulos do `/vo-painel`
 
-| Módulo | Funcionalidades |
-|--------|----------------|
-| Dashboard | KPIs gerais, ações rápidas, últimas notificações |
-| Empresas | Lista com filtros, aprovação/rejeição de pré-cadastros com email automático |
-| Candidatos | Lista com todos os dados (nome, email, telefone visíveis para admin) |
-| Vagas | Lista, aprovação/reprovação individual de vagas pendentes |
-| Relatórios | Gráficos: candidaturas/mês, funil de status, vagas por setor, escolaridade, top empresas/vagas |
-| Notificações | Disparar email/WhatsApp, histórico, painel Evolution API |
-| Configurações | Geral, Notificações, Acessos, Design (color picker + imagens hero + restaurar padrão) |
+| Módulo | Funcionalidades | Fonte de dados |
+|--------|----------------|---------------|
+| Dashboard | KPIs gerais, ações rápidas, últimas notificações | Mock |
+| Empresas | Lista com filtros, **aba "Pré-Cadastros Pendentes"**, aprovação/rejeição (UPDATE status em `empresa_pre_cadastros`) | **Supabase real** |
+| Candidatos | Lista com todos os dados (nome, email, telefone visíveis para admin) | Mock |
+| Vagas | Lista, aprovação/reprovação individual de vagas pendentes | Mock |
+| Relatórios | Gráficos: candidaturas/mês, funil de status, vagas por setor, escolaridade, top empresas/vagas | Mock |
+| Notificações | Disparar email/WhatsApp, histórico, painel Evolution API | Mock |
+| Configurações | Geral, Notificações, Acessos, Design (color picker + imagens hero + restaurar padrão) | Mock |
 
 ---
 
@@ -195,3 +215,7 @@
 - **Função/Cargo** — novo filtro em "Mais Filtros" com input texto (filtra title e area)
 - **CNH** — novo filtro em "Mais Filtros" (checkbox; busca "cnh" nos requirements)
 - **Footer compacto** — newsletter removida; grid 3 colunas (era 4)
+- **Pré-cadastros de empresa** — fluxo completo: `/interesse-empresa` (site Astro) OU `/interesse-empresa` (plataforma React) → INSERT em `empresa_pre_cadastros` → Admin aprova/rejeita em `/vo-painel` aba Empresas
+- **Home da plataforma alinhada ao site** — mesmas seções e visual; diferencial: vagas levam para `/vagas/:id` com botão candidatar
+- **RLS corrigida (migration 0006)** — função `is_admin()` SECURITY DEFINER evita "permission denied for table admin_users" para role anon/authenticated
+- **Portas DEV**: API=3000, Platform=3001 (Vite em 3000 conflita com API, sobe em 3001), Site=4321

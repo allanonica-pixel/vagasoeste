@@ -1,6 +1,6 @@
 # VagasOeste — Guia de Ambientes (DEV / PROD)
 
-> Versão: 1.0 | Data: 2026-04-25
+> Versão: 2.0 | Data: 2026-04-26
 
 ---
 
@@ -12,7 +12,9 @@
 | Supabase URL | `nlqdjoxawzoegfxihief.supabase.co` | `jfyeheapyimdlickjozw.supabase.co` |
 | API | `localhost:3000` | `api.santarem.app` (Fly.io GRU) |
 | Site | `localhost:4321` | `santarem.app` (Vercel) |
-| Platform | `localhost:5173` | `app.santarem.app` (Vercel) |
+| Platform | `localhost:3001` | `app.santarem.app` (Vercel) |
+
+> **Por que 3001?** O `vite.config.ts` da plataforma configura `server.port = 3000`. Como a API ocupa a porta 3000 primeiro (quando rodando em paralelo), o Vite detecta o conflito e sobe automaticamente em 3001.
 | Branch | qualquer branch local | `main` |
 
 ---
@@ -24,12 +26,16 @@
 No SQL Editor do projeto `vagasoeste-dev` (`nlqdjoxawzoegfxihief`), execute em ordem:
 
 ```
-1. supabase-schema.sql                         (schema principal)
+1. supabase-schema.sql                              (schema principal)
 2. services/api/migrations/0001_audit_media_functions.sql
-3. services/api/migrations/0002_cron_jobs.sql  (requer pg_cron ativo)
+3. services/api/migrations/0002_cron_jobs.sql       (requer pg_cron ativo)
 4. services/api/migrations/0003_admin_user.sql
 5. services/api/migrations/0004_security_hardening.sql
+6. services/api/migrations/0005_interesse_empresa.sql  (tabelas otp_codes + empresa_pre_cadastros)
+7. services/api/migrations/0006_fix_rls_admin_permissions.sql  (função is_admin() SECURITY DEFINER)
 ```
+
+> ⚠️ A migration 0006 já foi aplicada na produção (`jfyeheapyimdlickjozw`). Aplicar também no DEV para paridade.
 
 ### 2. Configurar .env locais
 
@@ -191,3 +197,19 @@ https://app.santarem.app/**
 | Fly.io app | `vagasoeste-api-staging` | `vagasoeste-api` |
 | Vercel (platform) | Preview automático | `app.santarem.app` |
 | Vercel (site) | Preview automático | `santarem.app` |
+| Porta API local | `3000` | — |
+| Porta Platform local | `3001` (Vite conflito com API) | — |
+| Porta Site local | `4321` | — |
+
+---
+
+## Migrations aplicadas por ambiente
+
+| Migration | DEV | PROD |
+|-----------|-----|------|
+| `0001_audit_media_functions.sql` | Aplicar manualmente | ✅ Aplicada |
+| `0002_cron_jobs.sql` | Aplicar manualmente (requer pg_cron) | ✅ Aplicada |
+| `0003_admin_user.sql` | Aplicar manualmente | ✅ Aplicada |
+| `0004_security_hardening.sql` | Aplicar manualmente | ✅ Aplicada |
+| `0005_interesse_empresa.sql` | Aplicar manualmente | ✅ Aplicada |
+| `0006_fix_rls_admin_permissions.sql` | **Pendente aplicar em DEV** | ✅ Aplicada (2026-04-26) |

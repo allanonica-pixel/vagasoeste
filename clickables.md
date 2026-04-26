@@ -1,8 +1,9 @@
 # VagasOeste — Mapa de Clicáveis
 
-> Versão: 4.0 | 2026-04-24
+> Versão: 5.0 | 2026-04-26
 > Atualizado com: abas Por Setor/Por Função, modal de localização, login multi-step,
-> aba Segurança no perfil candidato, esqueci/redefinir senha, filtros /vagas refatorados.
+> aba Segurança no perfil candidato, esqueci/redefinir senha, filtros /vagas refatorados,
+> home plataforma alinhada ao site, interesse-empresa Supabase real, AdminCompanies Supabase real.
 
 ---
 
@@ -255,7 +256,18 @@ Principais ações:
 
 ---
 
-## Resumo de mudanças v4.0
+## Resumo de mudanças v5.0 (2026-04-26)
+
+| O que mudou | Versão anterior | Versão 5.0 |
+|-------------|----------------|------------|
+| Home plataforma (`/`) | Componentes genéricos | **8 seções alinhadas ao site Astro** |
+| Hero plataforma | Estado · Cidade · Bairro | Estado · Cidade · **Setor** + quick tags com ícones |
+| `/interesse-empresa` (plataforma) | POST readdy.ai (quebrado) | **INSERT Supabase `empresa_pre_cadastros`** |
+| AdminCompanies | mockAdminCompanies estático | **Leitura/escrita real em `empresa_pre_cadastros`** |
+| RLS admin policies | `admin_users` referenciada diretamente | **`is_admin()` SECURITY DEFINER** |
+| Deploy | Vercel com erro RLS | **Vercel build passa — 200 em todas tabelas** |
+
+## Resumo de mudanças v4.0 (2026-04-24)
 
 | O que mudou | Versão anterior | Versão 4.0 |
 |-------------|----------------|------------|
@@ -271,3 +283,45 @@ Principais ações:
 | Perfil candidato | Dados Pessoais · Cursos | + **aba Segurança** (senha + 2FA) |
 | Header da plataforma candidato | genérico | **nome real + signOut** |
 | Footer | 4 colunas com newsletter | **3 colunas sem newsletter** |
+
+---
+
+## Clicáveis da Home da Plataforma (app.santarem.app/) — v5.0
+
+### HeroSection
+| Elemento | Tipo | Ação |
+|----------|------|------|
+| Select "Estado" | Select | Popula cidades; reseta cidade ao trocar |
+| Select "Cidade" | Select | Habilitado após Estado selecionado |
+| Select "Setor" | Select | 8 setores |
+| Campo busca | Input | Cargo, área ou palavra-chave |
+| Botão "Buscar Vagas" | Botão (submit) | navigate(`/vagas?estado=X&cidade=Y&setor=Z&q=W`) |
+| Quick pill de setor (6 ícones) | Botão | navigate(`/vagas?setor=X`) |
+
+### SectorSection
+| Elemento | Tipo | Ação |
+|----------|------|------|
+| Aba "Por Setor" | Toggle | Exibe 8 cards de setores |
+| Aba "Por Função" | Toggle | Exibe 8 cards de funções |
+| Card de setor/função | Botão | navigate(`/vagas?setor=X`) ou `?area=X` |
+
+### JobsSection
+| Elemento | Tipo | Ação |
+|----------|------|------|
+| Card de vaga | Botão | navigate(`/vagas/:id`) |
+| "Ver todas as vagas" | Link | → `/vagas` |
+
+### CTASection (smart — varia por estado de autenticação)
+| Estado | Botão principal | Ação |
+|--------|----------------|------|
+| Não logado | "Criar conta grátis" | navigate(`/cadastro`) |
+| Logado (candidato) | "Ir para o meu painel" | navigate(`/plataforma`) |
+| Botão secundário | "Ver vagas" | navigate(`/vagas`) — sempre visível |
+
+### Módulo Admin — Empresas (v5.0)
+| Elemento | Tipo | Ação |
+|----------|------|------|
+| Aba "Pré-Cadastros Pendentes" | Toggle | Lista de `empresa_pre_cadastros` com status='pendente' |
+| Botão "Ver detalhes" | Botão | Abre `CompanyDetailPanel` com dados do pré-cadastro |
+| Botão "Aprovar" | Botão | UPDATE status='aprovado' no Supabase + fecha modal |
+| Botão "Rejeitar" | Botão | UPDATE status='rejeitado' + textarea motivação + fecha modal |

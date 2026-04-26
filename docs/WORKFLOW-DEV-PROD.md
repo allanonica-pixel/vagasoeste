@@ -1,6 +1,6 @@
 # VagasOeste — Workflow DEV → PRODUÇÃO
 
-> Versão: 1.0 | Data: 2026-04-25
+> Versão: 2.0 | Data: 2026-04-26
 
 ---
 
@@ -10,9 +10,9 @@
 |---|---|---|
 | **Supabase** | `nlqdjoxawzoegfxihief.supabase.co` | `jfyeheapyimdlickjozw.supabase.co` |
 | **API** | `vagasoeste-api-staging.fly.dev` | `api.santarem.app` |
-| **Platform** | `localhost:5173` ou Preview Vercel | `app.santarem.app` |
+| **Platform** | `localhost:3001` ou Preview Vercel | `app.santarem.app` |
 | **Site** | `localhost:4321` ou Preview Vercel | `santarem.app` |
-| **Branch** | qualquer branch local / feature | `master` |
+| **Branch** | qualquer branch local / feature | `main` |
 
 ---
 
@@ -66,7 +66,8 @@ Health check: http://localhost:3000/health
 cd apps/platform
 npm run dev
 ```
-Acesso: http://localhost:5173
+Acesso: http://localhost:3001
+> Nota: o Vite está configurado para a porta 3000, mas como a API ocupa 3000 primeiro, o Vite sobe automaticamente em 3001.
 
 **Terminal 3 — Site (vitrine pública)**
 ```bash
@@ -81,7 +82,7 @@ Acesso: http://localhost:4321
 
 | O que | URL |
 |---|---|
-| Painel local (empresa/candidato) | http://localhost:5173 |
+| Painel local (empresa/candidato) | http://localhost:3001 |
 | Site público local | http://localhost:4321 |
 | API local | http://localhost:3000 |
 | Health da API local | http://localhost:3000/health |
@@ -132,8 +133,8 @@ curl https://vagasoeste-api-staging.fly.dev/health
 ### Criando uma nova migration (DEV primeiro, sempre)
 
 ```bash
-# 1. Crie o arquivo SQL
-# services/api/migrations/0005_nome_da_migration.sql
+# 1. Crie o arquivo SQL com o próximo número sequencial
+# services/api/migrations/0007_nome_da_migration.sql
 
 # 2. Execute no Supabase DEV (SQL Editor):
 # https://supabase.com/dashboard/project/nlqdjoxawzoegfxihief/sql/new
@@ -143,9 +144,19 @@ curl https://vagasoeste-api-staging.fly.dev/health
 # 4. Só depois execute em PROD (ver Parte 2)
 
 # 5. Commite o arquivo .sql
-git add services/api/migrations/0005_nome_da_migration.sql
+git add services/api/migrations/0007_nome_da_migration.sql
 git commit -m "migration: descrição"
 ```
+
+**Migrations existentes (em ordem):**
+| Arquivo | Propósito | DEV | PROD |
+|---------|-----------|-----|------|
+| `0001_audit_media_functions.sql` | Schema audit + media + funções SQL | ✅ | ✅ |
+| `0002_cron_jobs.sql` | pg_cron: purge mídia, expirar vagas, cleanup rate limit | ✅ | ✅ |
+| `0003_admin_user.sql` | Tabela admin_users + policy | ✅ | ✅ |
+| `0004_security_hardening.sql` | REVOKE granular, ops.rate_limit, INSERT público restrito | ✅ | ✅ |
+| `0005_interesse_empresa.sql` | Tabelas otp_codes + empresa_pre_cadastros | ✅ | ✅ |
+| `0006_fix_rls_admin_permissions.sql` | is_admin() SECURITY DEFINER + 6 policies recriadas | ⚠️ Aplicar | ✅ (2026-04-26) |
 
 ---
 
@@ -179,27 +190,27 @@ Execute na ordem:
 
 ---
 
-### Passo 2 — Fazer merge para master
+### Passo 2 — Fazer merge para main
 
 ```bash
 # Se estiver em uma branch de feature:
-git checkout master
+git checkout main
 git merge nome-da-branch
 
-# Se já estiver em master (desenvolvimento direto):
-# Apenas confirme que está em master
+# Se já estiver em main (desenvolvimento direto):
+# Apenas confirme que está em main
 git branch
 ```
 
 ---
 
-### Passo 3 — Push para master
+### Passo 3 — Push para main
 
 ```bash
 git push
 ```
 
-A Vercel detecta o push em `master` e faz o deploy automático de produção nos dois projetos:
+A Vercel detecta o push em `main` e faz o deploy automático de produção nos dois projetos:
 
 | Projeto | URL de produção | Acompanhar deploy |
 |---|---|---|
@@ -284,3 +295,4 @@ santarem.app
 | Fly.io app | `vagasoeste-api-staging` | `vagasoeste-api` |
 | Vercel platform | Preview automático | `app.santarem.app` |
 | Vercel site | Preview automático | `santarem.app` |
+| Branch de deploy | qualquer push | `main` |
