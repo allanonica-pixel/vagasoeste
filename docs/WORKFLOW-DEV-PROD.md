@@ -190,27 +190,40 @@ Execute na ordem:
 
 ---
 
-### Passo 2 — Fazer merge para main
+### Passo 2 — Fazer merge para master
 
 ```bash
 # Se estiver em uma branch de feature:
-git checkout main
+git checkout master
 git merge nome-da-branch
 
-# Se já estiver em main (desenvolvimento direto):
-# Apenas confirme que está em main
+# Se já estiver em master (desenvolvimento direto):
+# Apenas confirme que está em master
 git branch
 ```
 
 ---
 
-### Passo 3 — Push para main
+### Passo 3 — Push + Deploy manual via Vercel CLI
 
 ```bash
-git push
+# 1. Push para manter o GitHub sincronizado
+git push origin master
+
+# 2. Deploy do site (santarem.app)
+cd apps/site
+vercel --prod --yes
+cd ../..
+
+# 3. Deploy da platform (app.santarem.app)
+cd apps/platform
+vercel --prod --yes
+cd ../..
 ```
 
-A Vercel detecta o push em `main` e faz o deploy automático de produção nos dois projetos:
+> ⚠️ **Importante:** A integração GitHub → Vercel não está acionando builds automáticos de forma confiável neste projeto. Use sempre `vercel --prod --yes` dentro de cada app. Ver `docs/DEPLOY-MANUAL.md` para detalhes completos.
+
+A Vercel faz o deploy de produção nos dois projetos via CLI:
 
 | Projeto | URL de produção | Acompanhar deploy |
 |---|---|---|

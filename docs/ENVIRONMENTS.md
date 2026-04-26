@@ -15,7 +15,7 @@
 | Platform | `localhost:3001` | `app.santarem.app` (Vercel) |
 
 > **Por que 3001?** O `vite.config.ts` da plataforma configura `server.port = 3000`. Como a API ocupa a porta 3000 primeiro (quando rodando em paralelo), o Vite detecta o conflito e sobe automaticamente em 3001.
-| Branch | qualquer branch local | `main` |
+| Branch | qualquer branch local | `master` |
 
 ---
 
@@ -91,11 +91,13 @@ npm run dev
 
 ```
 1. Desenvolve localmente → Supabase DEV (nlqdjoxawzoegfxihief)
-2. Commit na branch de feature
-3. Abre PR → Vercel gera Preview automático
+2. Commit na branch de feature ou diretamente em master
+3. Push para origin → Vercel gera Preview automático
 4. Preview usa variáveis DEV (configurar em Vercel → Settings → Environment Variables)
-5. Merge em main → deploy automático em PRODUÇÃO
+5. Merge em master + vercel --prod --yes (em cada app) → deploy em PRODUÇÃO
 ```
+
+> ⚠️ A integração automática GitHub → Vercel PROD não está acionando builds confiáveis. Use sempre `vercel --prod --yes` dentro de cada app para promover para produção. Consultar `docs/DEPLOY-MANUAL.md`.
 
 ### Regra de ouro
 
