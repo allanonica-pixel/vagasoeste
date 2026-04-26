@@ -198,13 +198,14 @@ const contractColorClass = {
             </div>
 
             <div class="space-y-2 mb-5">
-              <a
-                href={`https://app.santarem.app/cadastro?jobId=${job.id}`}
+              <button
+                type="button"
+                onclick={`window.dispatchEvent(new CustomEvent('openRegisterModal',{detail:{candidatoUrl:'https://app.santarem.app/cadastro?jobId=${job.id}'}}))`}
                 class="btn-primary w-full justify-center"
               >
                 <i class="ri-user-add-line"></i>
                 Criar conta e candidatar
-              </a>
+              </button>
               <a
                 href={`https://app.santarem.app/login?redirect=/plataforma&jobId=${job.id}`}
                 class="btn-secondary w-full justify-center"

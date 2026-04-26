@@ -99,10 +99,10 @@ const faqSchema = {
       <p class="text-white/80 text-sm md:text-base max-w-xl mx-auto leading-relaxed mb-8">
         A VagasOeste conecta candidatos e empresas com um processo automatizado, seguro e com anonimato durante a seleção.
       </p>
-      <a href="https://app.santarem.app/cadastro" class="btn-primary">
+      <button type="button" onclick="window.dispatchEvent(new CustomEvent('openRegisterModal'))" class="btn-primary">
         <i class="ri-user-add-line"></i>
         Criar conta grátis
-      </a>
+      </button>
     </div>
   </section>
 
@@ -188,10 +188,10 @@ const faqSchema = {
           <i class="ri-briefcase-line"></i>
           Ver vagas disponíveis
         </a>
-        <a href="https://app.santarem.app/cadastro" class="btn-primary bg-white !text-emerald-700 hover:bg-emerald-50">
+        <button type="button" onclick="window.dispatchEvent(new CustomEvent('openRegisterModal'))" class="btn-primary bg-white !text-emerald-700 hover:bg-emerald-50">
           <i class="ri-user-add-line"></i>
           Criar conta grátis
-        </a>
+        </button>
       </div>
     </div>
   </section>

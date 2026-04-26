@@ -57,10 +57,10 @@ const steps = [
           <i class="ri-file-user-line"></i>
           Criar meu currículo grátis
         </a>
-        <a href="https://app.santarem.app/cadastro" class="btn-outline-white">
+        <button type="button" onclick="window.dispatchEvent(new CustomEvent('openRegisterModal'))" class="btn-outline-white">
           <i class="ri-user-add-line"></i>
           Criar conta + currículo
-        </a>
+        </button>
       </div>
     </div>
   </section>
@@ -126,9 +126,9 @@ const steps = [
           <p class="text-xs font-bold text-emerald-600 uppercase tracking-wide mb-2">Com conta grátis</p>
           <h3 class="font-bold text-gray-900 mb-2">Currículo + Candidaturas</h3>
           <p class="text-sm text-gray-600 mb-4 leading-relaxed">Crie o currículo e candidate-se às vagas diretamente. Acompanhe tudo pelo painel.</p>
-          <a href="https://app.santarem.app/cadastro" class="btn-primary text-sm">
+          <button type="button" onclick="window.dispatchEvent(new CustomEvent('openRegisterModal'))" class="btn-primary text-sm">
             Criar conta grátis <i class="ri-arrow-right-line"></i>
-          </a>
+          </button>
         </div>
       </div>
     </div>

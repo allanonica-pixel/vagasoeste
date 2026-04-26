@@ -306,7 +306,7 @@ const websiteSchema = {
           </div>
         </a>
         <a
-          href="/para-empresas"
+          href="/interesse-empresa"
           class="flex flex-col items-center text-center gap-3 rounded-xl border-2 border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 transition-colors p-6"
         >
           <div class="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
@@ -444,15 +444,14 @@ const websiteSchema = {
       </div>
 
       <div class="flex flex-col sm:flex-row gap-3 justify-center">
-        <a
-          href={`${appUrl}/cadastro`}
-          target="_blank"
-          rel="noopener noreferrer"
+        <button
+          type="button"
+          onclick="window.dispatchEvent(new CustomEvent('openRegisterModal'))"
           class="btn-primary bg-white !text-emerald-700 hover:bg-emerald-50"
         >
           <i class="ri-user-add-line"></i>
           Criar conta grátis
-        </a>
+        </button>
         <a href="/vagas" class="btn-outline-white">
           <i class="ri-briefcase-line"></i>
           Ver vagas

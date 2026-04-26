@@ -67,12 +67,13 @@ const currentPath = Astro.url.pathname;
       >
         Entrar
       </a>
-      <a
-        href={`${appUrl}/cadastro`}
-        class="text-sm font-semibold px-4 py-2 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white transition-colors whitespace-nowrap"
+      <button
+        type="button"
+        onclick="window.dispatchEvent(new CustomEvent('openRegisterModal'))"
+        class="text-sm font-semibold px-4 py-2 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white transition-colors whitespace-nowrap cursor-pointer"
       >
         Cadastrar-se
-      </a>
+      </button>
     </div>
 
     <!-- Mobile: ilha React para interatividade do hambúrguer -->

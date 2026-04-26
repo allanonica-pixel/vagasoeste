@@ -48,13 +48,16 @@ export default function NavbarMobile({ navLinks, appUrl = 'https://app.santarem.
             >
               Entrar
             </a>
-            <a
-              href={`${appUrl}/cadastro`}
-              className="text-sm font-semibold text-center py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors"
-              onClick={() => setOpen(false)}
+            <button
+              type="button"
+              className="text-sm font-semibold text-center py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors cursor-pointer"
+              onClick={() => {
+                setOpen(false);
+                window.dispatchEvent(new CustomEvent('openRegisterModal'));
+              }}
             >
               Cadastrar-se
-            </a>
+            </button>
           </div>
         </div>
       )}
