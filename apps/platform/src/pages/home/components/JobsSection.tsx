@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/contexts/AuthContext";
 import AnimatedSection from "@/components/base/AnimatedSection";
 
 interface Job {
@@ -52,6 +53,8 @@ export default function JobsSection() {
   const [totalCount, setTotalCount] = useState(0);
   const [activeFilter, setActiveFilter] = useState("Todos");
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isLoggedIn = !!user;
 
   useEffect(() => {
     async function fetchJobs() {
@@ -168,7 +171,7 @@ export default function JobsSection() {
                     <span className="text-gray-400 text-xs">Empresa anônima</span>
                   </div>
                   <span className="text-emerald-600 text-xs font-semibold group-hover:underline">
-                    Habilitar
+                    {isLoggedIn ? "Ver vaga" : "Candidatar"}
                   </span>
                 </div>
               </div>
