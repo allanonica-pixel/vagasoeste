@@ -5,7 +5,7 @@ import react from '@astrojs/react';
 import vercel from '@astrojs/vercel';
 
 export default defineConfig({
-  site: 'https://vagasoeste.com.br',
+  site: 'https://santarem.app',
   output: 'server',
   adapter: vercel({
     webAnalytics: { enabled: true },
@@ -30,7 +30,7 @@ export default defineConfig({
         if (item.url.includes('/blog/')) {
           return { ...item, priority: 0.8, changefreq: 'weekly' };
         }
-        if (item.url === 'https://vagasoeste.com.br/') {
+        if (item.url === 'https://santarem.app/') {
           return { ...item, priority: 1.0, changefreq: 'daily' };
         }
         return { ...item, priority: 0.7, changefreq: 'monthly' };

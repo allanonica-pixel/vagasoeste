@@ -1,7 +1,43 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { supabase } from '../lib/supabase';
 
 export const prerender = true;
+
+// ── Helper: arredonda para baixo no múltiplo de 50, mínimo 20 ────────────────
+function roundedStat(n: number): string {
+  if (n <= 0) return '20+';
+  const rounded = Math.max(20, Math.floor(n / 50) * 50);
+  return rounded.toLocaleString('pt-BR') + '+';
+}
+
+// ── Contagens reais do Supabase (com fallback) ────────────────────────────────
+let companyCount   = 320;
+let candidateCount = 8500;
+
+try {
+  const { count } = await supabase.from('companies').select('*', { count: 'exact', head: true });
+  if (count !== null && count > 0) companyCount = count;
+} catch { /* fallback */ }
+
+try {
+  const { count } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
+  if (count !== null && count > 0) candidateCount = count;
+} catch { /* fallback */ }
+
+const stats = [
+  { value: roundedStat(companyCount),   label: 'Empresas parceiras' },
+  { value: roundedStat(candidateCount), label: 'Candidatos ativos' },
+  { value: 'Centenas',                  label: 'de Contratações realizadas' },
+  { value: '<48h',                      label: 'Candidaturas com retorno rápido' },
+];
+
+const SETORES = [
+  'Comércio', 'Saúde', 'Logística', 'Construção Civil',
+  'Alimentação', 'Tecnologia', 'Educação', 'Indústria', 'Serviços', 'Outro',
+];
+
+const apiUrl = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3000';
 ---
 
 <BaseLayout
@@ -23,48 +59,141 @@ export const prerender = true;
       </nav>
 
       <div class="grid grid-cols-1 lg:grid-cols-5 gap-10">
-        <!-- Formulário -->
-        <div class="lg:col-span-3">
-          <h1 class="text-2xl font-bold text-gray-900 mb-2">Quero contratar pela VagasOeste</h1>
-          <p class="text-sm text-gray-600 mb-8">Preencha o formulário abaixo. Nossa equipe retorna em até 1 dia útil para criar sua conta e configurar as vagas.</p>
 
-          <form
-            action="https://readdy.ai/api/form/empresa-interesse"
-            method="POST"
-            class="space-y-6"
-          >
+        <!-- ── Formulário ──────────────────────────────────────────────────── -->
+        <div class="lg:col-span-3" id="form-wrapper">
+          <h1 class="text-2xl font-bold text-gray-900 mb-2">Quero contratar pela VagasOeste</h1>
+          <p class="text-sm text-gray-600 mb-8">
+            Preencha o formulário abaixo. Nossa equipe retorna em até 1 dia útil para criar sua conta e configurar as vagas.
+          </p>
+
+          <form id="form-interesse" class="space-y-6" novalidate>
+
             <!-- Dados da Empresa -->
             <fieldset>
               <legend class="text-sm font-bold text-gray-900 mb-4 pb-2 border-b border-gray-100 w-full flex items-center gap-2">
                 <i class="ri-building-line text-emerald-600"></i>
                 Dados da Empresa
               </legend>
+
+              <!-- CNPJ -->
+              <div class="mb-4">
+                <label for="cnpj" class="block text-xs font-medium text-gray-700 mb-1">CNPJ</label>
+                <div class="relative">
+                  <input id="cnpj" name="cnpj" type="text" inputmode="numeric" maxlength="18"
+                    placeholder="00.000.000/0001-00"
+                    class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 transition-colors pr-10"
+                  />
+                  <span id="cnpj-spinner" class="absolute right-3 top-1/2 -translate-y-1/2 hidden"><i class="ri-loader-4-line animate-spin text-emerald-500"></i></span>
+                  <span id="cnpj-ok"      class="absolute right-3 top-1/2 -translate-y-1/2 hidden"><i class="ri-checkbox-circle-line text-emerald-500"></i></span>
+                  <span id="cnpj-err"     class="absolute right-3 top-1/2 -translate-y-1/2 hidden"><i class="ri-error-warning-line text-red-400"></i></span>
+                </div>
+                <p id="cnpj-msg" class="text-xs mt-1 hidden"></p>
+              </div>
+
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label for="company_name" class="block text-xs font-medium text-gray-700 mb-1">Nome da empresa *</label>
-                  <input id="company_name" name="company_name" type="text" required class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 transition-colors" placeholder="Empresa LTDA" />
+                <!-- Razão Social (auto-fill) -->
+                <div class="sm:col-span-2">
+                  <label for="razao_social" class="block text-xs font-medium text-gray-700 mb-1">
+                    Razão Social
+                    <span class="text-gray-400 font-normal ml-1">(preenchida automaticamente)</span>
+                  </label>
+                  <input id="razao_social" name="razao_social" type="text" readonly
+                    placeholder="Preenchida via CNPJ"
+                    class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none bg-gray-50 transition-colors"
+                  />
                 </div>
-                <div>
-                  <label for="cnpj" class="block text-xs font-medium text-gray-700 mb-1">CNPJ</label>
-                  <input id="cnpj" name="cnpj" type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 transition-colors" placeholder="00.000.000/0001-00" />
+
+                <!-- Nome Fantasia -->
+                <div class="sm:col-span-2">
+                  <label for="company_name" class="block text-xs font-medium text-gray-700 mb-1">
+                    Nome Fantasia / Nome da Empresa *
+                  </label>
+                  <input id="company_name" name="company_name" type="text" required
+                    placeholder="Empresa LTDA"
+                    class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 transition-colors"
+                  />
                 </div>
-                <div>
-                  <label for="sector" class="block text-xs font-medium text-gray-700 mb-1">Setor de atuação *</label>
-                  <select id="sector" name="sector" required class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 transition-colors bg-white">
-                    <option value="">Selecione...</option>
-                    {['Comércio', 'Saúde', 'Logística', 'Construção Civil', 'Alimentação', 'Tecnologia', 'Educação', 'Indústria', 'Serviços', 'Outro'].map((s) => (
-                      <option value={s}>{s}</option>
-                    ))}
-                  </select>
+
+                <!-- Bairro Atual -->
+                <div class="sm:col-span-2">
+                  <label for="neighborhood" class="block text-xs font-medium text-gray-700 mb-1">
+                    Bairro Atual *
+                    <span class="text-gray-400 font-normal ml-1">(sugerido pelo CNPJ/CEP)</span>
+                  </label>
+                  <input id="neighborhood" name="neighborhood" type="text" required
+                    placeholder="Informe o bairro onde a empresa opera"
+                    class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 transition-colors"
+                  />
                 </div>
+              </div>
+
+              <!-- Endereço fiscal (auto-fill via CNPJ / busca por CEP) -->
+              <div class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <!-- CEP: editável + lookup ViaCEP -->
                 <div>
-                  <label for="neighborhood" class="block text-xs font-medium text-gray-700 mb-1">Bairro em Santarém *</label>
-                  <input id="neighborhood" name="neighborhood" type="text" required class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 transition-colors" placeholder="Centro" />
+                  <label for="cep" class="block text-xs font-medium text-gray-700 mb-1">CEP</label>
+                  <div class="relative">
+                    <input id="cep" name="cep" type="text" inputmode="numeric" maxlength="9"
+                      placeholder="00000-000"
+                      class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 transition-colors pr-8"
+                    />
+                    <span id="cep-spinner" class="absolute right-2.5 top-1/2 -translate-y-1/2 hidden">
+                      <i class="ri-loader-4-line animate-spin text-emerald-500 text-sm"></i>
+                    </span>
+                  </div>
                 </div>
+                <!-- Logradouro: preenchido via CNPJ ou CEP -->
+                <div class="sm:col-span-2">
+                  <label for="logradouro" class="block text-xs font-medium text-gray-700 mb-1">
+                    Logradouro <span class="text-gray-400 font-normal">(auto)</span>
+                  </label>
+                  <input id="logradouro" name="logradouro" type="text" readonly
+                    placeholder="Preenchido via CNPJ ou CEP"
+                    class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 bg-gray-50 focus:outline-none transition-colors"
+                  />
+                </div>
+                <!-- Número: preenchido via CNPJ, editável -->
+                <div>
+                  <label for="numero" class="block text-xs font-medium text-gray-700 mb-1">Número</label>
+                  <input id="numero" name="numero" type="text" inputmode="numeric" maxlength="6"
+                    placeholder="S/N"
+                    class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 transition-colors"
+                  />
+                </div>
+                <!-- Bairro fiscal: preenchido via CNPJ ou CEP -->
+                <div class="sm:col-span-2">
+                  <label for="bairro_empresa" class="block text-xs font-medium text-gray-700 mb-1">
+                    Bairro fiscal <span class="text-gray-400 font-normal">(auto)</span>
+                  </label>
+                  <input id="bairro_empresa" name="bairro_empresa" type="text" readonly
+                    placeholder="Preenchido via CNPJ ou CEP"
+                    class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 bg-gray-50 focus:outline-none transition-colors"
+                  />
+                </div>
+              </div>
+
+              <!-- Setores de atuação (multi-select pills) -->
+              <div class="mt-4">
+                <label class="block text-xs font-medium text-gray-700 mb-2">
+                  Setor(es) de atuação *
+                  <span class="text-gray-400 font-normal ml-1">(selecione um ou mais)</span>
+                </label>
+                <div id="setores-container" class="flex flex-wrap gap-2">
+                  {SETORES.map((s) => (
+                    <label class="cursor-pointer">
+                      <input type="checkbox" name="setores" value={s} class="sr-only peer setor-check" />
+                      <span class="inline-flex items-center px-3 py-1.5 rounded-full border border-gray-200 text-sm text-gray-700 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 peer-checked:text-emerald-700 transition-colors select-none">
+                        {s}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+                <p id="setores-msg" class="text-xs mt-1.5 text-red-500 hidden">Selecione ao menos um setor.</p>
               </div>
             </fieldset>
 
-            <!-- Responsável -->
+            <!-- Responsável pelo Contato -->
             <fieldset>
               <legend class="text-sm font-bold text-gray-900 mb-4 pb-2 border-b border-gray-100 w-full flex items-center gap-2">
                 <i class="ri-user-line text-emerald-600"></i>
@@ -73,24 +202,40 @@ export const prerender = true;
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label for="contact_name" class="block text-xs font-medium text-gray-700 mb-1">Nome *</label>
-                  <input id="contact_name" name="contact_name" type="text" required class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 transition-colors" />
+                  <input id="contact_name" name="contact_name" type="text" required autocomplete="name"
+                    style="text-transform: uppercase"
+                    class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 transition-colors"
+                  />
                 </div>
                 <div>
-                  <label for="contact_role" class="block text-xs font-medium text-gray-700 mb-1">Cargo</label>
-                  <input id="contact_role" name="contact_role" type="text" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 transition-colors" placeholder="Gerente de RH" />
+                  <label for="contact_role" class="block text-xs font-medium text-gray-700 mb-1">Cargo *</label>
+                  <input id="contact_role" name="contact_role" type="text" required
+                    placeholder="GERENTE DE RH"
+                    style="text-transform: uppercase"
+                    class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 transition-colors"
+                  />
                 </div>
                 <div>
                   <label for="contact_email" class="block text-xs font-medium text-gray-700 mb-1">Email *</label>
-                  <input id="contact_email" name="contact_email" type="email" required class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 transition-colors" />
+                  <input id="contact_email" name="contact_email" type="email" required autocomplete="email"
+                    placeholder="email@empresa.com"
+                    class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 transition-colors"
+                  />
+                  <p id="email-msg" class="text-xs mt-1 hidden"></p>
                 </div>
                 <div>
                   <label for="contact_whatsapp" class="block text-xs font-medium text-gray-700 mb-1">WhatsApp *</label>
-                  <input id="contact_whatsapp" name="contact_whatsapp" type="tel" required class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 transition-colors" placeholder="(93) 99999-9999" />
+                  <input id="contact_whatsapp" name="contact_whatsapp" type="tel" required
+                    inputmode="tel" maxlength="16" autocomplete="tel"
+                    placeholder="(93) 9 9999-9999"
+                    class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 transition-colors"
+                  />
+                  <p id="whatsapp-msg" class="text-xs mt-1 hidden"></p>
                 </div>
               </div>
             </fieldset>
 
-            <!-- Informações adicionais -->
+            <!-- Informações Adicionais -->
             <fieldset>
               <legend class="text-sm font-bold text-gray-900 mb-4 pb-2 border-b border-gray-100 w-full flex items-center gap-2">
                 <i class="ri-information-line text-emerald-600"></i>
@@ -98,34 +243,48 @@ export const prerender = true;
               </legend>
               <div class="space-y-4">
                 <div>
-                  <label class="block text-xs font-medium text-gray-700 mb-2">Quantas vagas pretende publicar?</label>
-                  <div class="flex flex-wrap gap-2">
+                  <label class="block text-xs font-medium text-gray-700 mb-2">
+                    Quantas vagas pretende publicar? *
+                  </label>
+                  <div class="flex flex-wrap gap-2" id="vagas-container">
                     {['1 a 3', '4 a 10', '11 a 30', 'Mais de 30'].map((qty) => (
                       <label class="cursor-pointer">
-                        <input type="radio" name="vacancies_qty" value={qty} class="sr-only peer" />
-                        <span class="inline-flex items-center px-4 py-2 rounded-full border border-gray-200 text-sm text-gray-700 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 peer-checked:text-emerald-700 transition-colors">
+                        <input type="radio" name="vacancies_qty" value={qty} class="sr-only peer vagas-radio" />
+                        <span class="inline-flex items-center px-4 py-2 rounded-full border border-gray-200 text-sm text-gray-700 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 peer-checked:text-emerald-700 transition-colors select-none">
                           {qty}
                         </span>
                       </label>
                     ))}
                   </div>
+                  <p id="vagas-msg" class="text-xs mt-1.5 text-red-500 hidden">Selecione a quantidade de vagas.</p>
                 </div>
                 <div>
                   <label for="message" class="block text-xs font-medium text-gray-700 mb-1">Mensagem (opcional)</label>
-                  <textarea id="message" name="message" rows={3} class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 transition-colors resize-none" placeholder="Conte mais sobre suas necessidades de contratação..."></textarea>
+                  <textarea id="message" name="message" rows={3}
+                    placeholder="Conte mais sobre suas necessidades de contratação..."
+                    class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 transition-colors resize-none"
+                  ></textarea>
                 </div>
               </div>
             </fieldset>
 
-            <button type="submit" class="btn-primary w-full justify-center py-3 text-base">
+            <!-- Erro global -->
+            <div id="form-error" class="hidden bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700 flex items-center gap-2">
+              <i class="ri-error-warning-line shrink-0"></i>
+              <span id="form-error-msg"></span>
+            </div>
+
+            <button type="submit" id="btn-submit" class="btn-primary w-full justify-center py-3 text-base">
               <i class="ri-send-plane-line"></i>
-              Enviar solicitação
+              Enviar Solicitação
             </button>
-            <p class="text-xs text-gray-400 text-center">Retornamos em até 1 dia útil pelo WhatsApp ou email.</p>
+            <p class="text-xs text-gray-400 text-center">
+              Após o envio, você receberá um código via WhatsApp para validar seu pré-cadastro.
+            </p>
           </form>
         </div>
 
-        <!-- Sidebar -->
+        <!-- ── Sidebar ─────────────────────────────────────────────────────── -->
         <aside class="lg:col-span-2 space-y-5">
           <!-- Contato direto -->
           <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-5">
@@ -134,14 +293,16 @@ export const prerender = true;
               Prefere falar direto?
             </h2>
             <div class="space-y-3">
-              <a href="https://wa.me/559399999000" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 bg-white rounded-lg p-3 border border-emerald-100 hover:border-emerald-300 transition-colors">
+              <a href="https://wa.me/559399999000" target="_blank" rel="noopener noreferrer"
+                class="flex items-center gap-3 bg-white rounded-lg p-3 border border-emerald-100 hover:border-emerald-300 transition-colors">
                 <i class="ri-whatsapp-line text-2xl text-green-500"></i>
                 <div>
                   <p class="text-xs font-semibold text-gray-900">(93) 99999-0000</p>
                   <p class="text-xs text-gray-500">WhatsApp — Seg a Sex, 8h–18h</p>
                 </div>
               </a>
-              <a href="mailto:empresas@santarem.app" class="flex items-center gap-3 bg-white rounded-lg p-3 border border-emerald-100 hover:border-emerald-300 transition-colors">
+              <a href="mailto:empresas@santarem.app"
+                class="flex items-center gap-3 bg-white rounded-lg p-3 border border-emerald-100 hover:border-emerald-300 transition-colors">
                 <i class="ri-mail-line text-2xl text-emerald-500"></i>
                 <div>
                   <p class="text-xs font-semibold text-gray-900">empresas@santarem.app</p>
@@ -156,10 +317,10 @@ export const prerender = true;
             <h2 class="font-semibold text-gray-900 mb-3">Por que a VagasOeste?</h2>
             <ul class="space-y-3">
               {[
-                { icon: 'ri-shield-user-line', text: 'Candidatos verificados pela equipe' },
-                { icon: 'ri-eye-off-line', text: 'Sua empresa fica anônima para os candidatos' },
-                { icon: 'ri-group-line', text: 'Acesso a 8.500+ candidatos em Santarém' },
-                { icon: 'ri-time-line', text: 'Publique sua vaga em minutos' },
+                { icon: 'ri-shield-user-line',       text: 'Candidatos verificados pela equipe' },
+                { icon: 'ri-eye-off-line',            text: 'Sua empresa fica anônima para os candidatos' },
+                { icon: 'ri-group-line',              text: `Acesso a ${roundedStat(candidateCount)} candidatos em Santarém e região` },
+                { icon: 'ri-time-line',               text: 'Publique sua vaga em minutos' },
                 { icon: 'ri-customer-service-2-line', text: 'Suporte dedicado da nossa equipe' },
               ].map((item) => (
                 <li class="flex items-start gap-2 text-sm text-gray-700">
@@ -174,15 +335,10 @@ export const prerender = true;
           <div class="bg-gray-50 border border-gray-100 rounded-xl p-5">
             <h2 class="font-semibold text-gray-900 mb-3">Números da plataforma</h2>
             <dl class="grid grid-cols-2 gap-3">
-              {[
-                { value: '320+', label: 'Empresas parceiras' },
-                { value: '8.500+', label: 'Candidatos ativos' },
-                { value: '2.100+', label: 'Contratações em 2026' },
-                { value: '<48h', label: 'Primeiros candidatos' },
-              ].map((s) => (
+              {stats.map((s) => (
                 <div class="text-center bg-white rounded-lg p-3 border border-gray-100">
                   <dt class="text-lg font-bold text-emerald-600">{s.value}</dt>
-                  <dd class="text-xs text-gray-500 mt-0.5">{s.label}</dd>
+                  <dd class="text-xs text-gray-500 mt-0.5 leading-tight">{s.label}</dd>
                 </div>
               ))}
             </dl>
@@ -192,4 +348,646 @@ export const prerender = true;
     </div>
   </section>
 
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       MODAL OTP — código enviado por WhatsApp
+  ═══════════════════════════════════════════════════════════════════════════ -->
+  <div id="modal-otp" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" id="otp-backdrop"></div>
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-7">
+      <!-- Header -->
+      <div class="text-center mb-6">
+        <div class="w-14 h-14 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <i class="ri-whatsapp-line text-3xl text-green-500"></i>
+        </div>
+        <h2 class="text-xl font-bold text-gray-900 mb-2">Valide seu Pré-Cadastro</h2>
+        <p class="text-sm text-gray-600">
+          Insira o código enviado para o WhatsApp:<br/>
+          <strong id="otp-phone-display" class="text-gray-900"></strong>
+        </p>
+      </div>
+
+      <!-- Input do código -->
+      <div class="mb-5">
+        <input
+          id="otp-input"
+          type="text"
+          inputmode="numeric"
+          maxlength="6"
+          placeholder="000000"
+          autocomplete="one-time-code"
+          class="w-full border-2 border-gray-200 rounded-xl px-4 py-4 text-2xl font-bold text-center text-gray-900 tracking-[0.5em] focus:outline-none focus:border-emerald-500 transition-colors"
+        />
+        <p id="otp-error" class="text-xs text-red-500 text-center mt-2 hidden"></p>
+      </div>
+
+      <!-- Ações -->
+      <button id="btn-verificar" class="btn-primary w-full justify-center py-3 text-base mb-3">
+        <i class="ri-shield-check-line"></i>
+        Verificar Código
+      </button>
+
+      <div class="flex items-center justify-between text-xs text-gray-500">
+        <button id="btn-reenviar" type="button" class="hover:text-emerald-600 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
+          Reenviar código
+        </button>
+        <button id="btn-otp-cancelar" type="button" class="hover:text-gray-700 transition-colors cursor-pointer">
+          Cancelar e editar
+        </button>
+      </div>
+
+      <p id="otp-reenviar-timer" class="text-xs text-gray-400 text-center mt-2"></p>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       MODAL RESUMO DO PRÉ-CADASTRO
+  ═══════════════════════════════════════════════════════════════════════════ -->
+  <div id="modal-resumo" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-7">
+      <!-- Header -->
+      <div class="flex items-start justify-between mb-6">
+        <div>
+          <p class="text-xs font-semibold text-emerald-600 uppercase tracking-wide mb-0.5">Confirmação</p>
+          <h2 class="text-xl font-bold text-gray-900">Resumo do Pré-Cadastro</h2>
+          <p class="text-sm text-gray-500 mt-1">Confira os dados antes de confirmar.</p>
+        </div>
+        <button id="btn-resumo-fechar" type="button"
+          class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 cursor-pointer transition-colors shrink-0"
+          aria-label="Fechar e editar">
+          <i class="ri-close-line text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Dados resumidos -->
+      <div id="resumo-conteudo" class="space-y-4 mb-6">
+        <!-- Preenchido por JS -->
+      </div>
+
+      <p class="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-5 flex items-start gap-2">
+        <i class="ri-information-line shrink-0 mt-0.5"></i>
+        Se fechar para editar, será necessário um novo código de validação via WhatsApp.
+      </p>
+
+      <!-- Botão Confirmar -->
+      <button id="btn-confirmar" class="btn-primary w-full justify-center py-3 text-base">
+        <i class="ri-check-double-line"></i>
+        Confirmar Pré-Cadastro
+      </button>
+
+      <div id="resumo-error" class="hidden mt-3 text-xs text-red-600 text-center bg-red-50 rounded-lg px-3 py-2"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       MODAL SUCESSO
+  ═══════════════════════════════════════════════════════════════════════════ -->
+  <div id="modal-sucesso" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 text-center">
+      <div class="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-5">
+        <i class="ri-checkbox-circle-fill text-4xl text-emerald-500"></i>
+      </div>
+      <h2 class="text-2xl font-bold text-gray-900 mb-2">Pré-Cadastro Enviado!</h2>
+      <p class="text-sm text-gray-600 mb-6 leading-relaxed">
+        Recebemos seu interesse. Nossa equipe entrará em contato em até <strong>1 dia útil</strong> pelo WhatsApp ou email para criar sua conta.
+      </p>
+      <a href="/para-empresas" class="btn-primary justify-center w-full py-3">
+        <i class="ri-arrow-left-line"></i>
+        Voltar para Empresas
+      </a>
+    </div>
+  </div>
+
 </BaseLayout>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     JavaScript — máscaras, validações e fluxo OTP
+═══════════════════════════════════════════════════════════════════════════════ -->
+<script define:vars={{ apiUrl }}>
+
+// ── Utilitários de máscara ─────────────────────────────────────────────────
+function maskCNPJ(v) {
+  v = v.replace(/\D/g, '').substring(0, 14);
+  if (v.length > 12) return v.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{0,2})/, '$1.$2.$3/$4-$5');
+  if (v.length > 8)  return v.replace(/^(\d{2})(\d{3})(\d{3})(\d{0,4})/,        '$1.$2.$3/$4');
+  if (v.length > 5)  return v.replace(/^(\d{2})(\d{3})(\d{0,3})/,               '$1.$2.$3');
+  if (v.length > 2)  return v.replace(/^(\d{2})(\d{0,3})/,                      '$1.$2');
+  return v;
+}
+
+function maskPhone(v) {
+  v = v.replace(/\D/g, '').substring(0, 11);
+  if (v.length > 10) return v.replace(/^(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+  if (v.length > 6)  return v.replace(/^(\d{2})(\d{4,5})(\d{0,4})/, '($1) $2-$3');
+  if (v.length > 2)  return v.replace(/^(\d{2})(\d{0,5})/, '($1) $2');
+  if (v.length > 0)  return '(' + v;
+  return v;
+}
+
+// ── Validadores ────────────────────────────────────────────────────────────
+function validarCNPJ(cnpj) {
+  const n = cnpj.replace(/\D/g, '');
+  if (n.length !== 14 || /^(\d)\1{13}$/.test(n)) return false;
+  const calc = (s, w) => s.split('').reduce((a, d, i) => a + +d * w[i], 0);
+  const w1 = [5,4,3,2,9,8,7,6,5,4,3,2];
+  const w2 = [6,5,4,3,2,9,8,7,6,5,4,3,2];
+  const d1 = 11 - (calc(n.slice(0,12), w1) % 11);
+  const d2 = 11 - (calc(n.slice(0,13), w2) % 11);
+  return +n[12] === (d1>=10?0:d1) && +n[13] === (d2>=10?0:d2);
+}
+
+function validarEmail(v) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v);
+}
+
+function validarPhone(v) {
+  const d = v.replace(/\D/g, '');
+  return d.length >= 10 && d.length <= 11;
+}
+
+// ── Feedback visual em campos ──────────────────────────────────────────────
+function setField(input, valid, msgEl, msg) {
+  input.classList.remove('border-emerald-400', 'border-red-400');
+  if (valid === true)  input.classList.add('border-emerald-400');
+  if (valid === false) input.classList.add('border-red-400');
+  if (msgEl) {
+    msgEl.textContent = msg ?? '';
+    msgEl.className = `text-xs mt-1 ${valid === false ? 'text-red-500' : 'text-gray-400'}`;
+    msgEl.classList.toggle('hidden', !msg);
+  }
+}
+
+// ── Helper: seta valor num campo (só pula null/undefined) ─────────────────
+function setVal(id, val) {
+  const el = document.getElementById(id);
+  if (el && val != null && val !== undefined) el.value = String(val);
+}
+
+// ── Máscara CEP: 00000-000 ─────────────────────────────────────────────────
+function maskCEP(v) {
+  v = v.replace(/\D/g, '').substring(0, 8);
+  if (v.length > 5) return v.replace(/^(\d{5})(\d{0,3})/, '$1-$2');
+  return v;
+}
+
+// ── ViaCEP lookup ──────────────────────────────────────────────────────────
+async function lookupCEP(digits) {
+  if (digits.length !== 8) return;
+  const spinner = document.getElementById('cep-spinner');
+  spinner?.classList.remove('hidden');
+  try {
+    const res  = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
+    const data = await res.json();
+    if (data.erro) throw new Error('CEP não encontrado.');
+    // Preenche logradouro, bairro fiscal e sugere Bairro Atual
+    setVal('logradouro',     data.logradouro ?? '');
+    setVal('bairro_empresa', data.bairro     ?? '');
+    // Bairro Atual recebe sugestão do bairro fiscal (só se ainda vazio)
+    const nb = document.getElementById('neighborhood');
+    if (nb && !nb.value && data.bairro) nb.value = data.bairro;
+  } catch { /* silencia — usuário digita manualmente */ }
+  finally { spinner?.classList.add('hidden'); }
+}
+
+// ── BrasilAPI CNPJ lookup ──────────────────────────────────────────────────
+async function lookupCNPJ(digits) {
+  const spinner = document.getElementById('cnpj-spinner');
+  const ok      = document.getElementById('cnpj-ok');
+  const err     = document.getElementById('cnpj-err');
+  const msg     = document.getElementById('cnpj-msg');
+
+  spinner.classList.remove('hidden');
+  ok.classList.add('hidden');
+  err.classList.add('hidden');
+  msg.classList.add('hidden');
+
+  try {
+    const res  = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${digits}`);
+    if (!res.ok) throw new Error('CNPJ não encontrado na Receita Federal.');
+    const data = await res.json();
+
+    // Preenche todos os campos — usa setVal que aceita strings vazias
+    setVal('razao_social',   data.razao_social ?? '');
+    setVal('company_name',   data.nome_fantasia || data.razao_social || '');
+    setVal('logradouro',     data.logradouro ?? '');
+    setVal('numero',         data.numero      ?? '');
+    setVal('bairro_empresa', data.bairro      ?? '');
+
+    // CEP: formata com máscara ao preencher
+    const cepRaw = (data.cep ?? '').replace(/\D/g, '');
+    setVal('cep', maskCEP(cepRaw));
+
+    // Bairro Atual: sugere o mesmo valor do Bairro fiscal
+    const nb = document.getElementById('neighborhood');
+    if (nb && data.bairro) nb.value = data.bairro;
+
+    spinner.classList.add('hidden');
+    ok.classList.remove('hidden');
+    msg.textContent = 'Dados preenchidos automaticamente.';
+    msg.className = 'text-xs mt-1 text-emerald-600';
+    msg.classList.remove('hidden');
+  } catch (e) {
+    spinner.classList.add('hidden');
+    err.classList.remove('hidden');
+    msg.textContent = e.message ?? 'CNPJ não encontrado.';
+    msg.className = 'text-xs mt-1 text-red-500';
+    msg.classList.remove('hidden');
+  }
+}
+
+// ── Estado da sessão OTP ───────────────────────────────────────────────────
+let _sessionId = null;
+let _phone     = null;
+
+function clearSession() {
+  if (_sessionId) {
+    fetch(`${apiUrl}/v1/interesse/invalidate-session`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sessionId: _sessionId }),
+    }).catch(() => {});
+  }
+  _sessionId = null;
+}
+
+// ── Coleta dados do formulário ─────────────────────────────────────────────
+function coletarDados() {
+  const g = (id) => (document.getElementById(id)?.value ?? '').trim();
+  const setores = [...document.querySelectorAll('.setor-check:checked')].map(el => el.value);
+  const vagasEl = document.querySelector('input[name="vacancies_qty"]:checked');
+  return {
+    cnpj:             g('cnpj'),
+    razao_social:     g('razao_social'),
+    company_name:     g('company_name'),
+    setores,
+    neighborhood:     g('neighborhood'),
+    cep:              g('cep').replace(/\D/g, ''), // armazena só dígitos
+    logradouro:       g('logradouro'),
+    numero:           g('numero'),
+    bairro_empresa:   g('bairro_empresa'),
+    contact_name:     g('contact_name').toUpperCase(),
+    contact_role:     g('contact_role').toUpperCase(),
+    contact_email:    g('contact_email'),
+    contact_whatsapp: g('contact_whatsapp'),
+    vacancies_qty:    vagasEl?.value ?? '',
+    message:          g('message'),
+  };
+}
+
+// ── Validação do formulário (retorna true se OK) ───────────────────────────
+function validarForm() {
+  let ok = true;
+  const dados = coletarDados();
+
+  // Nome empresa
+  const nameEl = document.getElementById('company_name');
+  if (!dados.company_name) { setField(nameEl, false); ok = false; }
+  else setField(nameEl, true);
+
+  // Bairro
+  const nbEl = document.getElementById('neighborhood');
+  if (!dados.neighborhood) { setField(nbEl, false); ok = false; }
+  else setField(nbEl, true);
+
+  // Setores
+  const setoresMsg = document.getElementById('setores-msg');
+  if (dados.setores.length === 0) { setoresMsg.classList.remove('hidden'); ok = false; }
+  else setoresMsg.classList.add('hidden');
+
+  // Nome contato
+  const cnEl = document.getElementById('contact_name');
+  if (!dados.contact_name) { setField(cnEl, false); ok = false; }
+  else setField(cnEl, true);
+
+  // Cargo
+  const crEl = document.getElementById('contact_role');
+  if (!dados.contact_role) { setField(crEl, false); ok = false; }
+  else setField(crEl, true);
+
+  // Email
+  const emailEl = document.getElementById('contact_email');
+  const emailMsg = document.getElementById('email-msg');
+  if (!dados.contact_email || !validarEmail(dados.contact_email)) {
+    setField(emailEl, false, emailMsg, 'E-mail inválido.');
+    ok = false;
+  } else setField(emailEl, true, emailMsg, '');
+
+  // WhatsApp
+  const waEl  = document.getElementById('contact_whatsapp');
+  const waMsg = document.getElementById('whatsapp-msg');
+  if (!dados.contact_whatsapp || !validarPhone(dados.contact_whatsapp)) {
+    setField(waEl, false, waMsg, 'Número inválido. Use (93) 9 9999-9999.');
+    ok = false;
+  } else setField(waEl, true, waMsg, '');
+
+  // Vagas
+  const vagasMsg = document.getElementById('vagas-msg');
+  if (!dados.vacancies_qty) { vagasMsg.classList.remove('hidden'); ok = false; }
+  else vagasMsg.classList.add('hidden');
+
+  return ok;
+}
+
+// ── Exibe/oculta modais ────────────────────────────────────────────────────
+function showModal(id) {
+  document.getElementById(id).classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+function hideModal(id) {
+  document.getElementById(id).classList.add('hidden');
+}
+function hideAllModals() {
+  ['modal-otp', 'modal-resumo', 'modal-sucesso'].forEach(hideModal);
+  document.body.style.overflow = '';
+}
+
+// ── Preenche o resumo ──────────────────────────────────────────────────────
+function preencherResumo(dados) {
+  const container = document.getElementById('resumo-conteudo');
+  const linha = (label, valor) => valor
+    ? `<div class="flex justify-between gap-4 text-sm border-b border-gray-50 pb-2">
+         <span class="text-gray-500 shrink-0">${label}</span>
+         <span class="font-medium text-gray-900 text-right">${valor}</span>
+       </div>`
+    : '';
+
+  container.innerHTML = [
+    linha('Empresa',       dados.company_name),
+    linha('Razão Social',  dados.razao_social),
+    linha('CNPJ',          dados.cnpj),
+    linha('Setor(es)',     dados.setores.join(', ')),
+    linha('Bairro (Stm.)', dados.neighborhood),
+    linha('Logradouro',    dados.logradouro ? `${dados.logradouro}, ${dados.numero || 'S/N'}` : ''),
+    linha('Bairro fiscal', dados.bairro_empresa),
+    linha('CEP',           dados.cep),
+    linha('Responsável',   dados.contact_name),
+    linha('Cargo',         dados.contact_role),
+    linha('Email',         dados.contact_email),
+    linha('WhatsApp',      dados.contact_whatsapp),
+    linha('Vagas',         dados.vacancies_qty),
+    linha('Mensagem',      dados.message),
+  ].join('');
+}
+
+// ── Timer de reenvio (60s) ─────────────────────────────────────────────────
+let _timerInterval = null;
+function iniciarTimer() {
+  const btn   = document.getElementById('btn-reenviar');
+  const timer = document.getElementById('otp-reenviar-timer');
+  btn.disabled = true;
+  let seg = 60;
+  const tick = () => {
+    timer.textContent = `Reenviar disponível em ${seg}s`;
+    if (seg <= 0) {
+      clearInterval(_timerInterval);
+      btn.disabled = false;
+      timer.textContent = '';
+    }
+    seg--;
+  };
+  tick();
+  _timerInterval = setInterval(tick, 1000);
+}
+
+// ── Fluxo principal ────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+
+  // ── CNPJ
+  const cnpjEl = document.getElementById('cnpj');
+  cnpjEl?.addEventListener('input', () => { cnpjEl.value = maskCNPJ(cnpjEl.value); });
+  cnpjEl?.addEventListener('blur', async () => {
+    const d = cnpjEl.value.replace(/\D/g, '');
+    if (d.length === 14) {
+      const err = document.getElementById('cnpj-err');
+      const msg = document.getElementById('cnpj-msg');
+      if (!validarCNPJ(d)) {
+        err.classList.remove('hidden');
+        msg.textContent = 'CNPJ inválido.';
+        msg.className = 'text-xs mt-1 text-red-500';
+        msg.classList.remove('hidden');
+        return;
+      }
+      await lookupCNPJ(d);
+    }
+  });
+
+  // CEP: máscara + lookup ViaCEP ao sair do campo
+  const cepEl = document.getElementById('cep');
+  cepEl?.addEventListener('input', () => {
+    cepEl.value = maskCEP(cepEl.value);
+  });
+  cepEl?.addEventListener('blur', async () => {
+    const digits = cepEl.value.replace(/\D/g, '');
+    if (digits.length === 8) await lookupCEP(digits);
+  });
+
+  // Número: somente dígitos
+  document.getElementById('numero')?.addEventListener('input', e => {
+    e.target.value = e.target.value.replace(/\D/g, '');
+  });
+
+  // WhatsApp mask
+  const waEl  = document.getElementById('contact_whatsapp');
+  const waMsg = document.getElementById('whatsapp-msg');
+  waEl?.addEventListener('input', () => { waEl.value = maskPhone(waEl.value); });
+  waEl?.addEventListener('blur', () => {
+    if (!waEl.value) return;
+    const v = validarPhone(waEl.value);
+    setField(waEl, v, waMsg, v ? '' : 'Número inválido. Use (93) 9 9999-9999.');
+  });
+
+  // Email validation
+  const emailEl  = document.getElementById('contact_email');
+  const emailMsg = document.getElementById('email-msg');
+  emailEl?.addEventListener('blur', () => {
+    if (!emailEl.value) return;
+    const v = validarEmail(emailEl.value);
+    setField(emailEl, v, emailMsg, v ? '' : 'E-mail inválido. Verifique o formato.');
+  });
+  emailEl?.addEventListener('input', () => {
+    if (emailEl.classList.contains('border-red-400') && validarEmail(emailEl.value))
+      setField(emailEl, true, emailMsg, '');
+  });
+
+  // Uppercase: nome + cargo
+  ['contact_name', 'contact_role'].forEach(id => {
+    const el = document.getElementById(id);
+    el?.addEventListener('input', () => {
+      const pos = el.selectionStart;
+      el.value = el.value.toUpperCase();
+      el.setSelectionRange(pos, pos);
+    });
+  });
+
+  // ── Submissão do formulário → abre modal OTP ───────────────────────────
+  const form    = document.getElementById('form-interesse');
+  const btnSub  = document.getElementById('btn-submit');
+  const errBox  = document.getElementById('form-error');
+  const errMsg  = document.getElementById('form-error-msg');
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errBox.classList.add('hidden');
+
+    if (!validarForm()) {
+      errMsg.textContent = 'Corrija os campos indicados antes de continuar.';
+      errBox.classList.remove('hidden');
+      errBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      return;
+    }
+
+    btnSub.disabled = true;
+    btnSub.innerHTML = '<i class="ri-loader-4-line animate-spin"></i> Enviando código...';
+
+    const dados = coletarDados();
+    _phone = dados.contact_whatsapp;
+
+    try {
+      const res  = await fetch(`${apiUrl}/v1/interesse/send-code`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: _phone }),
+      });
+      const json = await res.json();
+
+      if (!res.ok) throw new Error(json.error ?? 'Erro ao enviar código.');
+
+      document.getElementById('otp-phone-display').textContent = json.maskedPhone ?? _phone;
+      document.getElementById('otp-input').value = '';
+      document.getElementById('otp-error').classList.add('hidden');
+      iniciarTimer();
+      showModal('modal-otp');
+    } catch (err) {
+      errMsg.textContent = err.message;
+      errBox.classList.remove('hidden');
+    } finally {
+      btnSub.disabled = false;
+      btnSub.innerHTML = '<i class="ri-send-plane-line"></i> Enviar Solicitação';
+    }
+  });
+
+  // ── Verificar código OTP ───────────────────────────────────────────────
+  document.getElementById('btn-verificar')?.addEventListener('click', async () => {
+    const codigo    = document.getElementById('otp-input').value.trim();
+    const errEl     = document.getElementById('otp-error');
+    const btnVerif  = document.getElementById('btn-verificar');
+
+    if (codigo.length !== 6) {
+      errEl.textContent = 'Digite os 6 dígitos do código.';
+      errEl.classList.remove('hidden');
+      return;
+    }
+
+    btnVerif.disabled = true;
+    btnVerif.innerHTML = '<i class="ri-loader-4-line animate-spin"></i> Verificando...';
+    errEl.classList.add('hidden');
+
+    try {
+      const res  = await fetch(`${apiUrl}/v1/interesse/verify-code`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: _phone, code: codigo }),
+      });
+      const json = await res.json();
+
+      if (!res.ok) throw new Error(json.error ?? 'Código inválido.');
+
+      _sessionId = json.sessionId;
+      hideModal('modal-otp');
+
+      // Preenche e abre o resumo
+      const dados = coletarDados();
+      preencherResumo(dados);
+      document.getElementById('resumo-error').classList.add('hidden');
+      showModal('modal-resumo');
+    } catch (err) {
+      errEl.textContent = err.message;
+      errEl.classList.remove('hidden');
+    } finally {
+      btnVerif.disabled = false;
+      btnVerif.innerHTML = '<i class="ri-shield-check-line"></i> Verificar Código';
+    }
+  });
+
+  // Enter no campo OTP aciona verificação
+  document.getElementById('otp-input')?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') document.getElementById('btn-verificar')?.click();
+  });
+
+  // ── Reenviar código ────────────────────────────────────────────────────
+  document.getElementById('btn-reenviar')?.addEventListener('click', async () => {
+    const errEl = document.getElementById('otp-error');
+    errEl.classList.add('hidden');
+    iniciarTimer();
+    try {
+      const res  = await fetch(`${apiUrl}/v1/interesse/send-code`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: _phone }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? 'Erro ao reenviar.');
+    } catch (err) {
+      errEl.textContent = err.message;
+      errEl.classList.remove('hidden');
+    }
+  });
+
+  // ── Cancelar OTP → volta para o form ──────────────────────────────────
+  document.getElementById('btn-otp-cancelar')?.addEventListener('click', () => {
+    clearInterval(_timerInterval);
+    hideAllModals();
+  });
+
+  // ── Fechar resumo → volta para o form (invalida sessão) ────────────────
+  document.getElementById('btn-resumo-fechar')?.addEventListener('click', () => {
+    clearSession();
+    hideAllModals();
+  });
+
+  // ── Confirmar pré-cadastro ─────────────────────────────────────────────
+  document.getElementById('btn-confirmar')?.addEventListener('click', async () => {
+    const errEl  = document.getElementById('resumo-error');
+    const btnCon = document.getElementById('btn-confirmar');
+
+    if (!_sessionId) {
+      errEl.textContent = 'Sessão expirada. Reenvie o formulário.';
+      errEl.classList.remove('hidden');
+      return;
+    }
+
+    btnCon.disabled = true;
+    btnCon.innerHTML = '<i class="ri-loader-4-line animate-spin"></i> Enviando...';
+
+    try {
+      const dados = coletarDados();
+      const res   = await fetch(`${apiUrl}/v1/interesse/submit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...dados, sessionId: _sessionId, phone: _phone }),
+      });
+      const json  = await res.json();
+
+      if (!res.ok) throw new Error(json.error ?? 'Erro ao enviar.');
+
+      _sessionId = null;
+      hideModal('modal-resumo');
+      showModal('modal-sucesso');
+    } catch (err) {
+      errEl.textContent = err.message;
+      errEl.classList.remove('hidden');
+    } finally {
+      btnCon.disabled = false;
+      btnCon.innerHTML = '<i class="ri-check-double-line"></i> Confirmar Pré-Cadastro';
+    }
+  });
+
+  // Fecha modal backdrop OTP
+  document.getElementById('otp-backdrop')?.addEventListener('click', () => {
+    clearInterval(_timerInterval);
+    hideAllModals();
+  });
+
+}); // DOMContentLoaded
+</script>

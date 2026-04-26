@@ -4,13 +4,16 @@
   "version": "0.0.0",
   "workspaces": [
     "apps/*",
-    "packages/*"
+    "packages/*",
+    "services/*"
   ],
   "scripts": {
     "dev:site": "npm -w apps/site run dev",
     "dev:platform": "npm -w apps/platform run dev",
+    "dev:api": "npm -w services/api run dev",
     "build:site": "npm -w apps/site run build",
     "build:platform": "npm -w apps/platform run build",
+    "build:api": "npm -w services/api run build",
     "build": "npm run build:site && npm run build:platform",
     "lint": "npm -w apps/site run lint && npm -w apps/platform run lint",
     "type-check": "npm -w apps/site run type-check && npm -w apps/platform run type-check"

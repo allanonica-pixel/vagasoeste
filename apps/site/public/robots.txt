@@ -13,4 +13,4 @@ Disallow: /verificar-email/
 Disallow: /_astro/
 
 # Sitemap
-Sitemap: https://vagasoeste.com.br/sitemap-index.xml
+Sitemap: https://santarem.app/sitemap-index.xml

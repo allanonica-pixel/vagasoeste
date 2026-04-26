@@ -6,7 +6,8 @@ interface Testimonial {
   role: string;
   neighborhood: string;
   text: string;
-  image: string;
+  initials: string;
+  color: string;
 }
 
 interface TestimonialsSliderProps {
@@ -37,12 +38,9 @@ export default function TestimonialsSlider({ testimonials }: TestimonialsSliderP
             </div>
             <p className="text-gray-600 text-sm leading-relaxed mb-5 italic">"{t.text}"</p>
             <div className="flex items-center gap-3">
-              <img
-                src={t.image}
-                alt={t.name}
-                className="w-10 h-10 rounded-full object-cover"
-                loading="lazy"
-              />
+              <div className={`w-10 h-10 rounded-full ${t.color} flex items-center justify-center shrink-0`}>
+                <span className="text-white text-xs font-bold">{t.initials}</span>
+              </div>
               <div>
                 <p className="text-sm font-semibold text-gray-900">{t.name}</p>
                 <p className="text-xs text-gray-500">{t.role} · {t.neighborhood}</p>

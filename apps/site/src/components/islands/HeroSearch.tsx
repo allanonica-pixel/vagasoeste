@@ -129,9 +129,9 @@ export default function HeroSearch() {
             onClick={() => {
               window.location.href = `/vagas?setor=${encodeURIComponent(s.label)}`;
             }}
-            className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white/90 text-xs px-2.5 py-1 rounded-full transition-colors whitespace-nowrap"
+            className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white/90 text-sm px-3 py-1.5 rounded-full transition-colors whitespace-nowrap"
           >
-            <i className={`${s.icon} text-xs`}></i>
+            <i className={`${s.icon} text-sm`}></i>
             {s.label}
           </button>
         ))}

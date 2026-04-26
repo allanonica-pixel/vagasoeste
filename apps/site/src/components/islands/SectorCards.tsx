@@ -31,9 +31,10 @@ type Tab = 'setor' | 'funcao';
 
 interface SectorCardsProps {
   sectorCounts?: Record<string, number>;
+  funcaoCounts?: Record<string, number>;
 }
 
-export default function SectorCards({ sectorCounts = {} }: SectorCardsProps) {
+export default function SectorCards({ sectorCounts = {}, funcaoCounts = {} }: SectorCardsProps) {
   const [activeTab, setActiveTab] = useState<Tab>('setor');
   const [modal, setModal] = useState<{ name: string; type: Tab } | null>(null);
   const [selectedEstado, setSelectedEstado] = useState('');
@@ -74,7 +75,7 @@ export default function SectorCards({ sectorCounts = {} }: SectorCardsProps) {
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-200 cursor-pointer whitespace-nowrap ${
+            className={`flex items-center gap-2 px-5 py-2 rounded-lg text-base font-semibold transition-all duration-200 cursor-pointer whitespace-nowrap ${
               activeTab === tab
                 ? 'bg-white text-gray-900 shadow-sm'
                 : 'text-gray-500 hover:text-gray-700'
@@ -92,8 +93,9 @@ export default function SectorCards({ sectorCounts = {} }: SectorCardsProps) {
       {/* ── Cards ── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {cards.map((card) => {
-          const count =
-            activeTab === 'setor' ? (sectorCounts[card.name] ?? 0) : undefined;
+          const count = activeTab === 'setor'
+            ? (sectorCounts[card.name] ?? 0)
+            : (funcaoCounts[card.name] ?? 0);
           return (
             <button
               key={card.name}
@@ -106,15 +108,13 @@ export default function SectorCards({ sectorCounts = {} }: SectorCardsProps) {
               >
                 <i className={`${card.icon} text-xl`}></i>
               </div>
-              <div>
-                <p className="font-semibold text-base text-gray-900 leading-tight">
+              <div className="w-full">
+                <p className="font-semibold text-base sm:text-lg text-gray-900 leading-tight line-clamp-1">
                   {card.name}
                 </p>
-                {count !== undefined && (
-                  <p className="text-sm text-gray-400 mt-0.5">
-                    {count > 0 ? `${count} vaga${count !== 1 ? 's' : ''}` : 'Ver vagas'}
-                  </p>
-                )}
+                <p className="text-sm mt-0.5" style={{ color: '#111827' }}>
+                  {count > 0 ? `${count} vaga${count !== 1 ? 's' : ''}` : 'Ver vagas'}
+                </p>
               </div>
             </button>
           );

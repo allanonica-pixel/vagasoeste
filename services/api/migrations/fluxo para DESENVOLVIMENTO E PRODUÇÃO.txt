@@ -1,0 +1,93 @@
+Arquivo criado em `docs/WORKFLOW-DEV-PROD.md`. Agora as duas respostas para você anotar:
+
+---
+
+## 📋 PARTE 1 — Desenvolver e testar (DEV)
+
+### Subir o ambiente local
+
+```bash
+# Terminal 1 — API
+cd services/api
+npm run dev
+```
+```bash
+# Terminal 2 — Platform
+cd apps/platform
+npm run dev
+```
+```bash
+# Terminal 3 — Site (opcional)
+cd apps/site
+npm run dev
+```
+
+### Links locais
+| O que | URL |
+|---|---|
+| Painel (empresa/candidato) | http://localhost:5173 |
+| Site público | http://localhost:4321 |
+| API | http://localhost:3000/health |
+
+### Links do ambiente DEV online
+| O que | URL |
+|---|---|
+| Supabase DEV — Dashboard | https://supabase.com/dashboard/project/nlqdjoxawzoegfxihief |
+| Supabase DEV — SQL Editor | https://supabase.com/dashboard/project/nlqdjoxawzoegfxihief/sql/new |
+| Supabase DEV — Usuários | https://supabase.com/dashboard/project/nlqdjoxawzoegfxihief/auth/users |
+| API Staging | https://vagasoeste-api-staging.fly.dev/health |
+| Fly.io Staging | https://fly.io/apps/vagasoeste-api-staging |
+| Vercel (deploys/previews) | https://vercel.com/dashboard |
+
+### Publicar uma feature para teste no Preview
+```bash
+git add .
+git commit -m "feat: descrição"
+git push
+# Vercel gera URL de Preview automaticamente (Supabase DEV + API Staging)
+```
+
+Se alterou a API também:
+```bash
+cd services/api
+fly deploy --config fly.staging.toml
+curl https://vagasoeste-api-staging.fly.dev/health
+```
+
+---
+
+## 📋 PARTE 2 — Promover para PRODUÇÃO
+
+### Checklist antes de começar
+- [ ] Testei localmente e no Preview da Vercel
+- [ ] Se há migration nova: já executei e testei no DEV
+- [ ] `npx tsc --noEmit` sem erros
+- [ ] Tudo commitado (`git status` limpo)
+
+### Passo 1 — Migration (só se tiver arquivo novo)
+Acesse e execute no SQL Editor do **Supabase PROD**:
+👉 https://supabase.com/dashboard/project/jfyeheapyimdlickjozw/sql/new
+
+### Passo 2 — Push para master (dispara Vercel PROD automaticamente)
+```bash
+git push   # se já estiver em master
+```
+Aguarde ~2 min e verifique:
+- https://app.santarem.app
+- https://santarem.app
+
+### Passo 3 — Deploy da API em PROD
+```bash
+cd services/api
+fly deploy
+curl https://api.santarem.app/health
+```
+
+### Links de verificação PROD
+| O que | URL |
+|---|---|
+| Site | https://santarem.app |
+| Painel | https://app.santarem.app |
+| API health | https://api.santarem.app/health |
+| Supabase PROD — Usuários | https://supabase.com/dashboard/project/jfyeheapyimdlickjozw/auth/users |
+| Fly.io PROD | https://fly.io/apps/vagasoeste-api |

@@ -8,6 +8,8 @@ interface Props {
 
 const { transparent = false } = Astro.props;
 
+const appUrl = import.meta.env.PUBLIC_APP_URL ?? 'https://app.santarem.app';
+
 const navLinks = [
   { label: 'Vagas', href: '/vagas' },
   { label: 'Blog', href: '/blog' },
@@ -60,13 +62,13 @@ const currentPath = Astro.url.pathname;
     <!-- CTAs Desktop -->
     <div class="hidden md:flex items-center gap-3">
       <a
-        href="https://app.santarem.app/login"
+        href={`${appUrl}/login`}
         class="text-sm font-medium px-4 py-2 rounded-md border border-gray-200 hover:bg-gray-50 text-gray-700 transition-colors whitespace-nowrap navbar-btn-secondary"
       >
         Entrar
       </a>
       <a
-        href="https://app.santarem.app/cadastro"
+        href={`${appUrl}/cadastro`}
         class="text-sm font-semibold px-4 py-2 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white transition-colors whitespace-nowrap"
       >
         Cadastrar-se
@@ -74,7 +76,7 @@ const currentPath = Astro.url.pathname;
     </div>
 
     <!-- Mobile: ilha React para interatividade do hambúrguer -->
-    <NavbarMobile client:load navLinks={navLinks} />
+    <NavbarMobile client:load navLinks={navLinks} appUrl={appUrl} />
   </div>
 </header>
 

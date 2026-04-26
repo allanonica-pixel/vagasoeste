@@ -5,21 +5,21 @@ import FAQAccordion from '../components/islands/FAQAccordion';
 export const prerender = true;
 
 const steps = [
-  { icon: 'ri-mail-send-line', title: 'Entre em contato', desc: 'Preencha o formulário de interesse ou fale direto com nossa equipe pelo WhatsApp.' },
-  { icon: 'ri-user-settings-line', title: 'Receba suas credenciais', desc: 'Nossa equipe cria sua conta e envia as credenciais de acesso por email.' },
+  { icon: 'ri-building-line', title: 'Faça o pré-cadastro da sua empresa', desc: 'Cadastre sua empresa gratuitamente e ative sua conta em poucos minutos.' },
+  { icon: 'ri-shield-check-line', title: 'Acesso à plataforma', desc: 'Sua conta é ativada automaticamente após validação das informações, garantindo um ambiente seguro e confiável para empresas e candidatos.' },
   { icon: 'ri-briefcase-4-line', title: 'Publique suas vagas', desc: 'Acesse o painel, crie vagas com detalhes completos e ative com 1 clique.' },
-  { icon: 'ri-group-line', title: 'Receba candidatos', desc: 'Candidatos anonimizados chegam no painel. Veja perfil profissional, nunca dados pessoais.' },
-  { icon: 'ri-filter-3-line', title: 'Selecione e filtre', desc: 'Filtre por formação, disponibilidade e pretensão salarial. Favorite os melhores perfis.' },
-  { icon: 'ri-handshake-line', title: 'VagasOeste intermedia', desc: 'Solicite pré-entrevista ou contato. Nossa equipe executa e acompanha até a contratação.' },
+  { icon: 'ri-group-line', title: 'Receba candidatos', desc: 'Perfis profissionais validados pela plataforma chegam diretamente no seu painel. Visualize informações relevantes, sem exposição de dados pessoais.' },
+  { icon: 'ri-filter-3-line', title: 'Selecione e filtre', desc: 'Utilize filtros por formação, disponibilidade, pretensão salarial e outros critérios para encontrar os perfis mais alinhados à sua vaga.' },
+  { icon: 'ri-rocket-line', title: 'Avance no processo seletivo', desc: 'Utilize recursos automatizados para aprofundar a análise e qualificação dos candidatos antes do contato direto.' },
 ];
 
 const features = [
-  { icon: 'ri-shield-user-line', title: 'Candidatos verificados', desc: 'Todos os perfis passam por validação básica pela VagasOeste antes de chegar no seu painel.' },
+  { icon: 'ri-shield-user-line', title: 'Candidatos verificados', desc: 'Perfis passam por validações automáticas antes de chegar ao seu painel.' },
   { icon: 'ri-eye-off-line', title: 'Empresa sempre anônima', desc: 'Candidatos não sabem quem é sua empresa. Processo mais justo, baseado em competências.' },
-  { icon: 'ri-filter-line', title: 'Filtros avançados', desc: 'Filtre candidatos por formação, sexo, PCD, bairro, disponibilidade e pretensão salarial.' },
-  { icon: 'ri-history-line', title: 'Histórico de status', desc: 'Cada mudança de status é registrada com data e observação. Auditoria completa do processo.' },
+  { icon: 'ri-filter-line', title: 'Filtros inteligentes', desc: 'Utilize filtros inteligentes para encontrar os candidatos mais alinhados às suas vagas.' },
+  { icon: 'ri-task-line', title: 'Controle do Processo Seletivo', desc: 'Tenha visibilidade completa de cada etapa, com histórico organizado e acompanhamento contínuo.' },
   { icon: 'ri-notification-badge-line', title: 'Notificações em tempo real', desc: 'Receba alertas quando novos candidatos se inscreverem nas suas vagas.' },
-  { icon: 'ri-bar-chart-line', title: 'Relatórios detalhados', desc: 'Veja candidaturas por vaga, setor, escolaridade e taxa de conversão por período.' },
+  { icon: 'ri-bar-chart-line', title: 'Relatórios', desc: 'Acompanhe métricas e desempenho das suas vagas com relatórios completos.' },
 ];
 
 const plans = [
@@ -81,22 +81,18 @@ const serviceSchema = {
 ---
 
 <BaseLayout
-  title="Para Empresas — Recrutamento em Santarém PA | VagasOeste"
+  title="Para Empresas | VagasOeste"
   description="Contrate profissionais em Santarém/PA com processo seletivo intermediado, candidatos verificados e total anonimato. Planos a partir de R$0."
   keywords="contratar funcionários Santarém, recrutamento Pará, vagas empresas Santarém, RH Santarém, contratar CLT Pará"
   schema={serviceSchema}
+  transparentNav={true}
 >
 
   <!-- Hero -->
-  <section class="relative pt-24 pb-16 overflow-hidden" aria-label="Para Empresas">
-    <div class="absolute inset-0">
-      <img
-        src="https://readdy.ai/api/search-image?query=professional%20business%20team%20meeting%20office%20Santarem%20Para%20Brazil%20warm%20light%20hiring%20recruitment%20modern%20workspace%20handshake%20corporate&width=1920&height=500&seq=para-empresas-hero&orientation=landscape"
-        alt="Recrutamento para empresas em Santarém"
-        class="w-full h-full object-cover"
-        loading="eager"
-      />
-      <div class="absolute inset-0 bg-emerald-950/78"></div>
+  <section class="relative pt-24 pb-16 overflow-hidden bg-emerald-950" aria-label="Para Empresas">
+    <div class="absolute inset-0 bg-gradient-to-br from-emerald-900 via-emerald-950 to-gray-900">
+      <div class="absolute top-0 left-1/3 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl"></div>
+      <div class="absolute bottom-0 right-1/4 w-80 h-80 bg-emerald-400/5 rounded-full blur-3xl"></div>
     </div>
     <div class="relative z-10 max-w-7xl mx-auto px-4 md:px-6">
       <nav aria-label="breadcrumb" class="mb-6">
@@ -113,14 +109,14 @@ const serviceSchema = {
           <span class="text-emerald-300">de Santarém e região</span>
         </h1>
         <p class="text-white/80 text-sm md:text-base mb-8 leading-relaxed max-w-lg">
-          Processo de recrutamento intermediado, candidatos verificados e anonimato garantido. Do anúncio à contratação, cuidamos de tudo.
+          Plataforma automatizada para publicar vagas, receber candidatos qualificados e conduzir seu processo seletivo com mais agilidade e controle.
         </p>
         <div class="flex flex-col sm:flex-row gap-3">
           <a href="/interesse-empresa" class="btn-primary">
-            <i class="ri-chat-1-line"></i>
-            Falar com a equipe
+            <i class="ri-whatsapp-line"></i>
+            Publicar Vaga Agora
           </a>
-          <a href="/como-funciona" class="btn-outline-white">
+          <a href="#como-contratar" class="btn-outline-white">
             <i class="ri-information-line"></i>
             Como funciona
           </a>
@@ -130,7 +126,7 @@ const serviceSchema = {
   </section>
 
   <!-- Etapas do processo -->
-  <section class="py-16 bg-white" aria-labelledby="processo-title">
+  <section id="como-contratar" class="py-16 bg-white" aria-labelledby="processo-title">
     <div class="max-w-7xl mx-auto px-4 md:px-6">
       <div class="text-center mb-10">
         <p class="text-xs font-semibold text-emerald-600 uppercase tracking-wide mb-2">Processo simplificado</p>

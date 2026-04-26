@@ -44,6 +44,27 @@ const mockSectorCounts: Record<string, number> = {
 
 const sectorCounts = jobs.length > 0 ? rawSectorCounts : mockSectorCounts;
 
+// Contagem de vagas por função/cargo — mesma lógica do filtro de JobsFilter
+const FUNCOES_NAMES = [
+  'Vendedor(a)', 'Auxiliar Administrativo', 'Recepcionista',
+  'Operador de Caixa', 'Motorista/Entregador', 'Auxiliar de Limpeza',
+  'Cozinheiro(a)', 'Manutenção/Eletricista',
+];
+const rawFuncaoCounts = FUNCOES_NAMES.reduce((acc: Record<string, number>, funcao) => {
+  const fq = funcao.toLowerCase().replace(/\(.*?\)/g, '').trim().replace(/\//g, ' ');
+  acc[funcao] = jobs.filter(j =>
+    j.title.toLowerCase().includes(fq.split(' ')[0]) ||
+    j.area.toLowerCase().includes(fq.split(' ')[0])
+  ).length;
+  return acc;
+}, {});
+const mockFuncaoCounts: Record<string, number> = {
+  'Vendedor(a)': 3, 'Auxiliar Administrativo': 2, 'Recepcionista': 1,
+  'Operador de Caixa': 1, 'Motorista/Entregador': 1, 'Auxiliar de Limpeza': 1,
+  'Cozinheiro(a)': 1, 'Manutenção/Eletricista': 1,
+};
+const funcaoCounts = jobs.length > 0 ? rawFuncaoCounts : mockFuncaoCounts;
+
 const stats = [
   { label: 'Vagas Ativas', value: `${totalJobCount}+` },
   { label: 'Candidatos Cadastrados', value: '8.500+' },
@@ -58,7 +79,8 @@ const testimonials = [
     role: 'Auxiliar Administrativa',
     neighborhood: 'Centro',
     text: 'Em menos de 2 semanas após me cadastrar na VagasOeste, recebi uma proposta de emprego no meu bairro. O processo foi super transparente!',
-    image: 'https://readdy.ai/api/search-image?query=young%20Brazilian%20woman%20smiling%20professional%20headshot%20warm%20natural%20light%20clean%20background%20confident%20expression%2030%20years%20old&width=200&height=200&seq=t1&orientation=squarish',
+    initials: 'FO',
+    color: 'bg-emerald-600',
   },
   {
     id: 2,
@@ -66,7 +88,8 @@ const testimonials = [
     role: 'Motorista Entregador',
     neighborhood: 'Jardim Santarém',
     text: 'Achei incrível que a empresa ficou anônima até eu ser selecionado. Me senti mais seguro no processo. Hoje estou empregado há 4 meses!',
-    image: 'https://readdy.ai/api/search-image?query=young%20Brazilian%20man%20smiling%20professional%20headshot%20warm%20natural%20light%20clean%20background%20confident%20expression%2035%20years%20old&width=200&height=200&seq=t2&orientation=squarish',
+    initials: 'CM',
+    color: 'bg-blue-600',
   },
   {
     id: 3,
@@ -74,7 +97,8 @@ const testimonials = [
     role: 'Recepcionista',
     neighborhood: 'Maracanã',
     text: 'A plataforma é muito fácil de usar. Me candidatei a 3 vagas de uma vez e fui chamada para entrevista em 2 delas. A VagasOeste realmente funciona!',
-    image: 'https://readdy.ai/api/search-image?query=Brazilian%20woman%20smiling%20professional%20headshot%20warm%20natural%20light%20clean%20background%20confident%20expression%2028%20years%20old%20dark%20hair&width=200&height=200&seq=t3&orientation=squarish',
+    initials: 'JS',
+    color: 'bg-violet-600',
   },
 ];
 
@@ -93,21 +117,24 @@ const affiliateCourses = [
     platform: 'Udemy',
     discount: '85% OFF',
     href: '#afiliado-excel',
-    image: 'https://readdy.ai/api/search-image?query=Excel%20spreadsheet%20computer%20screen%20professional%20office%20desk%20clean%20minimal%20background%20technology%20learning&width=300&height=200&seq=a1&orientation=landscape',
+    icon: 'ri-table-2',
+    gradient: 'from-emerald-900 to-emerald-700',
   },
   {
     title: 'Inglês para o Mercado',
     platform: 'Hotmart',
     discount: '60% OFF',
     href: '#afiliado-ingles',
-    image: 'https://readdy.ai/api/search-image?query=English%20language%20learning%20books%20notebook%20professional%20desk%20clean%20minimal%20background%20education&width=300&height=200&seq=a2&orientation=landscape',
+    icon: 'ri-translate-2',
+    gradient: 'from-blue-900 to-blue-700',
   },
   {
     title: 'Pacote Office Profissional',
     platform: 'Hotmart',
     discount: '70% OFF',
     href: '#afiliado-office',
-    image: 'https://readdy.ai/api/search-image?query=Microsoft%20Office%20professional%20laptop%20desk%20clean%20minimal%20background%20technology%20productivity%20tools&width=300&height=200&seq=a3&orientation=landscape',
+    icon: 'ri-computer-line',
+    gradient: 'from-violet-900 to-violet-700',
   },
 ];
 
@@ -152,25 +179,12 @@ const websiteSchema = {
 
   <!-- ───────────────────────────── HERO ──────────────────────────── -->
   <section class="relative flex flex-col items-center justify-center overflow-hidden min-h-[480px]" aria-label="Busca de vagas">
-    <div class="absolute inset-0">
-      <img
-        src="https://readdy.ai/api/search-image?query=Santarem%20Para%20Brazil%20Amazon%20river%20city%20aerial%20view%20warm%20golden%20hour%20sunset%20tropical%20urban%20landscape%20buildings%20streets%20professional%20environment%20vibrant%20Brazilian%20city&width=1920&height=700&seq=hero-santarem&orientation=landscape"
-        alt="Santarém Pará — cidade de oportunidades"
-        class="w-full h-full object-cover object-top"
-        loading="eager"
-        fetchpriority="high"
-        decoding="async"
-      />
-      <div class="absolute inset-0 bg-gradient-to-b from-emerald-950/80 via-emerald-900/70 to-emerald-950/85"></div>
+    <div class="absolute inset-0 bg-gradient-to-b from-emerald-950 via-emerald-900 to-emerald-950">
+      <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_40%,rgba(16,185,129,0.18),transparent_65%)]"></div>
+      <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_70%_60%,rgba(6,78,59,0.25),transparent_60%)]"></div>
     </div>
 
     <div class="relative z-10 w-full max-w-7xl mx-auto px-4 md:px-6 pt-24 pb-10 flex flex-col items-center text-center">
-      <!-- Badge -->
-      <div class="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-3 py-1 mb-4">
-        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-        <span class="text-white/90 text-xs font-medium">{totalJobCount}+ vagas ativas em Santarém e região</span>
-      </div>
-
       <h1 class="text-2xl md:text-4xl font-bold text-white leading-tight mb-3 max-w-2xl text-balance">
         As melhores vagas em{' '}
         <span class="text-emerald-300">Santarém e região</span>, em um só lugar
@@ -186,12 +200,12 @@ const websiteSchema = {
 
   <!-- ─────────────────────────── STATS ─────────────────────────────── -->
   <section class="bg-emerald-600" aria-label="Números da plataforma">
-    <div class="max-w-7xl mx-auto px-4 md:px-6 py-6">
-      <dl class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center text-white">
+    <div class="max-w-7xl mx-auto px-4 md:px-6 py-3">
+      <dl class="grid grid-cols-2 md:grid-cols-4 gap-3 text-center text-white">
         {stats.map((stat) => (
-          <div class="py-2">
-            <dt class="text-2xl md:text-3xl font-bold">{stat.value}</dt>
-            <dd class="text-xs md:text-sm text-emerald-100 mt-0.5">{stat.label}</dd>
+          <div class="py-0.5">
+            <dt class="text-xl md:text-2xl font-bold">{stat.value}</dt>
+            <dd class="text-xs text-emerald-100 mt-0.5">{stat.label}</dd>
           </div>
         ))}
       </dl>
@@ -199,7 +213,7 @@ const websiteSchema = {
   </section>
 
   <!-- ─────────────────── ÁREAS DE ATUAÇÃO (Por Setor / Por Função) ── -->
-  <section class="py-20 bg-white" aria-labelledby="setores-title">
+  <section class="pt-14 pb-8 bg-white" aria-labelledby="setores-title">
     <div class="max-w-7xl mx-auto px-4 md:px-6">
       <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
         <div>
@@ -216,7 +230,7 @@ const websiteSchema = {
       </div>
 
       <!-- Island interativa com abas + modal de localização -->
-      <SectorCards client:load sectorCounts={sectorCounts} />
+      <SectorCards client:load sectorCounts={sectorCounts} funcaoCounts={funcaoCounts} />
 
       <!-- Aviso de anonimato -->
       <div class="mt-8 flex items-center gap-3 bg-emerald-50 border border-emerald-100 rounded-xl p-4">
@@ -231,14 +245,14 @@ const websiteSchema = {
   </section>
 
   <!-- ─────────────────── VAGAS DISPONÍVEIS HOJE (layout plataforma) ── -->
-  <section class="py-20 bg-gray-50" aria-labelledby="vagas-hoje-title">
+  <section class="pt-8 pb-14 bg-gray-50" aria-labelledby="vagas-hoje-title">
     <div class="max-w-7xl mx-auto px-4 md:px-6">
       <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
         <div>
           <span class="text-emerald-600 text-xs font-semibold uppercase tracking-widest">Oportunidades</span>
           <h2 id="vagas-hoje-title" class="text-3xl md:text-4xl font-bold text-gray-900 mt-2">Vagas Disponíveis Hoje</h2>
           <p class="text-gray-700 text-sm mt-2">
-            Empresa anônima até sua seleção — candidate-se com segurança.
+            Empresas verificadas – candidate-se com segurança.
           </p>
         </div>
         <a href="/vagas" class="text-sm font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-1 whitespace-nowrap">
@@ -267,9 +281,9 @@ const websiteSchema = {
               <i class={`${step.icon} text-emerald-600 text-xl`}></i>
             </div>
             <div>
-              <p class="text-xs font-bold text-emerald-600 mb-1">0{i + 1}</p>
-              <h3 class="font-semibold text-gray-900 text-sm mb-1">{step.title}</h3>
-              <p class="text-xs text-gray-500 leading-relaxed">{step.desc}</p>
+              <p class="text-sm font-bold text-emerald-600 mb-1">0{i + 1}</p>
+              <h3 class="font-semibold text-gray-900 text-base mb-1">{step.title}</h3>
+              <p class="text-sm text-gray-500 leading-relaxed">{step.desc}</p>
             </div>
           </div>
         ))}
@@ -287,8 +301,8 @@ const websiteSchema = {
             <i class="ri-user-search-line text-emerald-600 text-2xl"></i>
           </div>
           <div>
-            <p class="font-bold text-gray-900 text-sm">Quero encontrar emprego</p>
-            <p class="text-xs text-gray-500 mt-1">Crie sua conta grátis e candidate-se</p>
+            <p class="font-bold text-gray-900 text-base">Quero encontrar emprego</p>
+            <p class="text-sm text-gray-500 mt-1">Crie sua conta grátis e candidate-se</p>
           </div>
         </a>
         <a
@@ -299,8 +313,8 @@ const websiteSchema = {
             <i class="ri-building-2-line text-gray-600 text-2xl"></i>
           </div>
           <div>
-            <p class="font-bold text-gray-900 text-sm">Quero contratar talentos</p>
-            <p class="text-xs text-gray-500 mt-1">Publique vagas e encontre candidatos</p>
+            <p class="font-bold text-gray-900 text-base">Quero contratar talentos</p>
+            <p class="text-sm text-gray-500 mt-1">Publique vagas e encontre candidatos</p>
           </div>
         </a>
       </div>
@@ -327,12 +341,9 @@ const websiteSchema = {
             class="group bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow overflow-hidden block"
           >
             <div class="relative">
-              <img
-                src={course.image}
-                alt={course.title}
-                class="w-full h-44 object-cover transition-transform duration-300 group-hover:scale-105"
-                loading="lazy"
-              />
+              <div class={`w-full h-44 bg-gradient-to-br ${course.gradient} flex items-center justify-center transition-opacity duration-300 group-hover:opacity-90`}>
+                <i class={`${course.icon} text-5xl text-white/70`}></i>
+              </div>
               <span class="absolute top-3 right-3 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
                 {course.discount}
               </span>
@@ -404,26 +415,14 @@ const websiteSchema = {
 
   <!-- ─────────────────── CTA FINAL ─────────────────────────────────── -->
   <section class="relative overflow-hidden py-20" aria-label="Chamada para ação final">
-    <!-- Imagem de fundo -->
-    <div class="absolute inset-0">
-      <img
-        src="https://readdy.ai/api/search-image?query=Brazilian%20professionals%20working%20together%20modern%20office%20diverse%20team%20collaboration%20warm%20natural%20light%20productive%20environment%20success%20career%20growth%20urban%20setting&width=1920&height=600&seq=cta-bg&orientation=landscape"
-        alt=""
-        class="w-full h-full object-cover"
-        loading="lazy"
-        aria-hidden="true"
-      />
-      <div class="absolute inset-0 bg-gradient-to-r from-emerald-950/95 to-emerald-900/85"></div>
+    <div class="absolute inset-0 bg-gradient-to-r from-emerald-950 to-emerald-900">
+      <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_20%_50%,rgba(16,185,129,0.15),transparent_60%)]"></div>
     </div>
 
     <div class="relative z-10 max-w-3xl mx-auto px-4 text-center">
       <h2 class="text-3xl md:text-4xl font-bold text-white mb-4 leading-tight text-balance">
         Sua próxima oportunidade está <span class="text-emerald-300">esperando por você</span>
       </h2>
-      <p class="text-emerald-100 text-sm md:text-base mb-8 leading-relaxed max-w-xl mx-auto">
-        Plataforma 100% gratuita para candidatos. Receba alertas no WhatsApp, candidate-se com anonimato e encontre vagas no seu bairro.
-      </p>
-
       <!-- Trust signals -->
       <div class="flex flex-wrap justify-center gap-x-6 gap-y-2 mb-8 text-xs text-emerald-200">
         <span class="flex items-center gap-1.5">
@@ -439,8 +438,8 @@ const websiteSchema = {
           Processo anônimo e seguro
         </span>
         <span class="flex items-center gap-1.5">
-          <i class="ri-map-pin-line text-emerald-400"></i>
-          Vagas no seu bairro
+          <i class="ri-verified-badge-line text-emerald-400"></i>
+          Empresas verificadas
         </span>
       </div>
 

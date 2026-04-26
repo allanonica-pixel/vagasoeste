@@ -8,6 +8,7 @@
   html {
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     scroll-behavior: smooth;
+    scroll-padding-top: 80px; /* compensa altura do navbar fixo em âncoras */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
