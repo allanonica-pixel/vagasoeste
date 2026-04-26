@@ -17,7 +17,6 @@ import AdminPage from "../pages/admin/page";
 import AcessoRestritoPage from "../pages/acesso-restrito/page";
 import ComoFuncionaPage from "../pages/como-funciona/page";
 import ParaEmpresasPage from "../pages/para-empresas/page";
-import PreCadastroPage from "../pages/pre-cadastro/page";
 import InteresseEmpresaPage from "../pages/interesse-empresa/page";
 import BlogPage from "../pages/blog/page";
 import BlogPostPage from "../pages/blog/post";
@@ -37,7 +36,6 @@ const routes: RouteObject[] = [
   { path: "/curriculo-avulso", element: <CurriculoAvulsoPage /> },
   { path: "/como-funciona", element: <ComoFuncionaPage /> },
   { path: "/para-empresas", element: <ParaEmpresasPage /> },
-  { path: "/pre-cadastro", element: <PreCadastroPage /> },
   { path: "/interesse-empresa", element: <InteresseEmpresaPage /> },
   { path: "/blog", element: <BlogPage /> },
   { path: "/blog/:slug", element: <BlogPostPage /> },

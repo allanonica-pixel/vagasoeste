@@ -217,13 +217,13 @@ export default function ParaEmpresasPage() {
               >
                 Como funciona
               </a>
-              <button
-                onClick={() => navigate("/pre-cadastro")}
+              <Link
+                to="/interesse-empresa"
                 className="bg-white text-emerald-800 font-bold px-7 py-3.5 rounded-xl text-sm hover:bg-emerald-50 transition-colors cursor-pointer whitespace-nowrap flex items-center gap-2"
               >
-                <i className="ri-add-circle-line text-base"></i>
-                Pré-Cadastro
-              </button>
+                <i className="ri-whatsapp-line text-base"></i>
+                Publicar Vaga Agora
+              </Link>
             </div>
           </div>
         </div>

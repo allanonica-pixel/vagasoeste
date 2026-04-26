@@ -573,20 +573,6 @@ export default function InteresseEmpresaPage() {
               </div>
             </div>
 
-            {/* Pre-cadastro CTA */}
-            <div className="bg-gray-50 rounded-2xl border border-gray-100 p-5">
-              <p className="text-gray-700 text-sm font-semibold mb-2">Já decidiu? Faça o pré-cadastro completo</p>
-              <p className="text-gray-500 text-xs mb-4 leading-relaxed">
-                Se já tem CNPJ e quer cadastrar vagas imediatamente, use o pré-cadastro completo.
-              </p>
-              <Link
-                to="/pre-cadastro"
-                className="flex items-center justify-center gap-2 bg-gray-900 text-white font-bold py-3 rounded-xl text-sm cursor-pointer hover:bg-gray-800 transition-colors whitespace-nowrap"
-              >
-                <i className="ri-add-circle-line text-sm"></i>
-                Ir para o Pré-Cadastro
-              </Link>
-            </div>
           </div>
         </div>
       </div>

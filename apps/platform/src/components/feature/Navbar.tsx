@@ -19,7 +19,6 @@ export default function Navbar() {
     { label: "Crie seu Currículo", href: "/crie-seu-curriculo" },
     { label: "Como Funciona", href: "/como-funciona" },
     { label: "Para Empresas", href: "/para-empresas" },
-    { label: "Pré-Cadastro Empresa", href: "/pre-cadastro" },
   ];
 
   const isTransparent = isHome && !scrolled;
