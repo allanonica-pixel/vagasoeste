@@ -98,6 +98,31 @@ const blogSchema = {
       <h2 id="todos-artigos-title" class="text-lg font-bold text-gray-900 mb-6">Todos os Artigos</h2>
       <BlogSearch client:load initialPosts={posts} categories={categories} />
     </section>
+
+    <!-- CTA -->
+    <section class="mt-10 bg-emerald-600 rounded-2xl p-5 md:p-7 text-center" aria-label="Criar conta">
+      <h2 class="text-lg md:text-xl font-bold text-white mb-2">
+        Pronto para encontrar seu próximo emprego?
+      </h2>
+      <p class="text-white/90 text-xs md:text-sm mb-4 max-w-lg mx-auto leading-relaxed">
+        Cadastre-se gratuitamente na VagasOeste e tenha acesso às melhores vagas de Santarém e região, com processo seletivo transparente e intermediado por profissionais.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-2 justify-center">
+        <button
+          type="button"
+          onclick="window.dispatchEvent(new CustomEvent('openRegisterModal'))"
+          class="bg-white text-emerald-700 font-bold px-5 py-2 rounded-xl hover:bg-emerald-50 transition-colors text-sm whitespace-nowrap"
+        >
+          Criar Cadastro Grátis
+        </button>
+        <a
+          href="/vagas"
+          class="border border-white/40 text-white font-semibold px-5 py-2 rounded-xl hover:bg-white/10 transition-colors text-sm whitespace-nowrap"
+        >
+          Ver vagas disponíveis
+        </a>
+      </div>
+    </section>
   </div>
 
 </BaseLayout>
