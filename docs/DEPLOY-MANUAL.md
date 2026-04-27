@@ -28,12 +28,17 @@
 | | DEV | PROD |
 |---|---|---|
 | **Projeto** | `vagasoeste-dev` | `vagasoeste` |
-| **Project ID** | `nlqdjoxawzoegfxihief` | `jfyeheapyimdlickjozw` |
-| **URL** | `https://nlqdjoxawzoegfxihief.supabase.co` | `https://jfyeheapyimdlickjozw.supabase.co` |
-| **Dashboard** | https://supabase.com/dashboard/project/nlqdjoxawzoegfxihief | https://supabase.com/dashboard/project/jfyeheapyimdlickjozw |
-| **SQL Editor** | https://supabase.com/dashboard/project/nlqdjoxawzoegfxihief/sql/new | https://supabase.com/dashboard/project/jfyeheapyimdlickjozw/sql/new |
-| **Auth Users** | https://supabase.com/dashboard/project/nlqdjoxawzoegfxihief/auth/users | https://supabase.com/dashboard/project/jfyeheapyimdlickjozw/auth/users |
-| **Tabelas** | https://supabase.com/dashboard/project/nlqdjoxawzoegfxihief/editor | https://supabase.com/dashboard/project/jfyeheapyimdlickjozw/editor |
+| **Organização** | `OnicaSistemasPro` (Pro) | `OnicaSistemasPro` (Pro) |
+| **Project ID** | `snwqnoljfbppxnofkkyd` | `jfyeheapyimdlickjozw` |
+| **URL** | `https://snwqnoljfbppxnofkkyd.supabase.co` | `https://jfyeheapyimdlickjozw.supabase.co` |
+| **Dashboard** | https://supabase.com/dashboard/project/snwqnoljfbppxnofkkyd | https://supabase.com/dashboard/project/jfyeheapyimdlickjozw |
+| **SQL Editor** | https://supabase.com/dashboard/project/snwqnoljfbppxnofkkyd/sql/new | https://supabase.com/dashboard/project/jfyeheapyimdlickjozw/sql/new |
+| **Auth Users** | https://supabase.com/dashboard/project/snwqnoljfbppxnofkkyd/auth/users | https://supabase.com/dashboard/project/jfyeheapyimdlickjozw/auth/users |
+| **Tabelas** | https://supabase.com/dashboard/project/snwqnoljfbppxnofkkyd/editor | https://supabase.com/dashboard/project/jfyeheapyimdlickjozw/editor |
+| **Extensions** | https://supabase.com/dashboard/project/snwqnoljfbppxnofkkyd/database/extensions | https://supabase.com/dashboard/project/jfyeheapyimdlickjozw/database/extensions |
+| **SMTP Settings** | https://supabase.com/dashboard/project/snwqnoljfbppxnofkkyd/settings/auth | https://supabase.com/dashboard/project/jfyeheapyimdlickjozw/settings/auth |
+
+> ⚠️ **PROJETO DEV ANTERIOR DESATIVADO:** O projeto `nlqdjoxawzoegfxihief` (Free tier, conta pessoal) foi **substituído** pelo `snwqnoljfbppxnofkkyd` (Pro, OnicaSistemasPro). Todas as variáveis de ambiente locais já foram atualizadas. Não usar mais o projeto antigo para DEV.
 
 ### Vercel
 
@@ -507,16 +512,18 @@ vercel --prod --yes
 
 ## Migrations — status por ambiente
 
-| Arquivo | Propósito | DEV | PROD |
-|---------|-----------|-----|------|
-| `0001_audit_media_functions.sql` | Schema audit + media + funções SQL | ✅ | ✅ |
-| `0002_cron_jobs.sql` | pg_cron: purge mídia, expirar vagas, cleanup rate limit | ✅ | ✅ |
-| `0003_admin_user.sql` | Tabela admin_users + policy básica | ✅ | ✅ |
-| `0004_security_hardening.sql` | REVOKE granular, ops.rate_limit, INSERT público restrito | ✅ | ✅ |
-| `0005_interesse_empresa.sql` | Tabelas otp_codes + empresa_pre_cadastros | ✅ | ✅ |
-| `0006_fix_rls_admin_permissions.sql` | is_admin() SECURITY DEFINER + 6 policies recriadas | ⚠️ Pendente DEV | ✅ (2026-04-26) |
+| Arquivo | Propósito | DEV (Pro) | PROD |
+|---------|-----------|-----------|------|
+| `supabase-schema.sql` | Schema base: todas as tabelas, triggers, RLS, seed bairros | ✅ (2026-04-26) | ✅ |
+| `0001_audit_media_functions.sql` | Schemas audit/media/ops + funções apply_to_job/publish_job | ✅ (2026-04-26) | ✅ |
+| `0002_cron_jobs.sql` | pg_cron: purge mídia, expirar vagas, cleanup rate limit | ⏳ Pendente (habilitar pg_cron) | ✅ |
+| `0003_admin_user.sql` | Instrução manual para criar admin via Dashboard Auth | ⏳ Pendente (criar usuário) | ✅ |
+| `0004_security_hardening.sql` | REVOKE granular, ops.rate_limit, INSERT público restrito | ✅ (2026-04-26) | ✅ |
+| `0005_interesse_empresa.sql` | Tabelas otp_codes + empresa_pre_cadastros | ✅ (2026-04-26) | ✅ |
+| `0006_fix_rls_admin_permissions.sql` | is_admin() SECURITY DEFINER + 6 policies recriadas | ✅ (2026-04-26) | ✅ |
 
 > A próxima migration a criar será `0007_nome.sql`.
+> Para re-executar todas as migrations em um novo projeto: `node services/api/scripts/run-migrations-dev-pro.mjs`
 
 ---
 
@@ -525,19 +532,21 @@ vercel --prod --yes
 ### apps/platform — DEV local (`.env`)
 
 ```env
-VITE_SUPABASE_URL=https://nlqdjoxawzoegfxihief.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5scWRqb3hhd3pvZWdmeGloaWVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwNzI5OTYsImV4cCI6MjA5MjY0ODk5Nn0.S5XVCa2KjzK8yIU_iJDEZfJOSu7qRhaFWX3A2r1efVw
+VITE_SUPABASE_URL=https://snwqnoljfbppxnofkkyd.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNud3Fub2xqZmJwcHhub2Zra3lkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyNTQ3MDksImV4cCI6MjA5MjgzMDcwOX0.6QEqenRIB3l8wRC7XxEUnRX_Ljf9jMT1XfjFPYVqiXw
 VITE_API_URL=http://localhost:3000
 VITE_PUBLIC_SITE_URL=http://localhost:4321
+VITE_PUBLIC_APP_URL=http://localhost:5173
 ```
 
 ### apps/site — DEV local (`.env`)
 
 ```env
-PUBLIC_SUPABASE_URL=https://nlqdjoxawzoegfxihief.supabase.co
-PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5scWRqb3hhd3pvZWdmeGloaWVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwNzI5OTYsImV4cCI6MjA5MjY0ODk5Nn0.S5XVCa2KjzK8yIU_iJDEZfJOSu7qRhaFWX3A2r1efVw
+PUBLIC_SUPABASE_URL=https://snwqnoljfbppxnofkkyd.supabase.co
+PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNud3Fub2xqZmJwcHhub2Zra3lkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyNTQ3MDksImV4cCI6MjA5MjgzMDcwOX0.6QEqenRIB3l8wRC7XxEUnRX_Ljf9jMT1XfjFPYVqiXw
 PUBLIC_SITE_URL=http://localhost:4321
-PUBLIC_APP_URL=http://localhost:5173
+PUBLIC_APP_URL=http://localhost:3001
+PUBLIC_API_URL=http://localhost:3000
 ```
 
 ### services/api — DEV local (`.env`)
@@ -545,12 +554,12 @@ PUBLIC_APP_URL=http://localhost:5173
 ```env
 NODE_ENV=development
 PORT=3000
-SUPABASE_URL=https://nlqdjoxawzoegfxihief.supabase.co
-SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5scWRqb3hhd3pvZWdmeGloaWVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwNzI5OTYsImV4cCI6MjA5MjY0ODk5Nn0.S5XVCa2KjzK8yIU_iJDEZfJOSu7qRhaFWX3A2r1efVw
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5scWRqb3hhd3pvZWdmeGloaWVmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NzA3Mjk5NiwiZXhwIjoyMDkyNjQ4OTk2fQ.HfUVAq_TycYE_vDLlfZ0f-7D6tNF_54tljsHi-6TmCY
-DATABASE_URL=postgresql://postgres.nlqdjoxawzoegfxihief:DXs82Shj43S1brrI@aws-1-sa-east-1.pooler.supabase.com:6543/postgres
-ALLOWED_ORIGINS=http://localhost:4321,http://localhost:5173
-APP_URL=http://localhost:5173
+SUPABASE_URL=https://snwqnoljfbppxnofkkyd.supabase.co
+SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNud3Fub2xqZmJwcHhub2Zra3lkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyNTQ3MDksImV4cCI6MjA5MjgzMDcwOX0.6QEqenRIB3l8wRC7XxEUnRX_Ljf9jMT1XfjFPYVqiXw
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNud3Fub2xqZmJwcHhub2Zra3lkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NzI1NDcwOSwiZXhwIjoyMDkyODMwNzA5fQ._MCdKNGlTBo-ov92It9uEB-Bk4cEv5d9_95-tcfBYT4
+DATABASE_URL=postgresql://postgres.snwqnoljfbppxnofkkyd:d8XDdQ8Nx03Y6Fdz@aws-0-sa-east-1.pooler.supabase.com:6543/postgres
+ALLOWED_ORIGINS=http://localhost:4321,http://localhost:5173,http://localhost:3001
+APP_URL=http://localhost:3001
 API_SECRET=dev-secret-local-nao-usar-em-prod
 LOG_LABEL=api-dev
 ```
