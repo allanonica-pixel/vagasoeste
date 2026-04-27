@@ -1,6 +1,6 @@
 # VagasOeste — Manual Operacional de Deploy
 
-> Versão: 1.0 | Data: 2026-04-26
+> Versão: 1.1 | Data: 2026-04-26
 > **Este documento é o guia definitivo para executar deploys com segurança.**
 > Deve ser consultado integralmente antes de qualquer push ou deploy para produção.
 
@@ -272,12 +272,20 @@ Execute as migrations na ordem sequencial. Verificar se a execução foi bem-suc
 
 ### B.2 — Deploy do Site (santarem.app)
 
+> ⚠️ **ATENÇÃO — Novo processo obrigatório desde 2026-04-26:** O site importa dados de `packages/content/` (workspace compartilhado). O servidor da Vercel não consegue acessar esse pacote durante rebuild. Por isso é necessário **buildar localmente** e enviar o output pré-compilado com `--prebuilt`.
+
 ```bash
 cd /c/Users/allan/openclaude/vagas-oeste/apps/site
-vercel --prod --yes
+
+# Passo 1: Baixar configs de produção e buildar localmente
+vercel pull --yes --environment=production
+vercel build --prod --yes
+
+# Passo 2: Enviar o output pré-compilado (sem rebuild no servidor)
+vercel deploy --prebuilt --prod --yes
 ```
 
-O output correto termina com:
+O output correto do passo 2 termina com:
 ```
 Aliased: https://santarem.app [Xs]
 {
@@ -289,15 +297,23 @@ Aliased: https://santarem.app [Xs]
 }
 ```
 
-> **Importante:** executar DENTRO de `apps/site`. O arquivo `.vercel/project.json` presente nessa pasta garante que o deploy vai para `prj_W2Xd4Rr3gnbDjNmq0i5zJOYzk5Ou` (site/santarem.app), e não para outro projeto.
+> **Por que não `vercel --prod --yes` simples?** O build da Vercel ocorre nos servidores deles com Root Directory = `apps/site`. O alias `@content` aponta para `../../packages/content/src`, que fica fora do Root Directory e não é acessível remotamente. Com `--prebuilt`, o build ocorre localmente (onde `packages/content/` existe no monorepo) e apenas o output compilado é enviado.
 
 ---
 
 ### B.3 — Deploy da Platform (app.santarem.app)
 
+> ⚠️ **Mesmo processo obrigatório** — a platform também importa de `packages/content/`.
+
 ```bash
 cd /c/Users/allan/openclaude/vagas-oeste/apps/platform
-vercel --prod --yes
+
+# Passo 1: Baixar configs de produção e buildar localmente
+vercel pull --yes --environment=production
+vercel build --prod --yes
+
+# Passo 2: Enviar o output pré-compilado
+vercel deploy --prebuilt --prod --yes
 ```
 
 O output correto termina com:
@@ -466,9 +482,13 @@ git push --force origin master  # destrói histórico, bloqueia outros deploys
 ### ✅ SEMPRE fazer
 
 ```bash
-# Executar vercel --prod de dentro da pasta do app específico
-cd apps/site && vercel --prod --yes
-cd apps/platform && vercel --prod --yes
+# Executar build local + prebuilt de dentro da pasta do app específico
+# (necessário por causa do packages/content compartilhado)
+cd apps/site
+vercel pull --yes --environment=production && vercel build --prod --yes && vercel deploy --prebuilt --prod --yes
+
+cd apps/platform
+vercel pull --yes --environment=production && vercel build --prod --yes && vercel deploy --prebuilt --prod --yes
 
 # Verificar autenticação antes do deploy
 vercel whoami && fly auth whoami
@@ -545,17 +565,17 @@ LOG_LABEL=api-dev
 
 | Data | Deployment ID | Commit | Status |
 |------|--------------|--------|--------|
-| 2026-04-26 | `dpl_iwQogAaYcdSEskqP4bZBJnTvFvHk` | v5.0 (home + RLS fix + docs) | ✅ PROD |
+| 2026-04-26 | `dpl_Dge5JXhPCg1Cyd2Edun4g26v8owj` | packages/content + 4 páginas site refatoradas (prebuilt) | ✅ PROD |
+| 2026-04-26 | `dpl_iwQogAaYcdSEskqP4bZBJnTvFvHk` | v5.0 (home + RLS fix + docs) | — |
 | 2026-04-23 | `dpl_8zQQNiUyGjuEv1Uqsg3j93rYJRcM` | cards vaga + login (redeploy) | — |
-| 2026-04-22 | `dpl_8AZnUKDztAVXce6w9gkzvnS9FGFF` | cards vaga + login (cli) | — |
 
 ### app.santarem.app (platform)
 
 | Data | Deployment ID | Commit | Status |
 |------|--------------|--------|--------|
-| 2026-04-26 | `dpl_49Pb9tt8tBAi7NFBU1e8WFYJzaSd` | v5.0 (home + RLS fix + docs) | ✅ PROD |
+| 2026-04-26 | `dpl_6JjXvj6zpQAiRnsD92Moz3oLrTCA` | packages/content + 4 páginas plataforma + Supabase real (prebuilt) | ✅ PROD |
+| 2026-04-26 | `dpl_49Pb9tt8tBAi7NFBU1e8WFYJzaSd` | v5.0 (home + RLS fix + docs) | — |
 | 2026-04-23 | `dpl_4jFouzrRTxUvkQitpxvjYVZWeEJG` | cards vaga + login (redeploy) | — |
-| 2026-04-23 | `dpl_6rijz7MeJ4hj3RYtqAP6Y62r1WCc` | cards vaga + login (redeploy) | — |
 
 ---
 
@@ -596,7 +616,9 @@ LOG_LABEL=api-dev
   DEPLOY PRODUÇÃO — SITE
   ───────────────────────
   cd apps/site
-  vercel --prod --yes
+  vercel pull --yes --environment=production
+  vercel build --prod --yes
+  vercel deploy --prebuilt --prod --yes
          │
          └──→ santarem.app atualizado ✅
          │
@@ -604,7 +626,9 @@ LOG_LABEL=api-dev
   DEPLOY PRODUÇÃO — PLATFORM
   ───────────────────────────
   cd apps/platform
-  vercel --prod --yes
+  vercel pull --yes --environment=production
+  vercel build --prod --yes
+  vercel deploy --prebuilt --prod --yes
          │
          └──→ app.santarem.app atualizado ✅
          │
@@ -626,5 +650,5 @@ LOG_LABEL=api-dev
 
 ---
 
-*Última atualização: 2026-04-26 | Versão: 1.0*
+*Última atualização: 2026-04-26 | Versão: 1.1*
 *Este documento deve ser atualizado sempre que houver mudança de IDs, novos projetos, novas migrations ou alteração no fluxo de deploy.*

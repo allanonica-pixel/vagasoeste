@@ -1,50 +1,79 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import AnimatedSection from "@/components/base/AnimatedSection";
+
+// Estados e cidades disponíveis na plataforma
+const LOCATIONS: Record<string, string[]> = {
+  Pará: ["Santarém"],
+};
 
 const SECTORS = [
-  { name: "Comércio", icon: "ri-store-2-line", count: 4 },
-  { name: "Saúde", icon: "ri-heart-pulse-line", count: 3 },
-  { name: "Logística", icon: "ri-truck-line", count: 2 },
-  { name: "Tecnologia", icon: "ri-computer-line", count: 2 },
-  { name: "Alimentação", icon: "ri-restaurant-line", count: 2 },
-  { name: "Construção Civil", icon: "ri-building-4-line", count: 1 },
-  { name: "Serviços", icon: "ri-tools-line", count: 1 },
-  { name: "Indústria", icon: "ri-factory-line", count: 1 },
-  { name: "Agronegócio", icon: "ri-plant-line", count: 1 },
-  { name: "Educação", icon: "ri-graduation-cap-line", count: 1 },
-  { name: "Financeiro", icon: "ri-bank-line", count: 1 },
-  { name: "Outros", icon: "ri-briefcase-line", count: 2 },
+  { name: "Saúde",            icon: "ri-heart-pulse-line"   },
+  { name: "Comércio",         icon: "ri-store-2-line"        },
+  { name: "Construção Civil", icon: "ri-building-4-line"     },
+  { name: "Serviços",         icon: "ri-tools-line"          },
+  { name: "Logística",        icon: "ri-truck-line"          },
+  { name: "Alimentação",      icon: "ri-restaurant-line"     },
+  { name: "Tecnologia",       icon: "ri-computer-line"       },
+  { name: "Indústria",        icon: "ri-factory-line"        },
 ];
 
 const FUNCOES = [
-  { name: "Vendedor(a)", icon: "ri-user-voice-line", count: 3 },
-  { name: "Auxiliar Administrativo", icon: "ri-file-list-3-line", count: 2 },
-  { name: "Recepcionista", icon: "ri-customer-service-2-line", count: 1 },
-  { name: "Operador de Caixa", icon: "ri-money-dollar-circle-line", count: 1 },
-  { name: "Motorista/Entregador", icon: "ri-car-line", count: 1 },
-  { name: "Auxiliar de Limpeza", icon: "ri-brush-3-line", count: 1 },
-  { name: "Cozinheiro(a)", icon: "ri-restaurant-2-line", count: 1 },
-  { name: "Manutenção/Eletricista", icon: "ri-flashlight-line", count: 1 },
+  { name: "Vendedor(a)",             icon: "ri-customer-service-2-line" },
+  { name: "Auxiliar Administrativo", icon: "ri-file-list-3-line"        },
+  { name: "Recepcionista",           icon: "ri-phone-line"              },
+  { name: "Operador de Caixa",       icon: "ri-bank-card-line"          },
+  { name: "Motorista/Entregador",    icon: "ri-truck-line"              },
+  { name: "Auxiliar de Limpeza",     icon: "ri-home-gear-line"          },
+  { name: "Cozinheiro(a)",           icon: "ri-restaurant-2-line"       },
+  { name: "Manutenção/Eletricista",  icon: "ri-tools-fill"              },
 ];
 
 type Tab = "setor" | "funcao";
 
 export default function SectorSection() {
-  const [tab, setTab] = useState<Tab>("setor");
+  const [activeTab, setActiveTab] = useState<Tab>("setor");
+  const [modal, setModal] = useState<{ name: string; type: Tab } | null>(null);
+  const [selectedEstado, setSelectedEstado] = useState("");
   const navigate = useNavigate();
 
-  const items = tab === "setor" ? SECTORS : FUNCOES;
+  const estados = Object.keys(LOCATIONS);
+  const cidades = selectedEstado ? (LOCATIONS[selectedEstado] ?? []) : [];
 
-  const handleClick = (name: string) => {
-    const param = tab === "setor" ? "setor" : "area";
-    navigate(`/vagas?${param}=${encodeURIComponent(name)}`);
+  const openModal = (name: string, type: Tab) => {
+    setModal({ name, type });
+    setSelectedEstado("");
   };
+
+  const closeModal = () => {
+    setModal(null);
+    setSelectedEstado("");
+  };
+
+  const handleCidadeSelect = (cidade: string) => {
+    if (!modal) return;
+    const params = new URLSearchParams();
+    if (modal.type === "setor") {
+      params.set("setor", modal.name);
+    } else {
+      params.set("funcao", modal.name);
+    }
+    if (selectedEstado) params.set("estado", selectedEstado);
+    params.set("cidade", cidade);
+    navigate(`/vagas?${params.toString()}`);
+    closeModal();
+  };
+
+  const cards = activeTab === "setor" ? SECTORS : FUNCOES;
 
   return (
     <section className="pt-14 pb-8 bg-white">
       <div className="max-w-7xl mx-auto px-4 md:px-6">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+        <AnimatedSection
+          variant="fade-up"
+          className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8"
+        >
           <div>
             <span className="text-emerald-600 text-xs font-semibold uppercase tracking-widest">
               Áreas de atuação
@@ -63,53 +92,179 @@ export default function SectorSection() {
             Ver todas as vagas
             <i className="ri-arrow-right-line text-sm"></i>
           </button>
-        </div>
+        </AnimatedSection>
 
         {/* Tabs */}
-        <div className="flex gap-1 bg-gray-100 p-1 rounded-xl w-fit mb-6">
-          {(["setor", "funcao"] as Tab[]).map((t) => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={`px-5 py-2 rounded-lg text-sm font-semibold cursor-pointer transition-all whitespace-nowrap ${
-                tab === t ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              {t === "setor" ? "Por Setor" : "Por Função"}
-            </button>
-          ))}
-        </div>
+        <AnimatedSection variant="fade-up" delay={100}>
+          <div className="flex gap-1 bg-gray-100 rounded-xl p-1 w-fit mb-8">
+            {(["setor", "funcao"] as Tab[]).map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`flex items-center gap-2 px-5 py-2 rounded-lg text-base font-semibold transition-all duration-200 cursor-pointer whitespace-nowrap ${
+                  activeTab === tab
+                    ? "bg-white text-gray-900 shadow-sm"
+                    : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                <i
+                  className={`text-sm ${tab === "setor" ? "ri-building-2-line" : "ri-user-star-line"}`}
+                  style={activeTab === tab ? { color: "#065f46" } : {}}
+                ></i>
+                {tab === "setor" ? "Por Setor" : "Por Função/Cargo"}
+              </button>
+            ))}
+          </div>
+        </AnimatedSection>
 
         {/* Cards Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-          {items.map((item) => (
-            <button
-              key={item.name}
-              onClick={() => handleClick(item.name)}
-              className="flex items-center gap-3 bg-gray-50 hover:bg-emerald-50 border border-gray-100 hover:border-emerald-200 rounded-xl p-4 text-left transition-all cursor-pointer group"
-            >
-              <div className="w-10 h-10 rounded-lg bg-white border border-gray-100 group-hover:border-emerald-200 group-hover:bg-emerald-50 flex items-center justify-center shrink-0 transition-colors">
-                <i className={`${item.icon} text-gray-500 group-hover:text-emerald-600 text-lg transition-colors`}></i>
-              </div>
-              <div className="min-w-0">
-                <p className="font-semibold text-gray-900 text-sm leading-tight truncate">{item.name}</p>
-                <p className="text-xs text-gray-500 mt-0.5">{item.count} vaga{item.count !== 1 ? "s" : ""}</p>
-              </div>
-            </button>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {cards.map((card, index) => (
+            <AnimatedSection key={card.name} variant="fade-up" delay={index * 60}>
+              <button
+                onClick={() => openModal(card.name, activeTab)}
+                className="group flex flex-col items-center justify-center gap-2.5 rounded-xl border border-gray-200 bg-gray-50 hover:border-emerald-300 hover:bg-gray-100 p-4 text-center transition-all duration-200 cursor-pointer w-full"
+              >
+                <div
+                  className="w-11 h-11 rounded-lg bg-gray-100 flex items-center justify-center transition-transform duration-200 group-hover:scale-110"
+                  style={{ color: "#065f46" }}
+                >
+                  <i className={`${card.icon} text-xl`}></i>
+                </div>
+                <div className="w-full">
+                  <p className="font-semibold text-base sm:text-lg text-gray-900 leading-tight line-clamp-1">
+                    {card.name}
+                  </p>
+                  <p className="text-sm mt-0.5" style={{ color: "#111827" }}>
+                    Ver vagas
+                  </p>
+                </div>
+              </button>
+            </AnimatedSection>
           ))}
         </div>
 
         {/* Anonymous notice */}
-        <div className="mt-8 flex items-center gap-3 bg-emerald-50 border border-emerald-100 rounded-xl p-4">
-          <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-emerald-100 shrink-0">
-            <i className="ri-shield-check-line text-emerald-600 text-sm"></i>
+        <AnimatedSection variant="fade-up" delay={200}>
+          <div className="mt-8 flex items-center gap-3 bg-emerald-50 border border-emerald-100 rounded-xl p-4">
+            <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-emerald-100 shrink-0">
+              <i className="ri-shield-check-line text-emerald-600 text-sm"></i>
+            </div>
+            <p className="text-sm text-emerald-800">
+              <strong>Processo 100% anônimo:</strong> Informações pessoais como nome, telefone e email
+              não são compartilhadas durante o processo seletivo.
+            </p>
           </div>
-          <p className="text-sm text-emerald-800">
-            <strong>Processo seguro:</strong> O nome da empresa só é revelado após você ser selecionado
-            para a vaga. Seu processo seletivo é conduzido pela equipe VagasOeste.
-          </p>
-        </div>
+        </AnimatedSection>
       </div>
+
+      {/* Modal de seleção de localização */}
+      {modal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={closeModal}
+            aria-hidden="true"
+          />
+
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
+            {/* Header */}
+            <div className="flex items-start justify-between mb-6">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide mb-0.5" style={{ color: "#065f46" }}>
+                  {modal.type === "setor" ? "Setor" : "Função/Cargo"}
+                </p>
+                <h3 className="text-xl font-bold text-gray-900">{modal.name}</h3>
+                <p className="text-sm text-gray-500 mt-1">Selecione onde quer buscar vagas</p>
+              </div>
+              <button
+                onClick={closeModal}
+                className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 cursor-pointer transition-colors shrink-0"
+                aria-label="Fechar"
+              >
+                <i className="ri-close-line text-lg"></i>
+              </button>
+            </div>
+
+            {/* Passo 1: Estado */}
+            <div className="mb-5">
+              <p className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <span
+                  className="inline-flex items-center justify-center w-5 h-5 rounded-full text-white text-xs font-bold shrink-0"
+                  style={{ backgroundColor: "#065f46" }}
+                >
+                  1
+                </span>
+                Selecione o Estado
+              </p>
+              <div className="space-y-2">
+                {estados.map((e) => (
+                  <label
+                    key={e}
+                    className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                      selectedEstado === e
+                        ? "border-emerald-400 bg-emerald-50"
+                        : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                    }`}
+                  >
+                    <span
+                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
+                        selectedEstado === e
+                          ? "border-emerald-600 bg-emerald-600"
+                          : "border-gray-300"
+                      }`}
+                    >
+                      {selectedEstado === e && (
+                        <span className="w-2 h-2 rounded-full bg-white block"></span>
+                      )}
+                    </span>
+                    <input
+                      type="radio"
+                      name="estado-modal"
+                      value={e}
+                      checked={selectedEstado === e}
+                      onChange={() => setSelectedEstado(e)}
+                      className="sr-only"
+                    />
+                    <span className="text-sm font-medium text-gray-800">{e}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Passo 2: Cidade (aparece após selecionar estado) */}
+            {selectedEstado && cidades.length > 0 && (
+              <div>
+                <p className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                  <span
+                    className="inline-flex items-center justify-center w-5 h-5 rounded-full text-white text-xs font-bold shrink-0"
+                    style={{ backgroundColor: "#065f46" }}
+                  >
+                    2
+                  </span>
+                  Selecione a Cidade
+                </p>
+                <div className="space-y-2">
+                  {cidades.map((c) => (
+                    <button
+                      key={c}
+                      onClick={() => handleCidadeSelect(c)}
+                      className="w-full flex items-center gap-3 p-3 rounded-xl border border-gray-200 hover:border-emerald-400 hover:bg-emerald-50 cursor-pointer transition-all text-left group"
+                    >
+                      <span className="w-5 h-5 rounded-full border-2 border-gray-300 group-hover:border-emerald-500 flex items-center justify-center shrink-0 transition-colors">
+                        <span className="w-2 h-2 rounded-full bg-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity block"></span>
+                      </span>
+                      <span className="text-sm font-medium text-gray-800 flex-1">{c}</span>
+                      <i className="ri-arrow-right-line text-emerald-500 text-sm opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </section>
   );
 }

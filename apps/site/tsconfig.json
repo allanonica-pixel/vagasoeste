@@ -4,7 +4,8 @@
     "strictNullChecks": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@content/*": ["../../packages/content/src/*"]
     },
     "jsx": "react-jsx",
     "jsxImportSource": "react"

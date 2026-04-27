@@ -1,0 +1,7 @@
+{
+  "name": "@vagasoeste/content",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Conteúdo compartilhado entre apps/site e apps/platform. Atualize aqui → reflete nas duas apps."
+}

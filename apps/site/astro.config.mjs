@@ -3,6 +3,10 @@ import tailwind from '@astrojs/tailwind';
 import sitemap from '@astrojs/sitemap';
 import react from '@astrojs/react';
 import vercel from '@astrojs/vercel';
+import { fileURLToPath } from 'url';
+import path from 'path';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   site: 'https://santarem.app',
@@ -42,6 +46,8 @@ export default defineConfig({
     resolve: {
       alias: {
         '@': '/src',
+        // Conteúdo compartilhado com apps/platform — fonte única da verdade
+        '@content': path.resolve(__dirname, '../../packages/content/src'),
       },
     },
   },
