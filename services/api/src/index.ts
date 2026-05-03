@@ -17,6 +17,8 @@ import { applicationsRouter } from './routes/applications.js';
 import { authRouter }         from './routes/auth.js';
 import { companyRouter }      from './routes/company.js';
 import { interesseRouter }    from './routes/interesse.js';
+import { profileRouter }      from './routes/profile.js';
+import { adminRouter }        from './routes/admin.js';
 
 // ============================================================
 // App principal
@@ -69,6 +71,8 @@ app.route('/v1/jobs',            jobsRouter);
 app.route('/v1/applications',    applicationsRouter);
 app.route('/v1/company',         companyRouter);
 app.route('/v1/interesse',       interesseRouter);
+app.route('/v1/profile',         profileRouter);
+app.route('/v1/admin',           adminRouter);
 
 // ---- 404 global ----
 app.notFound((c) => c.json({ error: 'NOT_FOUND', path: c.req.path }, 404));

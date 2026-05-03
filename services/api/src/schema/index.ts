@@ -29,7 +29,7 @@ import { relations } from 'drizzle-orm';
 export const contractTypeEnum = pgEnum('contract_type', ['CLT', 'PJ', 'Temporário', 'Freelance', 'Estágio']);
 export const workModeEnum     = pgEnum('work_mode',     ['Presencial', 'Híbrido', 'Remoto']);
 export const jobStatusEnum    = pgEnum('job_status',    ['pendente', 'ativo', 'pausado', 'encerrado']);
-export const companyStatusEnum = pgEnum('company_status', ['pendente', 'ativo', 'suspenso', 'rejeitado']);
+export const companyStatusEnum = pgEnum('company_status', ['pendente', 'ativo', 'suspenso', 'rejeitado', 'inativo', 'excluido', 'parcial']);
 export const candidateStatusEnum = pgEnum('candidate_status', [
   'pendente', 'em_analise', 'pre_entrevista', 'entrevista', 'aprovado', 'reprovado', 'contratado',
 ]);
@@ -67,6 +67,10 @@ export const companies = pgTable('companies', {
   motivoRejeicao:  text('motivo_rejeicao'),
   plano:           varchar('plano', { length: 50 }).default('basico'),
   planoExpiraEm:   date('plano_expira_em'),
+  inativadoEm:     timestamp('inativado_em', { withTimezone: true }),
+  inativadoPor:    text('inativado_por'),
+  excluidoEm:      timestamp('excluido_em', { withTimezone: true }),
+  excluidoPor:     text('excluido_por'),
   createdAt:       timestamp('created_at', { withTimezone: true }).defaultNow(),
   updatedAt:       timestamp('updated_at', { withTimezone: true }).defaultNow(),
 }, (t) => ({
@@ -103,16 +107,20 @@ export const jobs = pgTable('jobs', {
   viewsCount:     integer('views_count').default(0),
   applicantsCount:integer('applicants_count').default(0),
   publishedAt:    timestamp('published_at', { withTimezone: true }),
-  expiresAt:      timestamp('expires_at', { withTimezone: true }),
-  metaTitle:      varchar('meta_title', { length: 120 }),
-  metaDescription:varchar('meta_description', { length: 160 }),
-  createdAt:      timestamp('created_at', { withTimezone: true }).defaultNow(),
-  updatedAt:      timestamp('updated_at', { withTimezone: true }).defaultNow(),
+  expiresAt:          timestamp('expires_at', { withTimezone: true }),
+  aceitaMenorAprendiz:boolean('aceita_menor_aprendiz').default(false),
+  aceitaJovemAprendiz:boolean('aceita_jovem_aprendiz').default(false),
+  metaTitle:          varchar('meta_title', { length: 120 }),
+  metaDescription:    varchar('meta_description', { length: 160 }),
+  createdAt:          timestamp('created_at', { withTimezone: true }).defaultNow(),
+  updatedAt:          timestamp('updated_at', { withTimezone: true }).defaultNow(),
 }, (t) => ({
-  statusIdx:    index('idx_jobs_status').on(t.status),
-  companyIdx:   index('idx_jobs_company_id').on(t.companyId),
-  contractIdx:  index('idx_jobs_contract_type').on(t.contractType),
-  neighborIdx:  index('idx_jobs_neighborhood').on(t.neighborhood),
+  statusIdx:          index('idx_jobs_status').on(t.status),
+  companyIdx:         index('idx_jobs_company_id').on(t.companyId),
+  contractIdx:        index('idx_jobs_contract_type').on(t.contractType),
+  neighborIdx:        index('idx_jobs_neighborhood').on(t.neighborhood),
+  menorAprendizIdx:   index('idx_jobs_menor_aprendiz').on(t.aceitaMenorAprendiz),
+  jovemAprendizIdx:   index('idx_jobs_jovem_aprendiz').on(t.aceitaJovemAprendiz),
 }));
 
 // ============================================================
@@ -134,12 +142,16 @@ export const candidates = pgTable('candidates', {
   fotoUrl:          text('foto_url'),
   videoUrl:         text('video_url'),
   status:           candidateStatusEnum('status').default('pendente'),
-  profileComplete:  boolean('profile_complete').default(false),
-  createdAt:        timestamp('created_at', { withTimezone: true }).defaultNow(),
-  updatedAt:        timestamp('updated_at', { withTimezone: true }).defaultNow(),
+  profileComplete:    boolean('profile_complete').default(false),
+  isMenorAprendiz:   boolean('is_menor_aprendiz').default(false),
+  isJovemAprendiz:   boolean('is_jovem_aprendiz').default(false),
+  createdAt:         timestamp('created_at', { withTimezone: true }).defaultNow(),
+  updatedAt:         timestamp('updated_at', { withTimezone: true }).defaultNow(),
 }, (t) => ({
-  authUserIdx: index('idx_candidates_auth_user_id').on(t.authUserId),
-  emailIdx:    uniqueIndex('idx_candidates_email').on(t.email),
+  authUserIdx:        index('idx_candidates_auth_user_id').on(t.authUserId),
+  emailIdx:           uniqueIndex('idx_candidates_email').on(t.email),
+  menorAprendizIdx:   index('idx_candidates_menor_aprendiz').on(t.isMenorAprendiz),
+  jovemAprendizIdx:   index('idx_candidates_jovem_aprendiz').on(t.isJovemAprendiz),
 }));
 
 // ============================================================

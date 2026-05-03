@@ -10,6 +10,9 @@
 import type { Context, Next } from 'hono';
 import { createMiddleware } from 'hono/factory';
 import { supabaseAdmin } from '../lib/supabase.js';
+import { db } from '../lib/db.js';
+import { companies } from '../schema/index.js';
+import { eq } from 'drizzle-orm';
 import { logger } from '../lib/logger.js';
 
 export type UserRole = 'candidato' | 'empresa' | 'admin';
@@ -76,7 +79,7 @@ export const requireAuth = () =>
 
 /**
  * requireRole — exige papel específico após requireAuth.
- * Uso: app.use('/v1/company/*', requireAuth(), requireRole('empresa'))
+ * Para o papel 'empresa', verifica adicionalmente se a empresa não está inativa/excluída.
  */
 export const requireRole = (...roles: UserRole[]) =>
   createMiddleware(async (c: Context, next: Next) => {
@@ -85,6 +88,30 @@ export const requireRole = (...roles: UserRole[]) =>
     if (!roles.includes(user.role)) {
       logger.warn({ userId: user.id, role: user.role, required: roles }, 'auth: papel insuficiente');
       return c.json({ error: 'FORBIDDEN', message: 'Acesso não permitido para este perfil.' }, 403);
+    }
+
+    // Bloqueia empresa inativa ou excluída
+    if (user.role === 'empresa' && user.companyId) {
+      const company = await db.query.companies
+        .findFirst({
+          columns: { status: true },
+          where: eq(companies.id, user.companyId),
+        })
+        .catch(() => null);
+
+      if (company?.status === 'inativo') {
+        return c.json({
+          error:   'COMPANY_INACTIVE',
+          message: 'Sua empresa está inativa. Entre em contato com o suporte ou redefina sua senha para reativar o acesso.',
+        }, 403);
+      }
+
+      if (company?.status === 'excluido') {
+        return c.json({
+          error:   'COMPANY_DELETED',
+          message: 'Esta empresa foi removida da plataforma.',
+        }, 403);
+      }
     }
 
     await next();

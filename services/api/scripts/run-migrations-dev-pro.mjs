@@ -64,17 +64,17 @@ async function main() {
   console.log(`  ✅ ${version.split(',')[0]}`);
 
   // ── [1] Schema base ──────────────────────────────────────────────
-  console.log('\n[1/5] Schema base (supabase-schema.sql)');
+  console.log('\n[1/10] Schema base (supabase-schema.sql)');
   const schema = loadSQL('../../../supabase-schema.sql');
   await runBlock('Extensões, tabelas, triggers, RLS, seed bairros', schema);
 
   // ── [2] Migration 0001 — audit/media/ops ─────────────────────────
-  console.log('\n[2/5] 0001_audit_media_functions.sql');
+  console.log('\n[2/10] 0001_audit_media_functions.sql');
   const m1 = loadSQL('../migrations/0001_audit_media_functions.sql');
   await runBlock('Schemas audit/media/ops + funções apply_to_job/publish_job/purge_expired', m1);
 
   // ── [3] Migration 0004 — security hardening ───────────────────────
-  console.log('\n[3/5] 0004_security_hardening.sql (bloco a bloco)');
+  console.log('\n[3/10] 0004_security_hardening.sql (bloco a bloco)');
 
   await runBlock('DROP + CREATE POLICY companies_public_insert', `
     DROP POLICY IF EXISTS "companies_public_insert" ON companies;
@@ -121,14 +121,39 @@ async function main() {
   `);
 
   // ── [4] Migration 0005 — OTP + empresa_pre_cadastros ─────────────
-  console.log('\n[4/5] 0005_interesse_empresa.sql');
+  console.log('\n[4/10] 0005_interesse_empresa.sql');
   const m5 = loadSQL('../migrations/0005_interesse_empresa.sql');
   await runBlock('otp_codes + empresa_pre_cadastros + cleanup_expired_otps()', m5);
 
   // ── [5] Migration 0006 — is_admin() + RLS ────────────────────────
-  console.log('\n[5/5] 0006_fix_rls_admin_permissions.sql');
+  console.log('\n[5/10] 0006_fix_rls_admin_permissions.sql');
   const m6 = loadSQL('../migrations/0006_fix_rls_admin_permissions.sql');
   await runBlock('is_admin() SECURITY DEFINER + 6 políticas RLS recriadas', m6);
+
+  // ── [6] Migration 0007 — admin_notifications ─────────────────────
+  console.log('\n[6/10] 0007_admin_notifications.sql');
+  const m7 = loadSQL('../migrations/0007_admin_notifications.sql');
+  await runBlock('admin_notifications + índices + RLS policy', m7);
+
+  // ── [7] Migration 0008 — aprendiz fields ──────────────────────────
+  console.log('\n[7/10] 0008_aprendiz_fields.sql');
+  const m8 = loadSQL('../migrations/0008_aprendiz_fields.sql');
+  await runBlock('is_menor_aprendiz + is_jovem_aprendiz (candidates) + aceita_* (jobs) + índices', m8);
+
+  // ── [8] Migration 0009 — candidate_courses RLS ────────────────────
+  console.log('\n[8/10] 0009_candidate_courses_rls.sql');
+  const m9 = loadSQL('../migrations/0009_candidate_courses_rls.sql');
+  await runBlock('RLS policies para candidate_courses (read/insert/update/delete + admin)', m9);
+
+  // ── [9] Migration 0010 — candidates CNH + education_situation ──────
+  console.log('\n[9/10] 0010_candidates_cnh_education.sql');
+  const m10 = loadSQL('../migrations/0010_candidates_cnh_education.sql');
+  await runBlock('has_cnh + cnh_category + education_situation em candidates', m10);
+
+  // ── [10] Migration 0011 — curriculo_data JSONB ──────────────────────
+  console.log('\n[10/10] 0011_curriculo_data.sql');
+  const m11 = loadSQL('../migrations/0011_curriculo_data.sql');
+  await runBlock('curriculo_data JSONB em candidates', m11);
 
   // ── Verificação final ─────────────────────────────────────────────
   console.log('\n[✓] Verificando tabelas criadas...');
@@ -138,7 +163,7 @@ async function main() {
     ORDER BY tablename;
   `;
   const tableNames = tables.map(t => t.tablename);
-  const expected = ['admin_users','applications','blog_posts','candidate_courses',
+  const expected = ['admin_notifications','admin_users','applications','blog_posts','candidate_courses',
     'candidate_requests','candidates','companies','jobs','neighborhoods','otp_codes',
     'empresa_pre_cadastros'];
   const missing = expected.filter(t => !tableNames.includes(t));
