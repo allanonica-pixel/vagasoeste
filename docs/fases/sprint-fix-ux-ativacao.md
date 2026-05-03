@@ -75,6 +75,28 @@ Detalhes do diagnóstico estão consolidados nos prints da conversa de PO + Tech
 
 ---
 
+### Bug G (P1 — UX) — E-mail de invite chega em inglês com template default Supabase
+
+**Sintoma:** quando empresa preenche `/interesse-empresa`, o e-mail de ativação chega com:
+- Subject: "You have been invited"
+- Body em inglês: "You have been invited to create a user on http://localhost:3000. Follow this link to accept the invite:"
+
+**Causa:** o template "Invite user" no Supabase Auth não foi customizado (os 4 customizados são confirm_signup, reset_password, magic_link, change_email). O `auth.admin.inviteUserByEmail()` usa o template default.
+
+**Solução proposta (Tech Lead):** **NÃO** customizar o template do Supabase. Em vez disso, mudar o fluxo de pré-cadastro pra **enviar e-mail transacional próprio** via `services/api/src/lib/email.ts` (mesma infraestrutura da aprovação), com:
+- Template HTML em `services/api/src/templates/company-emails.ts` → função `buildCompanyActivationEmail`
+- Saudação personalizada com `contact_name`
+- Nome da empresa, CNPJ, link de ativação com token de 48h, instruções claras
+- Identidade visual `#065f46`, igual aos outros transacionais
+
+**Arquivos afetados:**
+- `services/api/src/routes/interesse.ts` (função `gerarEEnviarLinkAtivacao`)
+- `services/api/src/templates/company-emails.ts` (adicionar `buildCompanyActivationEmail`)
+
+**Atenção técnica:** `inviteUserByEmail()` continua sendo necessário pra criar o user em `auth.users` com e-mail confirmado, mas o **e-mail real** que chega ao destinatário deve vir do nosso SMTP transacional. Possível abordagem: chamar `supabaseAdmin.auth.admin.generateLink({ type: 'invite' })` (gera link sem enviar e-mail) e enviar e-mail próprio com esse link.
+
+---
+
 ### Bug F (P1 — UX/transparência) — Auto-preenchimento confuso entre Razão Social e Nome Fantasia
 
 **Sintoma:** ao cadastrar empresa com CNPJ válido, BrasilAPI retorna razão social oficial (ex.: "ONICA SISTEMAS"). O código faz fallback `data.nome_fantasia || data.razao_social || ''` — se Receita não tem nome fantasia distinto, **copia a razão social pro campo "Nome Fantasia"**, dando impressão de que o usuário digitou esse valor.
