@@ -50,6 +50,39 @@ Habilitar **e-mail transacional real** (não apenas de auth via Supabase) — ne
 | F6 | Frontend empresa: no formulário de cadastro/edição de vaga, input opcional `max_candidates` (override) | Default = `max_candidates_default` |
 | F7 | UI candidato: quando limite atingido em uma vaga, mostrar estado "Vaga com candidaturas encerradas — capacidade atingida" em vez de botão "Candidatar" | Mensagem clara, sem expor número exato |
 
+### Bloco H — "Área de Operação" no Painel da Empresa (multi-unidades)
+
+**Regra de negócio (decidida pelo PO em 2026-05-03):** após aprovada, empresa pode cadastrar **múltiplas unidades de operação** (cada uma com endereço completo). Cadastro inicial em `/interesse-empresa` cria a primeira unidade automaticamente. Vagas ao serem criadas escolhem entre as unidades existentes.
+
+| ID | Tarefa | DoD |
+|---|---|---|
+| H1 | Migration `0020_company_unidades.sql`: tabela `company_unidades` (id, company_id FK, cidade_id FK, nome (apelido tipo "Matriz" / "Filial Centro"), cep, logradouro, numero, complemento, bairro, ativo, created_at, updated_at) | Idempotente, RLS por company_id |
+| H2 | Drizzle schema atualizado | Types corretos |
+| H3 | Backend: CRUD `/v1/company/unidades` autenticado por empresa, validações (cidade_id deve estar ativa, ownership por company_id) | Endpoints OK |
+| H4 | Migration retroativa: cria 1 `company_unidade` automaticamente pra cada empresa existente, herdando dados de `companies.cidade/bairro/endereco` | Idempotente, executa 1 vez |
+| H5 | Após /interesse/ativar criar row em `companies`, criar **automaticamente** 1 `company_unidade` com os dados básicos do pré-cadastro (cidade, bairro, sem cep/logradouro/numero detalhados) | Empresa entra com 1 unidade default |
+| H6 | Tabela `jobs` ganha coluna `unidade_id` (FK opcional). Vagas existentes ficam null; novas vagas exigem unidade | Migration de schema + ajuste UI |
+| H7 | Frontend Painel da Empresa: novo menu "Área de Operação" — lista unidades, formulário CRUD, validação de cidade ativa | UX clara, valida no save |
+| H8 | Frontend Painel da Empresa: ao criar/editar vaga, dropdown "Unidade" obrigatório (lista as unidades ativas da empresa) | Vaga sempre tem unidade |
+
+---
+
+### Bloco I — Cascade de inativação de Cidade/Bairro (Painel-admin)
+
+**Regra de negócio (decidida pelo PO em 2026-05-03):** ao inativar cidade ou bairro no Painel-admin, sistema oferece pausar TODAS as vagas vinculadas. Reativação geográfica permite que empresas despausem suas vagas (vide Bloco G G4).
+
+| ID | Tarefa | DoD |
+|---|---|---|
+| I1 | Backend: endpoint `GET /v1/admin/regioes/cidades/:id/impact` retorna `{ activeJobsCount, pendingApplicationsCount, affectedCompaniesCount }` antes de inativar | Métricas confiáveis |
+| I2 | Backend: endpoint `POST /v1/admin/regioes/cidades/:id/inativar-com-cascata` body `{ pausar_vagas: true\|false }`. Se true, atualiza cidade.ativo=false + jobs.status='pausado' WHERE city=X + DELETE applications + dispara e-mails. Se false, só inativa a cidade (vagas continuam ativas — não recomendado pelo UX, mas opção pra casos especiais) | Atomic via transaction |
+| I3 | Backend equivalente pra bairros (`/v1/admin/regioes/bairros/:id/impact` + `/inativar-com-cascata`) | Idem |
+| I4 | Frontend Painel-admin: ao tentar inativar cidade/bairro com vínculos, modal detalhado: "Inativar [X] vai pausar N vagas + remover M candidaturas + notificar K empresas e P candidatos. Confirmar?" com 2 botões: "Cancelar" e "Confirmar inativação" | UX clara, sem cliques acidentais |
+| I5 | Templates de e-mail novos: "Sua vaga foi pausada por mudança de cobertura geográfica" (pra empresa) e "Candidatura cancelada por mudança operacional" (pra candidato) | 2 templates HTML em `services/api/src/templates/` |
+| I6 | Reativação simétrica: ao toggle ativo de cidade/bairro pra TRUE, sistema NÃO despausa vagas automaticamente. Empresa precisa despausar manualmente (Bloco G4 valida cobertura no momento) | Empresa tem controle |
+| I7 | Job de background ou síncrono pequeno (depende de volume): inativações com > 100 vagas afetadas usam fila/job assíncrono, < 100 fica síncrono | Performance OK em escala |
+
+---
+
 ### Bloco G — Pausar vaga com limpeza de candidaturas + validação geográfica no despause
 
 **Regra de negócio:** empresa pode pausar uma vaga. Se a vaga tem candidatos, **limpa todos** ao pausar. Empresa **é avisada antes** de pausar (modal de confirmação). Candidatos afetados recebem **e-mail informativo**.

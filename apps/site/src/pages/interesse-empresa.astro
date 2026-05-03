@@ -160,48 +160,16 @@ const apiUrl = import.meta.env.PUBLIC_API_URL  ?? 'http://localhost:3000';
                   />
                 </div>
 
-                <!-- Estado e Cidade da OPERAÇÃO (dropdowns alimentados pelas Regiões cobertas) -->
-                <div class="sm:col-span-2">
-                  <p class="text-xs text-emerald-700 mb-2 leading-relaxed bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
-                    <i class="ri-map-pin-line mr-1" aria-hidden="true"></i>
-                    Selecione o <strong>Estado</strong> e a <strong>Cidade</strong> onde sua empresa opera. Não é necessariamente o endereço fiscal do CNPJ.
-                  </p>
-                </div>
-                <div>
-                  <label for="estado_uf" class="block text-xs font-medium text-gray-700 mb-1">Estado da operação *</label>
-                  <select id="estado_uf" name="estado_uf" required
-                    class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 transition-colors bg-white"
-                  >
-                    <option value="">Carregando...</option>
-                  </select>
-                </div>
-                <div>
-                  <label for="cidade" class="block text-xs font-medium text-gray-700 mb-1">Cidade da operação *</label>
-                  <select id="cidade" name="cidade" required disabled
-                    class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 transition-colors bg-white disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <option value="">Selecione um estado primeiro</option>
-                  </select>
-                  <input type="hidden" id="cidade_id" name="cidade_id" />
-                </div>
-
-                <!-- Bairro Atual -->
-                <div class="sm:col-span-2">
-                  <label for="neighborhood" class="block text-xs font-medium text-gray-700 mb-1">
-                    Bairro de operação *
-                    <span class="text-gray-400 font-normal ml-1">(escolha cadastrado, ou digite outro)</span>
-                  </label>
-                  <input id="neighborhood" name="neighborhood" type="text" required
-                    placeholder="Selecione cidade primeiro"
-                    list="bairros-list"
-                    class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 transition-colors"
-                  />
-                  <datalist id="bairros-list"></datalist>
-                </div>
               </div>
 
-              <!-- Endereço fiscal (auto-fill via CNPJ / busca por CEP) -->
-              <div class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <!-- ── Endereço fiscal (auto pelo CNPJ) ─────────────────────── -->
+              <fieldset class="mt-6">
+                <legend class="text-xs font-bold text-gray-600 uppercase tracking-wide mb-3 flex items-center gap-1.5">
+                  <i class="ri-bank-line text-gray-400" aria-hidden="true"></i>
+                  Endereço fiscal
+                  <span class="text-gray-400 font-normal normal-case tracking-normal">(preenchido pelo CNPJ)</span>
+                </legend>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <!-- CEP: editável + lookup ViaCEP -->
                 <div>
                   <label for="cep" class="block text-xs font-medium text-gray-700 mb-1">CEP</label>
@@ -244,6 +212,51 @@ const apiUrl = import.meta.env.PUBLIC_API_URL  ?? 'http://localhost:3000';
                   />
                 </div>
               </div>
+              </fieldset>
+
+              <!-- ── Endereço de operação ──────────────────────────────────── -->
+              <fieldset class="mt-6">
+                <legend class="text-xs font-bold text-gray-600 uppercase tracking-wide mb-3 flex items-center gap-1.5">
+                  <i class="ri-map-pin-line text-emerald-600" aria-hidden="true"></i>
+                  Endereço de operação
+                  <span class="text-gray-400 font-normal normal-case tracking-normal">(onde sua empresa opera)</span>
+                </legend>
+                <div class="bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2 mb-3 text-xs text-emerald-700 leading-relaxed">
+                  <i class="ri-information-line mr-1" aria-hidden="true"></i>
+                  Selecione o estado, cidade e bairro da operação. Endereço completo (CEP, logradouro, número, complemento) será cadastrado no Painel da Empresa após aprovação.
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label for="estado_uf" class="block text-xs font-medium text-gray-700 mb-1">Estado da operação *</label>
+                    <select id="estado_uf" name="estado_uf" required
+                      class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 transition-colors bg-white"
+                    >
+                      <option value="">Carregando...</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label for="cidade" class="block text-xs font-medium text-gray-700 mb-1">Cidade da operação *</label>
+                    <select id="cidade" name="cidade" required disabled
+                      class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 transition-colors bg-white disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <option value="">Selecione um estado primeiro</option>
+                    </select>
+                    <input type="hidden" id="cidade_id" name="cidade_id" />
+                  </div>
+                  <div class="sm:col-span-2">
+                    <label for="neighborhood" class="block text-xs font-medium text-gray-700 mb-1">
+                      Bairro de operação *
+                      <span class="text-gray-400 font-normal ml-1">(escolha cadastrado, ou digite outro)</span>
+                    </label>
+                    <input id="neighborhood" name="neighborhood" type="text" required
+                      placeholder="Selecione cidade primeiro"
+                      list="bairros-list"
+                      class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 transition-colors"
+                    />
+                    <datalist id="bairros-list"></datalist>
+                  </div>
+                </div>
+              </fieldset>
 
               <!-- Setores de atuação (multi-select pills — populado via fetch /v1/setores) -->
               <div class="mt-4">
