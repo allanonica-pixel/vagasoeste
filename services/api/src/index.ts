@@ -19,6 +19,9 @@ import { companyRouter }      from './routes/company.js';
 import { interesseRouter }    from './routes/interesse.js';
 import { profileRouter }      from './routes/profile.js';
 import { adminRouter }        from './routes/admin.js';
+import { setoresPublicRouter, setoresAdminRouter } from './routes/setores.js';
+import { regioesPublicRouter, regioesAdminRouter } from './routes/regioes.js';
+import { requireAuth, requireRole } from './middleware/auth.js';
 
 // ============================================================
 // App principal
@@ -73,6 +76,21 @@ app.route('/v1/company',         companyRouter);
 app.route('/v1/interesse',       interesseRouter);
 app.route('/v1/profile',         profileRouter);
 app.route('/v1/admin',           adminRouter);
+
+// Cadastros mestres — leitura pública pra forms, escrita só admin
+app.route('/v1/setores',         setoresPublicRouter);
+app.route('/v1/regioes',         regioesPublicRouter);
+
+// Mounting admin sub-routers com auth + role check
+const adminSetoresGuarded = new Hono();
+adminSetoresGuarded.use('*', requireAuth(), requireRole('admin'));
+adminSetoresGuarded.route('/', setoresAdminRouter);
+app.route('/v1/admin/setores',   adminSetoresGuarded);
+
+const adminRegioesGuarded = new Hono();
+adminRegioesGuarded.use('*', requireAuth(), requireRole('admin'));
+adminRegioesGuarded.route('/', regioesAdminRouter);
+app.route('/v1/admin/regioes',   adminRegioesGuarded);
 
 // ---- 404 global ----
 app.notFound((c) => c.json({ error: 'NOT_FOUND', path: c.req.path }, 404));

@@ -8,12 +8,14 @@ import AdminReports from "./components/AdminReports";
 import AdminNotifications from "./components/AdminNotifications";
 import AdminSettings from "./components/AdminSettings";
 import AdminAuditoria from "./components/AdminAuditoria";
+import AdminSetores from "./components/AdminSetores";
+import AdminRegioes from "./components/AdminRegioes";
 import { supabase } from "@/lib/supabase";
 import { AdminNotification } from "@/mocks/adminData";
 import { useAdminTheme } from "@/hooks/useAdminTheme";
 import { formatDateTimeBR } from "@/utils/date";
 
-type AdminSection = "dashboard" | "empresas" | "candidatos" | "vagas" | "relatorios" | "notificacoes" | "configuracoes" | "auditoria";
+type AdminSection = "dashboard" | "empresas" | "candidatos" | "vagas" | "relatorios" | "notificacoes" | "configuracoes" | "auditoria" | "setores" | "regioes";
 
 interface AdminStats {
   totalCandidates:   number;
@@ -106,6 +108,8 @@ export default function AdminPage() {
     { id: "empresas",      label: "Empresas",     icon: "ri-building-line",     badge: stats.pendingCompanies > 0 ? stats.pendingCompanies : undefined, badgeColor: "bg-amber-500" },
     { id: "candidatos",    label: "Candidatos",   icon: "ri-user-line",          badge: stats.totalCandidates > 0 ? stats.totalCandidates : undefined },
     { id: "vagas",         label: "Vagas",        icon: "ri-briefcase-line",    badge: stats.pendingJobs > 0 ? stats.pendingJobs : undefined, badgeColor: "bg-orange-500" },
+    { id: "setores",       label: "Setores",      icon: "ri-stack-line" },
+    { id: "regioes",       label: "Regiões",      icon: "ri-map-2-line" },
     { id: "relatorios",    label: "Relatórios",   icon: "ri-bar-chart-line" },
     { id: "notificacoes",  label: "Notificações", icon: "ri-notification-line", badge: stats.pendingNotifs > 0 ? stats.pendingNotifs : undefined },
     { id: "auditoria",     label: "Auditoria",    icon: "ri-shield-check-line" },
@@ -224,6 +228,8 @@ export default function AdminPage() {
           {section === "empresas"     && <AdminCompanies />}
           {section === "candidatos"   && <AdminCandidates />}
           {section === "vagas"        && <AdminJobs />}
+          {section === "setores"      && <AdminSetores />}
+          {section === "regioes"      && <AdminRegioes />}
           {section === "relatorios"   && <AdminReports />}
           {section === "notificacoes" && <AdminNotifications />}
           {section === "auditoria"    && <AdminAuditoria />}

@@ -187,6 +187,65 @@ export const adminUsers = pgTable('admin_users', {
 });
 
 // ============================================================
+// TABLE: setores (cadastro mestre — substitui setores hardcoded)
+// ============================================================
+export const setores = pgTable('setores', {
+  id:         uuid('id').primaryKey().defaultRandom(),
+  nome:       varchar('nome', { length: 100 }).notNull().unique(),
+  slug:       varchar('slug', { length: 120 }).notNull().unique(),
+  ordem:      integer('ordem').notNull().default(0),
+  ativo:      boolean('ativo').notNull().default(true),
+  createdAt:  timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt:  timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => ({
+  ativoOrdemIdx: index('idx_setores_ativo_ordem').on(t.ativo, t.ordem),
+}));
+
+// ============================================================
+// TABLE: estados (cobertura geográfica — UF)
+// ============================================================
+export const estados = pgTable('estados', {
+  id:         uuid('id').primaryKey().defaultRandom(),
+  uf:         varchar('uf', { length: 2 }).notNull().unique(),
+  nome:       varchar('nome', { length: 100 }).notNull(),
+  ativo:      boolean('ativo').notNull().default(true),
+  createdAt:  timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt:  timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+// ============================================================
+// TABLE: cidades (cobertura geográfica — vinculadas a estado)
+// ============================================================
+export const cidades = pgTable('cidades', {
+  id:         uuid('id').primaryKey().defaultRandom(),
+  estadoId:   uuid('estado_id').notNull(),
+  nome:       varchar('nome', { length: 120 }).notNull(),
+  slug:       varchar('slug', { length: 140 }).notNull(),
+  ativo:      boolean('ativo').notNull().default(true),
+  createdAt:  timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt:  timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => ({
+  estadoIdx: index('idx_cidades_estado_id').on(t.estadoId),
+  ativoIdx:  index('idx_cidades_ativo').on(t.ativo),
+}));
+
+// ============================================================
+// TABLE: bairros (cadastro complementar — não bloqueia cadastro de empresa)
+// ============================================================
+export const bairros = pgTable('bairros', {
+  id:         uuid('id').primaryKey().defaultRandom(),
+  cidadeId:   uuid('cidade_id').notNull(),
+  nome:       varchar('nome', { length: 120 }).notNull(),
+  slug:       varchar('slug', { length: 140 }).notNull(),
+  ativo:      boolean('ativo').notNull().default(true),
+  createdAt:  timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt:  timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => ({
+  cidadeIdx: index('idx_bairros_cidade_id').on(t.cidadeId),
+  ativoIdx:  index('idx_bairros_ativo').on(t.ativo),
+}));
+
+// ============================================================
 // TABLE: neighborhoods
 // ============================================================
 export const neighborhoods = pgTable('neighborhoods', {
