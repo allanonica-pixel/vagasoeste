@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import QRCode from "qrcode";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
 
@@ -32,45 +33,10 @@ interface Solicitation {
 }
 
 // ──────────────────────────────────────────────────────────────
-// Mock data (será substituído por dados reais da API)
+// Solicitações reais virão do backend quando o endpoint estiver pronto.
+// Mock removido em 2026-05-03 a pedido do PO — empresa nova vê estado vazio
 // ──────────────────────────────────────────────────────────────
-
-const mockSolicitations: Solicitation[] = [
-  {
-    id: "s1",
-    type: "interview",
-    companyName: "Empresa Parceira A",
-    candidateRef: "Candidato #C4",
-    jobTitle: "Vendedor Externo",
-    requestedAt: "2026-04-14",
-    status: "done",
-    notes: "Pré-entrevista realizada com sucesso.",
-    interviewReport:
-      "Candidato demonstrou excelente domínio de técnicas de vendas e boa comunicação. Perfil alinhado com a vaga. Recomendamos fortemente para a próxima etapa.",
-  },
-  {
-    id: "s2",
-    type: "contact",
-    companyName: "Empresa Parceira A",
-    candidateRef: "Candidato #C2",
-    jobTitle: "Auxiliar Administrativo",
-    requestedAt: "2026-04-15",
-    status: "pending",
-    notes: "",
-    contactDetails: "Solicitado contato via WhatsApp para apresentação da proposta.",
-  },
-  {
-    id: "s3",
-    type: "interview",
-    companyName: "Empresa Parceira B",
-    candidateRef: "Candidato #C1",
-    jobTitle: "Auxiliar Administrativo",
-    requestedAt: "2026-04-16",
-    status: "scheduled",
-    notes: "Agendado para 18/04/2026 às 14h.",
-    interviewReport: "",
-  },
-];
+const mockSolicitations: Solicitation[] = [];
 
 const STATUS_CONFIG = {
   pending: { label: "Pendente", color: "bg-gray-100 text-gray-600" },
@@ -190,7 +156,92 @@ function UserManagementSection() {
     }
   };
 
+  // Bug H — confirmação obrigatória antes de operar redefinição de senha
+  const [confirmResetOpen, setConfirmResetOpen] = useState(false);
+
+  const requestPasswordReset = () => setConfirmResetOpen(true);
+
+  // Bug I — fluxo de ativação de MFA pelo painel da empresa
+  const [mfaModalOpen, setMfaModalOpen] = useState(false);
+  const [mfaQrUrl, setMfaQrUrl] = useState("");
+  const [mfaSecret, setMfaSecret] = useState("");
+  const [mfaFactorId, setMfaFactorId] = useState("");
+  const [mfaCode, setMfaCode] = useState("");
+  const [mfaLoading, setMfaLoading] = useState(false);
+  const [mfaError, setMfaError] = useState("");
+
+  const startMfaEnrollment = async () => {
+    setMfaError("");
+    setMfaLoading(true);
+    try {
+      const { data, error } = await supabase.auth.mfa.enroll({ factorType: "totp" });
+      if (error || !data) {
+        setMfaError(error?.message ?? "Erro ao iniciar configuração do autenticador.");
+        setMfaLoading(false);
+        return;
+      }
+      setMfaFactorId(data.id);
+      setMfaSecret(data.totp.secret);
+      const uri = `otpauth://totp/VagasOeste%3AEmpresas?secret=${data.totp.secret}&issuer=VagasOeste`;
+      const qr = await QRCode.toDataURL(uri, { width: 192, margin: 1 });
+      setMfaQrUrl(qr);
+      setMfaModalOpen(true);
+    } catch (err: unknown) {
+      setMfaError(err instanceof Error ? err.message : "Erro inesperado.");
+    } finally {
+      setMfaLoading(false);
+    }
+  };
+
+  const verifyMfaCode = async () => {
+    if (!/^\d{6}$/.test(mfaCode)) {
+      setMfaError("Digite os 6 dígitos do código.");
+      return;
+    }
+    setMfaError("");
+    setMfaLoading(true);
+    try {
+      const { data: challenge, error: chErr } = await supabase.auth.mfa.challenge({ factorId: mfaFactorId });
+      if (chErr || !challenge) {
+        setMfaError("Erro ao iniciar verificação. Tente novamente.");
+        setMfaLoading(false);
+        return;
+      }
+      const { error: vfErr } = await supabase.auth.mfa.verify({
+        factorId:    mfaFactorId,
+        challengeId: challenge.id,
+        code:        mfaCode,
+      });
+      if (vfErr) {
+        setMfaError("Código inválido. Verifique o app autenticador e tente novamente.");
+        setMfaLoading(false);
+        return;
+      }
+      // Sucesso — atualiza badge e fecha modal
+      setMfaInfo("active");
+      setMfaModalOpen(false);
+      setMfaCode("");
+      setMfaFactorId("");
+      setMfaSecret("");
+      setMfaQrUrl("");
+    } catch (err: unknown) {
+      setMfaError(err instanceof Error ? err.message : "Erro inesperado ao verificar código.");
+    } finally {
+      setMfaLoading(false);
+    }
+  };
+
+  const closeMfaModal = () => {
+    if (mfaLoading) return;
+    setMfaModalOpen(false);
+    setMfaCode("");
+    setMfaError("");
+    // Se o usuário cancelar antes de verificar, o factor fica em status "unverified".
+    // Limpeza desses factors fica como TODO de manutenção.
+  };
+
   const handleChangePassword = async () => {
+    setConfirmResetOpen(false);
     setChangingPassword(true);
     const { error } = await supabase.auth.resetPasswordForEmail(user?.email ?? "", {
       redirectTo: `${window.location.origin}/redefinir-senha`,
@@ -233,16 +284,25 @@ function UserManagementSection() {
                   </span>
                 )}
                 {mfaInfo === "inactive" && (
-                  <span className="text-xs text-red-600 font-medium bg-red-50 border border-red-100 px-2 py-0.5 rounded-full flex items-center gap-1">
-                    <i className="ri-shield-cross-line text-xs"></i>
-                    MFA inativo
-                  </span>
+                  <>
+                    <span className="text-xs text-red-600 font-medium bg-red-50 border border-red-100 px-2 py-0.5 rounded-full flex items-center gap-1">
+                      <i className="ri-shield-cross-line text-xs" aria-hidden="true"></i>
+                      MFA inativo
+                    </span>
+                    <button
+                      onClick={startMfaEnrollment}
+                      disabled={mfaLoading}
+                      className="text-xs text-emerald-700 hover:text-emerald-800 underline underline-offset-2 disabled:opacity-50 cursor-pointer"
+                    >
+                      {mfaLoading ? "Carregando..." : "Ativar autenticador"}
+                    </button>
+                  </>
                 )}
               </div>
             </div>
           </div>
           <button
-            onClick={handleChangePassword}
+            onClick={requestPasswordReset}
             disabled={changingPassword}
             className="flex items-center gap-1.5 text-xs text-gray-600 hover:text-sky-700 border border-gray-200 hover:border-sky-300 px-3 py-1.5 rounded-lg cursor-pointer transition-colors disabled:opacity-50 whitespace-nowrap"
           >
@@ -255,6 +315,131 @@ function UserManagementSection() {
           </button>
         </div>
       </div>
+
+      {/* Modal de confirmação — Bug H */}
+      {confirmResetOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="reset-pwd-title"
+        >
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
+            <div className="flex items-start gap-3 mb-4">
+              <div className="size-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
+                <i className="ri-alert-line text-amber-600 text-lg" aria-hidden="true"></i>
+              </div>
+              <div className="flex-1">
+                <h3 id="reset-pwd-title" className="font-bold text-gray-900 text-base mb-1">
+                  Redefinir senha de acesso?
+                </h3>
+                <p className="text-sm text-gray-600 leading-relaxed">
+                  Vamos enviar um e-mail para <strong className="text-gray-900">{user?.email}</strong> com um link seguro para você criar uma nova senha. A senha atual continua válida até a nova ser definida.
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-2 justify-end mt-5">
+              <button
+                onClick={() => setConfirmResetOpen(false)}
+                disabled={changingPassword}
+                className="px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleChangePassword}
+                disabled={changingPassword}
+                className="px-4 py-2 text-sm font-semibold text-white bg-sky-600 hover:bg-sky-700 rounded-lg cursor-pointer transition-colors disabled:opacity-50 flex items-center gap-1.5"
+              >
+                {changingPassword && <i className="ri-loader-4-line animate-spin text-sm"></i>}
+                Sim, enviar link
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de ativação MFA — Bug I */}
+      {mfaModalOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="mfa-enroll-title"
+        >
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
+            <div className="flex items-start gap-3 mb-4">
+              <div className="size-10 rounded-xl bg-emerald-100 flex items-center justify-center shrink-0">
+                <i className="ri-shield-check-line text-emerald-600 text-lg" aria-hidden="true"></i>
+              </div>
+              <div className="flex-1">
+                <h3 id="mfa-enroll-title" className="font-bold text-gray-900 text-base mb-1">
+                  Ativar autenticador (2FA)
+                </h3>
+                <p className="text-sm text-gray-600 leading-relaxed">
+                  Escaneie o QR code abaixo com Google Authenticator ou Authy. Depois digite o código de 6 dígitos exibido no app.
+                </p>
+              </div>
+            </div>
+
+            {mfaQrUrl && (
+              <div className="flex justify-center mb-3">
+                <img src={mfaQrUrl} alt="QR code do autenticador" className="size-48" />
+              </div>
+            )}
+
+            {mfaSecret && (
+              <div className="text-center mb-4">
+                <p className="text-xs text-gray-500 mb-1">Ou insira a chave manualmente:</p>
+                <code className="text-xs font-mono bg-gray-100 px-2 py-1 rounded text-gray-700 break-all">
+                  {mfaSecret}
+                </code>
+              </div>
+            )}
+
+            <label htmlFor="mfa-code" className="block text-xs font-semibold text-gray-700 mb-1">
+              Código de 6 dígitos do app
+            </label>
+            <input
+              id="mfa-code"
+              type="text"
+              inputMode="numeric"
+              maxLength={6}
+              value={mfaCode}
+              onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, ""))}
+              placeholder="000 000"
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-center text-xl tracking-widest font-mono focus:outline-none focus:border-emerald-500 mb-2"
+              autoComplete="one-time-code"
+            />
+            <p className="text-xs text-gray-400 text-center mb-4">O código muda a cada 30 segundos.</p>
+
+            {mfaError && (
+              <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-4 flex items-center gap-2">
+                <i className="ri-error-warning-line text-red-500 text-sm" aria-hidden="true"></i>
+                <p className="text-xs text-red-700">{mfaError}</p>
+              </div>
+            )}
+
+            <div className="flex gap-2 justify-end">
+              <button
+                onClick={closeMfaModal}
+                disabled={mfaLoading}
+                className="px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={verifyMfaCode}
+                disabled={mfaLoading || mfaCode.length !== 6}
+                className="px-4 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg cursor-pointer transition-colors disabled:opacity-50 flex items-center gap-1.5"
+              >
+                {mfaLoading && <i className="ri-loader-4-line animate-spin text-sm"></i>}
+                Ativar e proteger conta
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Colaboradores — apenas Gestor pode gerenciar */}
       {!isSubUser && (

@@ -27,13 +27,29 @@
 
 Documento: [`docs/fases/001-seo-tecnico-site.md`](./fases/001-seo-tecnico-site.md)
 
-### Sprint Bugfix — Aprovação de Empresa (em execução)
-**Objetivo:** corrigir 3 bugs críticos no fluxo `etapa 1 (ativação) → etapa 2 (aprovação admin)` antes de retomar a Fase 1.
-- Bug 1: Aprovação não envia e-mail
-- Bug 2: Forgot-password não acha empresa em `empresa_pre_cadastros`
-- Bug 3: Admin pode "aprovar" empresa que nunca ativou
+### Sprint Bugfix — Aprovação de Empresa (em finalização)
+**Objetivo:** corrigir bugs no fluxo de cadastro/ativação/aprovação de empresa.
+- ✅ Bug 1: Aprovação envia e-mail real (commit `2c40fdd`)
+- ✅ Bug 2: Forgot-password acha empresa em `empresa_pre_cadastros` (commit `be08ac9`)
+- ✅ Bug 3: Backend valida que empresa ativou antes de aprovar (commit `be08ac9`)
+- ✅ Bug B: Botão "Acessar a Plataforma" não vai mais pra rota restrita (commit `1f510ac`)
+- ✅ Bug C: Empresa loga após ativar (email_confirm via /ativar) (commit `30dcb2e`)
+- ✅ Bug D: 2FA não força enrollment imediato no login (commit `2dcd962`)
+- ⏳ Bug H: Modal de confirmação ao Redefinir Senha
+- ⏳ Bug I: UI pra empresa ativar/desativar MFA pelo painel
+- ⏳ Limpeza completa de dados (pre_cadastros, companies, candidates, jobs, mocks)
 
 ADR: [0002](./adr/0002-pausa-fase1-fix-aprovacao-empresa.md)
+Bugs descobertos no E2E: [`docs/fases/sprint-fix-ux-ativacao.md`](./fases/sprint-fix-ux-ativacao.md)
+
+### Fase 1.5 — Cobertura Geográfica (planejada)
+**Objetivo:** gerenciar cidades atendidas e capturar leads de empresas em cidades não-cobertas.
+- Schema regiões (estados/cidades/bairros) + potenciais_empresas
+- Painel-admin: menus "Regiões Atendidas" e "Potenciais Empresas"
+- Cadastro de empresa: dropdowns Estado/Cidade da operação + validação de cobertura
+- Disparo de e-mail bulk pra potenciais quando cidade ganha cobertura
+
+Documento: [`docs/fases/0015-cobertura-geografica.md`](./fases/0015-cobertura-geografica.md)
 
 ### Fase 2 — Marketplace Operacional (planejada)
 **Objetivo:** habilitar e-mail transacional real, limites de candidaturas por empresa/vaga, pausa de vaga com limpeza de candidaturas + notificação.
@@ -81,12 +97,22 @@ Nenhuma ainda — primeiro ciclo formalizado começa com a Fase 1.
 
 ### Semana de 2026-05-03
 
-**Andou:**
-- Limpeza de credenciais e migração pra `sb_publishable_` / `sb_secret_`
-- Definição da estrutura de equipe e cadência (commit pendente)
-- Auditoria inicial de SEO no site (resultado: base sólida, hardening focado)
+**Andou (manhã/tarde):**
+- Rotação completa de credenciais Supabase (DB password + JWT secret + sb_secret_)
+- Limpeza de credenciais e refs em arquivos versionados
+- Definição de estrutura de equipe v2.0 (10 papéis) + ADR 0001
+- Fase 1 SEO: Bloco A (schemas globais) + Bloco B parcial (fonts/icons/preload/lazy) + Bloco C (cache/CSP) entregues
+- ADR 0002 e Sprint Bugfix Aprovação aberto durante teste E2E
+- 6 bugs corrigidos no sprint bugfix (1, 2, 3, B, C, D)
+- SMTP transacional próprio integrado (Resend via nodemailer)
+- Layout padrão de e-mails idêntico aos templates Supabase oficiais
+- Bug G fechado (e-mail de invite agora em pt-BR via SMTP próprio)
+- Painel-admin ganhou aba "Aguardando Ativação" pra suporte
 
 **Vem agora:**
-- Fase 1 — SEO técnico do site
+- Limpeza de dados (pre_cadastros, candidates, jobs, mocks)
+- Bug H (confirmação ao redefinir senha) + Bug I (UI ativação MFA)
+- Fechar Sprint Bugfix Aprovação
+- Abrir Fase 1.5 (Cobertura Geográfica)
 
 **Bloqueios:** nenhum.

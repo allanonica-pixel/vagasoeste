@@ -26,6 +26,53 @@ Detalhes do diagnóstico estão consolidados nos prints da conversa de PO + Tech
 
 ## Backlog
 
+## Status atual (2026-05-03)
+
+| Bug | Status | Commit |
+|---|---|---|
+| Bug A (copy mostra razão social) | ⏳ pendente | — |
+| Bug B (botão → rota restrita) | ✅ resolvido | `1f510ac` |
+| Bug C (senha não funciona após ativar) | ✅ resolvido | `30dcb2e` |
+| Bug D (2FA forçado no login) | ✅ resolvido | `2dcd962` + `a8d8f2e` |
+| Bug E (5 candidatos mockados) | ⏳ depende de limpeza geral |
+| Bug F (auto-fill razão social/fantasia) | ⏳ pendente | — |
+| Bug G (e-mail invite em inglês) | ✅ resolvido | `5595eb2` |
+| Bug H (Redefinir Senha sem confirmação) | ⏳ pendente | — |
+| Bug I (sem UI para empresa ativar MFA) | ⏳ pendente | — |
+
+---
+
+### Bug H (P1 — operacional crítico) — Redefinir Senha não tem confirmação
+
+**Sintoma:** No painel da empresa → aba Administrativo → seção "Gestão de Acesso", o botão **"Redefinir senha"** dispara a ação imediatamente quando clicado, sem nenhuma confirmação.
+
+**Esperado:** modal de confirmação com texto claro:
+> "Deseja realmente redefinir a senha de acesso da plataforma?
+> Um e-mail será enviado pra [empresa@dominio.com.br] com link pra criar nova senha. A senha atual continuará válida até a nova ser definida."
+> **Botões:** [Cancelar] [Sim, enviar link]
+
+**Justificativa do PO:** "Por ética operacional é obrigatório abrir uma telinha perguntando antes de operar a ação."
+
+**Arquivo provável:** `apps/platform/src/pages/empresa/dashboard/...` (componente de Gestão de Acesso) ou `EmpresaPage.tsx`
+
+---
+
+### Bug I (P1 — funcionalidade ausente) — Falta UI para empresa ativar/configurar MFA
+
+**Sintoma:** No painel da empresa → aba Administrativo → seção "Gestão de Acesso", aparece o badge "MFA inativo" mas **não há botão pra ativar**. Empresa fica refém de não poder configurar 2FA pelo seu próprio painel.
+
+**Esperado:**
+- Botão **"Ativar Autenticador (2FA)"** ao lado do badge "MFA inativo"
+- Click abre modal/wizard com QR code (igual o que era forçado no login antes do Bug D fix)
+- Após verificação do código, badge muda pra "MFA ativo" + botão "Desativar autenticador"
+- Banner persistente no topo do painel sugerindo configurar enquanto MFA inativo
+
+**Justificativa do PO:** "Uma vez que informa que está inativo, é essencial que tenha o recurso pra ativar o MFA Authenticator."
+
+**Arquivo provável:** mesma seção do Bug H. Pode reaproveitar componente existente do login (que tinha QR code + verify) movido pra cá.
+
+---
+
 ### Bug B (P0 — segurança) — Botão "Acessar a Plataforma" leva pra rota restrita
 
 **Sintoma:** após ativação no site, o botão "Acessar a Plataforma" redireciona pra `localhost:3001/acesso-restrito` (rota do Painel-admin que **nunca pode ser exposta** publicamente).
