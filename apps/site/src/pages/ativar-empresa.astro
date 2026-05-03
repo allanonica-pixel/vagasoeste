@@ -200,7 +200,7 @@ function closeModal() {
 function mostrarExpirado(descricao) {
   const desc = document.getElementById('expired-desc');
   if (desc && descricao) desc.textContent = descricao;
-  document.getElementById('btn-ir-login').href = `${appUrl}/acesso-restrito`;
+  document.getElementById('btn-ir-login').href = `${appUrl}/login?type=empresa`;
   showState('state-expired');
 }
 
@@ -235,7 +235,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (nameEl) nameEl.textContent = json.company_name ?? '';
 
       const link = document.getElementById('success-link');
-      if (link) link.href = `${appUrl}/acesso-restrito`;
+      if (link) link.href = `${appUrl}/login?type=empresa`;
 
       showState('state-success');
       return;

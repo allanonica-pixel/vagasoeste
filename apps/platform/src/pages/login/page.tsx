@@ -39,7 +39,9 @@ export default function LoginPage() {
   const [searchParams] = useSearchParams();
   const { signIn, user, role, loading } = useAuth();
 
-  const [userType, setUserType] = useState<UserType>("candidato");
+  // Aceita ?type=empresa|candidato pra pré-selecionar a aba (vindo do site/ativar-empresa, etc.)
+  const initialUserType: UserType = searchParams.get("type") === "empresa" ? "empresa" : "candidato";
+  const [userType, setUserType] = useState<UserType>(initialUserType);
   const [step, setStep] = useState<LoginStep>("credentials");
   const [showRegisterModal, setShowRegisterModal] = useState(false);
 
