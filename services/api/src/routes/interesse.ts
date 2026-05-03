@@ -275,6 +275,9 @@ interesseRouter.post('/submit', async (c) => {
     company_name:      string;
     setores:           string[];
     neighborhood:      string;
+    estado_uf:         string;        // Estado da OPERAÇÃO (escolhido via dropdown)
+    cidade:            string;        // Cidade da OPERAÇÃO (escolhida via dropdown)
+    cidade_id?:        string;        // FK opcional pra cidades.id (preferida quando dropdown envia)
     cep?:              string;
     logradouro?:       string;
     numero?:           string;
@@ -289,6 +292,37 @@ interesseRouter.post('/submit', async (c) => {
   }>().catch(() => null);
 
   if (!body) return c.json({ error: 'Payload inválido.' }, 400);
+
+  // ── Validação de cobertura geográfica ──────────────────────────────────────
+  // Cidade da operação precisa estar ATIVA na tabela cidades + estado correspondente ATIVO.
+  // Caso contrário, retorna CITY_NOT_COVERED com payload pra frontend oferecer cadastro
+  // como Potencial Empresa (Bloco 3).
+  if (!body.estado_uf || !body.cidade) {
+    return c.json({ error: 'INVALID_LOCATION', message: 'Estado e cidade da operação são obrigatórios.' }, 400);
+  }
+
+  const cidadeAtiva = body.cidade_id
+    ? await supabaseAdmin.from('cidades').select('id, estado_id, ativo, nome')
+        .eq('id', body.cidade_id).eq('ativo', true).maybeSingle()
+    : await supabaseAdmin.from('cidades').select('id, estado_id, ativo, nome')
+        .ilike('nome', body.cidade).maybeSingle();
+
+  let cidadeIdResolved: string | null = null;
+  if (cidadeAtiva.data) {
+    const estadoCheck = await supabaseAdmin.from('estados').select('uf, ativo').eq('id', cidadeAtiva.data.estado_id).maybeSingle();
+    if (estadoCheck.data?.ativo && estadoCheck.data.uf === body.estado_uf.toUpperCase()) {
+      cidadeIdResolved = cidadeAtiva.data.id;
+    }
+  }
+
+  if (!cidadeIdResolved) {
+    return c.json({
+      error:   'CITY_NOT_COVERED',
+      message: `No momento ainda não cobrimos a cidade ${body.cidade}/${body.estado_uf}. Você pode se cadastrar como Empresa Potencial pra receber aviso quando expandirmos pra essa região.`,
+      estado_uf: body.estado_uf.toUpperCase(),
+      cidade:    body.cidade,
+    }, 422);
+  }
 
   const raw = body.phone.replace(/\D/g, '');
 
@@ -323,6 +357,9 @@ interesseRouter.post('/submit', async (c) => {
     razao_social:                 body.razao_social   || null,
     company_name:                 body.company_name,
     setores:                      body.setores        ?? [],
+    estado_uf:                    body.estado_uf.toUpperCase(),
+    cidade:                       body.cidade,
+    cidade_id:                    cidadeIdResolved,
     neighborhood:                 body.neighborhood   || null,
     cep:                          body.cep            || null,
     logradouro:                   body.logradouro     || null,
@@ -423,18 +460,21 @@ interesseRouter.get('/ativar', async (c) => {
   } else {
     try {
       const [created] = await db.insert(companies).values({
-        cnpj:            cnpjFmt || cnpjRaw || `NOCNPJ-${preCad.id}`,
-        razaoSocial:     String(preCad.razao_social || preCad.company_name),
-        nomeFantasia:    String(preCad.company_name),
-        sector:          Array.isArray(preCad.setores) && preCad.setores.length > 0 ? String(preCad.setores[0]) : null,
-        bairro:          String(preCad.neighborhood || preCad.bairro_empresa || ''),
-        endereco:        preCad.logradouro ? `${preCad.logradouro}, ${preCad.numero || 'S/N'}` : null,
+        cnpj:             cnpjFmt || cnpjRaw || `NOCNPJ-${preCad.id}`,
+        razaoSocial:      String(preCad.razao_social || preCad.company_name),
+        nomeFantasia:     String(preCad.company_name),
+        sector:           Array.isArray(preCad.setores) && preCad.setores.length > 0 ? String(preCad.setores[0]) : null,
+        // Cidade e estado da OPERAÇÃO (escolhidos pela empresa nos dropdowns), com fallback Santarém/PA
+        cidade:           String(preCad.cidade || 'Santarém'),
+        estado:           String(preCad.estado_uf || 'PA'),
+        bairro:           String(preCad.neighborhood || preCad.bairro_empresa || ''),
+        endereco:         preCad.logradouro ? `${preCad.logradouro}, ${preCad.numero || 'S/N'}` : null,
         email,
-        whatsapp:        String(preCad.contact_whatsapp ?? ''),
+        whatsapp:         String(preCad.contact_whatsapp ?? ''),
         responsavelNome:  String(preCad.contact_name  ?? ''),
         responsavelCargo: String(preCad.contact_role  ?? ''),
-        authUserId:      authUserId,
-        status:          'parcial',
+        authUserId:       authUserId,
+        status:           'parcial',
       }).returning({ id: companies.id });
       companyId = created?.id ?? null;
     } catch (dbErr: any) {

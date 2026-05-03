@@ -32,10 +32,8 @@ const stats = [
   { value: '<48h',                      label: 'Candidaturas com retorno rápido' },
 ];
 
-const SETORES = [
-  'Comércio', 'Saúde', 'Logística', 'Construção Civil',
-  'Alimentação', 'Tecnologia', 'Educação', 'Indústria', 'Serviços', 'Outro',
-];
+// Setores e regiões agora vêm da API (Painel-admin gerencia em /vo-painel/setores e /regioes)
+// Carregamento via fetch no client-side (DOMContentLoaded). Lista hardcoded removida.
 
 const appUrl = import.meta.env.PUBLIC_APP_URL ?? 'http://localhost:3001';
 const apiUrl = import.meta.env.PUBLIC_API_URL  ?? 'http://localhost:3000';
@@ -162,16 +160,43 @@ const apiUrl = import.meta.env.PUBLIC_API_URL  ?? 'http://localhost:3000';
                   />
                 </div>
 
+                <!-- Estado e Cidade da OPERAÇÃO (dropdowns alimentados pelas Regiões cobertas) -->
+                <div class="sm:col-span-2">
+                  <p class="text-xs text-emerald-700 mb-2 leading-relaxed bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
+                    <i class="ri-map-pin-line mr-1" aria-hidden="true"></i>
+                    Selecione o <strong>Estado</strong> e a <strong>Cidade</strong> onde sua empresa opera. Não é necessariamente o endereço fiscal do CNPJ.
+                  </p>
+                </div>
+                <div>
+                  <label for="estado_uf" class="block text-xs font-medium text-gray-700 mb-1">Estado da operação *</label>
+                  <select id="estado_uf" name="estado_uf" required
+                    class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 transition-colors bg-white"
+                  >
+                    <option value="">Carregando...</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="cidade" class="block text-xs font-medium text-gray-700 mb-1">Cidade da operação *</label>
+                  <select id="cidade" name="cidade" required disabled
+                    class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 transition-colors bg-white disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <option value="">Selecione um estado primeiro</option>
+                  </select>
+                  <input type="hidden" id="cidade_id" name="cidade_id" />
+                </div>
+
                 <!-- Bairro Atual -->
                 <div class="sm:col-span-2">
                   <label for="neighborhood" class="block text-xs font-medium text-gray-700 mb-1">
-                    Bairro Atual *
-                    <span class="text-gray-400 font-normal ml-1">(sugerido pelo CNPJ/CEP)</span>
+                    Bairro de operação *
+                    <span class="text-gray-400 font-normal ml-1">(escolha cadastrado, ou digite outro)</span>
                   </label>
                   <input id="neighborhood" name="neighborhood" type="text" required
-                    placeholder="Informe o bairro onde a empresa opera"
+                    placeholder="Selecione cidade primeiro"
+                    list="bairros-list"
                     class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 transition-colors"
                   />
+                  <datalist id="bairros-list"></datalist>
                 </div>
               </div>
 
@@ -220,21 +245,14 @@ const apiUrl = import.meta.env.PUBLIC_API_URL  ?? 'http://localhost:3000';
                 </div>
               </div>
 
-              <!-- Setores de atuação (multi-select pills) -->
+              <!-- Setores de atuação (multi-select pills — populado via fetch /v1/setores) -->
               <div class="mt-4">
                 <label class="block text-xs font-medium text-gray-700 mb-2">
                   Setor(es) de atuação *
                   <span class="text-gray-400 font-normal ml-1">(selecione um ou mais)</span>
                 </label>
                 <div id="setores-container" class="flex flex-wrap gap-2">
-                  {SETORES.map((s) => (
-                    <label class="cursor-pointer">
-                      <input type="checkbox" name="setores" value={s} class="sr-only peer setor-check" />
-                      <span class="inline-flex items-center px-3 py-1.5 rounded-full border border-gray-200 text-sm text-gray-700 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 peer-checked:text-emerald-700 transition-colors select-none">
-                        {s}
-                      </span>
-                    </label>
-                  ))}
+                  <span class="text-xs text-gray-400">Carregando setores...</span>
                 </div>
                 <p id="setores-msg" class="text-xs mt-1.5 text-red-500 hidden">Selecione ao menos um setor.</p>
               </div>
@@ -758,7 +776,10 @@ async function lookupCNPJ(digits) {
     const data = await res.json();
 
     setVal('razao_social',   data.razao_social ?? '');
-    setVal('company_name',   data.nome_fantasia || data.razao_social || '');
+    // Bug F: nome fantasia só auto-popula se Receita devolver explicitamente.
+    // Sem fallback pra razão social — força usuário a digitar conscientemente
+    // como o público conhece a empresa.
+    setVal('company_name',   data.nome_fantasia ?? '');
 
     // Limpa erro da Razão Social se estava marcado
     const rsEl    = document.getElementById('razao_social');
@@ -772,8 +793,9 @@ async function lookupCNPJ(digits) {
     const cepRaw = (data.cep ?? '').replace(/\D/g, '');
     setVal('cep', maskCEP(cepRaw));
 
-    const nb = document.getElementById('neighborhood');
-    if (nb && data.bairro) nb.value = data.bairro;
+    // Bairro de OPERAÇÃO (não fiscal) NÃO é auto-preenchido pela BrasilAPI.
+    // Usuário deve selecionar/digitar baseado nos bairros cadastrados na cidade
+    // de operação (após selecionar Estado e Cidade nos dropdowns).
 
     spinner.classList.add('hidden');
     okIcon.classList.remove('hidden');
@@ -814,6 +836,9 @@ function coletarDados() {
     razao_social:      g('razao_social'),
     company_name:      g('company_name'),
     setores,
+    estado_uf:         g('estado_uf'),
+    cidade:            g('cidade'),
+    cidade_id:         g('cidade_id') || undefined,
     neighborhood:      g('neighborhood'),
     cep:               g('cep').replace(/\D/g, ''),
     logradouro:        g('logradouro'),
@@ -892,6 +917,16 @@ function validarAba1() {
   const nameEl = document.getElementById('company_name');
   if (!nameEl?.value.trim()) { setField(nameEl, false); ok = false; }
   else setField(nameEl, true);
+
+  // ── Estado da operação ───────────────────────────────────────────────
+  const estadoEl = document.getElementById('estado_uf');
+  if (!estadoEl?.value) { setField(estadoEl, false); ok = false; }
+  else setField(estadoEl, true);
+
+  // ── Cidade da operação ───────────────────────────────────────────────
+  const cidadeEl = document.getElementById('cidade');
+  if (!cidadeEl?.value) { setField(cidadeEl, false); ok = false; }
+  else setField(cidadeEl, true);
 
   // ── Bairro ───────────────────────────────────────────────────────────
   const nbEl = document.getElementById('neighborhood');
@@ -1027,7 +1062,9 @@ function preencherResumo(dados) {
     linha('Razão Social',  dados.razao_social),
     linha('CNPJ',          dados.cnpj),
     linha('Setor(es)',     dados.setores.join(', ')),
-    linha('Bairro (Stm.)', dados.neighborhood),
+    linha('Estado',        dados.estado_uf),
+    linha('Cidade',        dados.cidade),
+    linha('Bairro',        dados.neighborhood),
     linha('Logradouro',    dados.logradouro ? `${dados.logradouro}, ${dados.numero || 'S/N'}` : ''),
     linha('Bairro fiscal', dados.bairro_empresa),
     linha('CEP',           dados.cep),
@@ -1076,8 +1113,116 @@ function setupPasswordToggle(btnId, inputId, iconId) {
   });
 }
 
+// ── Carregamento dinâmico de Setores e Regiões cobertas ───────────────────
+async function carregarSetoresERegioes() {
+  try {
+    const [setRes, regRes] = await Promise.all([
+      fetch(`${apiUrl}/v1/setores`),
+      fetch(`${apiUrl}/v1/regioes/cobertas`),
+    ]);
+    const setData = await setRes.json();
+    const regData = await regRes.json();
+
+    // ── Renderiza pills de setores ────────────────────────────────────────
+    const setContainer = document.getElementById('setores-container');
+    if (setContainer && Array.isArray(setData.setores)) {
+      setContainer.innerHTML = '';
+      if (setData.setores.length === 0) {
+        setContainer.innerHTML = '<span class="text-xs text-gray-400">Nenhum setor cadastrado. Contate o administrador.</span>';
+      } else {
+        for (const s of setData.setores) {
+          const label = document.createElement('label');
+          label.className = 'cursor-pointer';
+          label.innerHTML = `
+            <input type="checkbox" name="setores" value="${s.nome}" class="sr-only peer setor-check" />
+            <span class="inline-flex items-center px-3 py-1.5 rounded-full border border-gray-200 text-sm text-gray-700 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 peer-checked:text-emerald-700 transition-colors select-none">${s.nome}</span>
+          `;
+          setContainer.appendChild(label);
+        }
+      }
+    }
+
+    // ── Popula dropdown de Estado ─────────────────────────────────────────
+    const estadoSel = document.getElementById('estado_uf');
+    const cidadeSel = document.getElementById('cidade');
+    const cidadeIdEl = document.getElementById('cidade_id');
+    const bairroInput = document.getElementById('neighborhood');
+    const bairrosList = document.getElementById('bairros-list');
+
+    if (estadoSel && Array.isArray(regData.regioes)) {
+      estadoSel.innerHTML = '<option value="">Selecione o estado</option>';
+      if (regData.regioes.length === 0) {
+        estadoSel.innerHTML = '<option value="">Nenhuma região cadastrada</option>';
+      } else {
+        for (const est of regData.regioes) {
+          const opt = document.createElement('option');
+          opt.value = est.uf;
+          opt.textContent = `${est.uf} — ${est.nome}`;
+          opt.dataset.estadoId = est.id;
+          estadoSel.appendChild(opt);
+        }
+      }
+
+      // Quando estado muda, popula cidades
+      estadoSel.addEventListener('change', () => {
+        const estado = regData.regioes.find((e) => e.uf === estadoSel.value);
+        cidadeSel.innerHTML = '<option value="">Selecione a cidade</option>';
+        cidadeIdEl.value = '';
+        bairrosList.innerHTML = '';
+        if (bairroInput) { bairroInput.value = ''; bairroInput.placeholder = 'Selecione cidade primeiro'; }
+
+        if (!estado || !estado.cidades || estado.cidades.length === 0) {
+          cidadeSel.disabled = true;
+          cidadeSel.innerHTML = '<option value="">Nenhuma cidade ativa neste estado</option>';
+          return;
+        }
+        cidadeSel.disabled = false;
+        for (const cid of estado.cidades) {
+          const opt = document.createElement('option');
+          opt.value = cid.nome;
+          opt.textContent = cid.nome;
+          opt.dataset.cidadeId = cid.id;
+          opt.dataset.bairros  = JSON.stringify(cid.bairros ?? []);
+          cidadeSel.appendChild(opt);
+        }
+      });
+
+      // Quando cidade muda, popula datalist de bairros
+      cidadeSel.addEventListener('change', () => {
+        const opt = cidadeSel.options[cidadeSel.selectedIndex];
+        cidadeIdEl.value = opt?.dataset.cidadeId ?? '';
+
+        const bairrosCadastrados = JSON.parse(opt?.dataset.bairros ?? '[]');
+        bairrosList.innerHTML = '';
+        if (bairroInput) {
+          bairroInput.value = '';
+          if (bairrosCadastrados.length > 0) {
+            for (const b of bairrosCadastrados) {
+              const o = document.createElement('option');
+              o.value = b.nome;
+              bairrosList.appendChild(o);
+            }
+            bairroInput.placeholder = `Ex.: ${bairrosCadastrados.slice(0, 3).map((b) => b.nome).join(', ')}...`;
+          } else {
+            bairroInput.placeholder = 'Digite o nome do bairro';
+          }
+        }
+      });
+    }
+  } catch (e) {
+    console.error('[interesse-empresa] Falha ao carregar setores/regiões', e);
+    const setContainer = document.getElementById('setores-container');
+    if (setContainer) {
+      setContainer.innerHTML = '<span class="text-xs text-red-500">Erro ao carregar setores. Recarregue a página.</span>';
+    }
+  }
+}
+
 // ── Fluxo principal ────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+
+  // Carrega setores e regiões dinamicamente da API
+  carregarSetoresERegioes();
 
   // ── Abas: clique direto nas tabs ───────────────────────────────────────
   document.getElementById('tab-empresa')?.addEventListener('click', () => ativarAba('empresa'));
@@ -1375,7 +1520,15 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       const json  = await res.json();
 
-      if (!res.ok) throw new Error(json.error ?? 'Erro ao enviar.');
+      // CITY_NOT_COVERED — cidade da operação não está coberta.
+      // TODO Bloco 3: oferecer cadastro como Empresa Potencial. Por ora, mostra mensagem clara.
+      if (res.status === 422 && json.error === 'CITY_NOT_COVERED') {
+        errEl.textContent = json.message ?? 'Cidade da operação ainda não atendida.';
+        errEl.classList.remove('hidden');
+        return;
+      }
+
+      if (!res.ok) throw new Error(json.message ?? json.error ?? 'Erro ao enviar.');
 
       _sessionId = null;
 
