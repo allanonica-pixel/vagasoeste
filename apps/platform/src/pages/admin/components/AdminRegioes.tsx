@@ -263,10 +263,12 @@ export default function AdminRegioes() {
           bairros={bairros}
           filterEstadoUf={filterEstadoUf}
           setFilterEstadoUf={setFilterEstadoUf}
-          filterCidadeId={filterCidadeId}
-          setFilterCidadeId={setFilterCidadeId}
           filterStatus={filterStatus}
           setFilterStatus={setFilterStatus}
+          authHeader={authHeader}
+          setBairros={setBairros}
+          setCidades={setCidades}
+          showToast={showToast}
         />
       )}
 
@@ -522,7 +524,7 @@ export default function AdminRegioes() {
 }
 
 // ────────────────────────────────────────────────────────────────────────────
-// Subcomponente: listagem tabular de regiões cadastradas com filtros
+// Subcomponente: listagem agrupada por CIDADE com modal contextual de bairros
 // ────────────────────────────────────────────────────────────────────────────
 
 interface RegioesListProps {
@@ -531,166 +533,304 @@ interface RegioesListProps {
   bairros: Bairro[];
   filterEstadoUf: string;
   setFilterEstadoUf: (s: string) => void;
-  filterCidadeId: string;
-  setFilterCidadeId: (s: string) => void;
   filterStatus: "todos" | "ativos" | "inativos";
   setFilterStatus: (s: "todos" | "ativos" | "inativos") => void;
+  authHeader: () => Promise<Record<string, string>>;
+  setBairros: React.Dispatch<React.SetStateAction<Bairro[]>>;
+  setCidades: React.Dispatch<React.SetStateAction<Cidade[]>>;
+  showToast: (msg: string, type: "success" | "error") => void;
 }
 
 function RegioesList({
   estados, cidades, bairros,
   filterEstadoUf, setFilterEstadoUf,
-  filterCidadeId, setFilterCidadeId,
   filterStatus,   setFilterStatus,
+  authHeader, setBairros, setCidades, showToast,
 }: RegioesListProps) {
-  // Estados ativos (somente os que têm cidades cadastradas — evita poluir o dropdown com 27 ufs)
+  const [search, setSearch] = useState("");
+  const [openCidadeId, setOpenCidadeId] = useState<string | null>(null);
+  const [novoBairroNome, setNovoBairroNome] = useState("");
+  const [submittingBairro, setSubmittingBairro] = useState(false);
+
   const estadosComCidades = estados.filter((e) => cidades.some((c) => c.estadoId === e.id));
 
-  // Cidades filtradas pelo estado selecionado (para o dropdown de cidade)
-  const estadoFiltrado = filterEstadoUf
-    ? estados.find((e) => e.uf === filterEstadoUf)
-    : null;
-  const cidadesDoFiltro = estadoFiltrado
-    ? cidades.filter((c) => c.estadoId === estadoFiltrado.id)
-    : cidades;
-
-  // Linhas da tabela: 1 linha por bairro (mais detalhado).
-  // Se cidade não tem bairros, mostra 1 linha com bairro vazio.
-  type Row = { estado: Estado; cidade: Cidade; bairro: Bairro | null; ativo: boolean };
-  const rows: Row[] = [];
-  for (const cidade of cidades) {
-    const estado = estados.find((e) => e.id === cidade.estadoId);
-    if (!estado) continue;
-    const cidadeBairros = bairros.filter((b) => b.cidadeId === cidade.id);
-    if (cidadeBairros.length === 0) {
-      rows.push({ estado, cidade, bairro: null, ativo: estado.ativo && cidade.ativo });
-    } else {
-      for (const bairro of cidadeBairros) {
-        rows.push({ estado, cidade, bairro, ativo: estado.ativo && cidade.ativo && bairro.ativo });
-      }
-    }
-  }
+  type CidadeRow = { cidade: Cidade; estado: Estado; bairrosCount: number; ativo: boolean };
+  const rows: CidadeRow[] = cidades
+    .map((cidade) => {
+      const estado = estados.find((e) => e.id === cidade.estadoId);
+      if (!estado) return null;
+      const bairrosCount = bairros.filter((b) => b.cidadeId === cidade.id).length;
+      return { cidade, estado, bairrosCount, ativo: estado.ativo && cidade.ativo };
+    })
+    .filter((x): x is CidadeRow => x !== null);
 
   const filtered = rows.filter((r) => {
     if (filterEstadoUf && r.estado.uf !== filterEstadoUf) return false;
-    if (filterCidadeId && r.cidade.id !== filterCidadeId) return false;
     if (filterStatus === "ativos" && !r.ativo) return false;
-    if (filterStatus === "inativos" && r.ativo)  return false;
+    if (filterStatus === "inativos" && r.ativo) return false;
+    if (search) {
+      const q = search.toLowerCase();
+      if (!r.cidade.nome.toLowerCase().includes(q) && !r.estado.nome.toLowerCase().includes(q) && !r.estado.uf.toLowerCase().includes(q)) {
+        return false;
+      }
+    }
     return true;
   });
 
+  const cidadeAberta = openCidadeId ? cidades.find((c) => c.id === openCidadeId) ?? null : null;
+  const estadoAberto = cidadeAberta ? estados.find((e) => e.id === cidadeAberta.estadoId) ?? null : null;
+  const bairrosAbertos = cidadeAberta ? bairros.filter((b) => b.cidadeId === cidadeAberta.id) : [];
+
+  const adicionarBairroNoModal = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!cidadeAberta || novoBairroNome.trim().length < 2 || submittingBairro) return;
+    setSubmittingBairro(true);
+    const headers = await authHeader();
+    const res  = await fetch(`${API_URL}/v1/admin/regioes/bairros`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...headers },
+      body:    JSON.stringify({ cidade_id: cidadeAberta.id, nome: novoBairroNome.trim() }),
+    });
+    const json = await res.json();
+    setSubmittingBairro(false);
+    if (!res.ok) { showToast(json.message ?? "Erro ao cadastrar bairro.", "error"); return; }
+    setBairros((prev) => [...prev, json.bairro].sort((a, b) => a.nome.localeCompare(b.nome)));
+    setNovoBairroNome("");
+    showToast(`Bairro "${json.bairro.nome}" cadastrado em ${cidadeAberta.nome}.`, "success");
+  };
+
+  const toggleBairroNoModal = async (b: Bairro) => {
+    const headers = await authHeader();
+    const res  = await fetch(`${API_URL}/v1/admin/regioes/bairros/${b.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", ...headers },
+      body:    JSON.stringify({ ativo: !b.ativo }),
+    });
+    const json = await res.json();
+    if (!res.ok) { showToast(json.message ?? "Erro.", "error"); return; }
+    setBairros((prev) => prev.map((x) => x.id === b.id ? json.bairro : x));
+  };
+
+  const toggleCidadeNoModal = async () => {
+    if (!cidadeAberta) return;
+    const headers = await authHeader();
+    const res  = await fetch(`${API_URL}/v1/admin/regioes/cidades/${cidadeAberta.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", ...headers },
+      body:    JSON.stringify({ ativo: !cidadeAberta.ativo }),
+    });
+    const json = await res.json();
+    if (!res.ok) { showToast(json.message ?? "Erro.", "error"); return; }
+    setCidades((prev) => prev.map((x) => x.id === cidadeAberta.id ? json.cidade : x));
+  };
+
   return (
-    <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl overflow-hidden">
-      {/* Filtros */}
-      <div className="p-4 border-b border-gray-100 dark:border-gray-800 flex flex-wrap items-end gap-3">
-        <div className="flex-1 min-w-[160px]">
-          <label htmlFor="filter-uf" className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Estado</label>
-          <select
-            id="filter-uf"
-            value={filterEstadoUf}
-            onChange={(e) => { setFilterEstadoUf(e.target.value); setFilterCidadeId(""); }}
-            className="w-full px-2 py-1.5 border border-gray-200 dark:border-gray-700 dark:bg-gray-800 rounded text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:border-emerald-500"
-          >
-            <option value="">Todos os estados</option>
-            {estadosComCidades.map((e) => (
-              <option key={e.id} value={e.uf}>{e.uf} — {e.nome}</option>
-            ))}
-          </select>
-        </div>
-        <div className="flex-1 min-w-[160px]">
-          <label htmlFor="filter-cidade" className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Cidade</label>
-          <select
-            id="filter-cidade"
-            value={filterCidadeId}
-            onChange={(e) => setFilterCidadeId(e.target.value)}
-            disabled={!filterEstadoUf}
-            className="w-full px-2 py-1.5 border border-gray-200 dark:border-gray-700 dark:bg-gray-800 rounded text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:border-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <option value="">Todas as cidades</option>
-            {cidadesDoFiltro.map((c) => (
-              <option key={c.id} value={c.id}>{c.nome}</option>
-            ))}
-          </select>
-        </div>
-        <div className="min-w-[140px]">
-          <label htmlFor="filter-status" className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Status</label>
-          <select
-            id="filter-status"
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value as typeof filterStatus)}
-            className="w-full px-2 py-1.5 border border-gray-200 dark:border-gray-700 dark:bg-gray-800 rounded text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:border-emerald-500"
-          >
-            <option value="todos">Todos</option>
-            <option value="ativos">Apenas ativos</option>
-            <option value="inativos">Apenas inativos</option>
-          </select>
-        </div>
-        {(filterEstadoUf || filterCidadeId || filterStatus !== "todos") && (
-          <button
-            type="button"
-            onClick={() => { setFilterEstadoUf(""); setFilterCidadeId(""); setFilterStatus("todos"); }}
-            className="text-xs text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 px-3 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer transition-colors"
-          >
-            Limpar filtros
-          </button>
-        )}
-      </div>
-
-      {/* Resumo */}
-      <div className="px-4 py-2 bg-gray-50 dark:bg-gray-800 text-xs text-gray-500 dark:text-gray-400">
-        {filtered.length} resultado{filtered.length !== 1 ? "s" : ""}
-        {filtered.length > 0 && rows.length !== filtered.length && (
-          <> de {rows.length} total</>
-        )}
-      </div>
-
-      {/* Tabela */}
-      {filtered.length === 0 ? (
-        <div className="p-8 text-center">
-          <i className="ri-map-pin-line text-4xl text-gray-200 dark:text-gray-700 mb-3 block" aria-hidden="true"></i>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            {rows.length === 0
-              ? "Ainda não há cidades cadastradas. Use a aba Cadastrar / Editar."
-              : "Nenhum resultado para os filtros aplicados."}
-          </p>
-        </div>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 dark:bg-gray-800 text-xs text-gray-500 dark:text-gray-400 uppercase">
-              <tr>
-                <th scope="col" className="text-left px-4 py-2 font-semibold">Estado</th>
-                <th scope="col" className="text-left px-4 py-2 font-semibold">Cidade</th>
-                <th scope="col" className="text-left px-4 py-2 font-semibold">Bairro</th>
-                <th scope="col" className="text-center px-4 py-2 font-semibold">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-              {filtered.map((r, i) => (
-                <tr key={`${r.cidade.id}-${r.bairro?.id ?? "nb"}-${i}`} className={!r.ativo ? "opacity-50" : ""}>
-                  <td className="px-4 py-2 text-gray-900 dark:text-gray-100">
-                    <span className="inline-flex items-center gap-1.5">
-                      <span className="text-xs font-bold bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-gray-700 dark:text-gray-300">{r.estado.uf}</span>
-                      {r.estado.nome}
-                    </span>
-                  </td>
-                  <td className="px-4 py-2 text-gray-900 dark:text-gray-100">{r.cidade.nome}</td>
-                  <td className="px-4 py-2 text-gray-700 dark:text-gray-300">
-                    {r.bairro ? r.bairro.nome : <span className="text-gray-400 italic text-xs">— sem bairros —</span>}
-                  </td>
-                  <td className="px-4 py-2 text-center">
-                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                      r.ativo
-                        ? "bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400"
-                        : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400"
-                    }`}>
-                      {r.ativo ? "Ativo" : "Inativo"}
-                    </span>
-                  </td>
-                </tr>
+    <div>
+      <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl overflow-hidden">
+        {/* Filtros */}
+        <div className="p-4 border-b border-gray-100 dark:border-gray-800 flex flex-wrap items-end gap-3">
+          <div className="flex-1 min-w-[200px]">
+            <label htmlFor="reg-search" className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Buscar</label>
+            <div className="relative">
+              <i className="ri-search-line text-gray-400 absolute left-2 top-1/2 -translate-y-1/2 text-sm" aria-hidden="true"></i>
+              <input
+                id="reg-search"
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Nome da cidade ou estado..."
+                className="w-full pl-8 pr-2 py-1.5 border border-gray-200 dark:border-gray-700 dark:bg-gray-800 rounded text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:border-emerald-500"
+              />
+            </div>
+          </div>
+          <div className="min-w-[180px]">
+            <label htmlFor="filter-uf" className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Estado</label>
+            <select
+              id="filter-uf"
+              value={filterEstadoUf}
+              onChange={(e) => setFilterEstadoUf(e.target.value)}
+              className="w-full px-2 py-1.5 border border-gray-200 dark:border-gray-700 dark:bg-gray-800 rounded text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:border-emerald-500"
+            >
+              <option value="">Todos os estados</option>
+              {estadosComCidades.map((e) => (
+                <option key={e.id} value={e.uf}>{e.uf} — {e.nome}</option>
               ))}
-            </tbody>
-          </table>
+            </select>
+          </div>
+          <div className="min-w-[140px]">
+            <label htmlFor="filter-status" className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Status</label>
+            <select
+              id="filter-status"
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value as typeof filterStatus)}
+              className="w-full px-2 py-1.5 border border-gray-200 dark:border-gray-700 dark:bg-gray-800 rounded text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:border-emerald-500"
+            >
+              <option value="todos">Todos</option>
+              <option value="ativos">Apenas ativos</option>
+              <option value="inativos">Apenas inativos</option>
+            </select>
+          </div>
+          {(filterEstadoUf || filterStatus !== "todos" || search) && (
+            <button
+              type="button"
+              onClick={() => { setFilterEstadoUf(""); setFilterStatus("todos"); setSearch(""); }}
+              className="text-xs text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 px-3 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer transition-colors"
+            >
+              Limpar
+            </button>
+          )}
+        </div>
+
+        {/* Resumo */}
+        <div className="px-4 py-2 bg-gray-50 dark:bg-gray-800 text-xs text-gray-500 dark:text-gray-400">
+          {filtered.length} cidade{filtered.length !== 1 ? "s" : ""}
+          {filtered.length > 0 && rows.length !== filtered.length && <> de {rows.length} total</>}
+        </div>
+
+        {/* Lista de cidades */}
+        {filtered.length === 0 ? (
+          <div className="p-8 text-center">
+            <i className="ri-map-pin-line text-4xl text-gray-200 dark:text-gray-700 mb-3 block" aria-hidden="true"></i>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              {rows.length === 0
+                ? "Ainda não há cidades cadastradas. Use a aba Cadastrar / Editar."
+                : "Nenhum resultado para os filtros aplicados."}
+            </p>
+          </div>
+        ) : (
+          <div className="divide-y divide-gray-100 dark:divide-gray-800">
+            {filtered.map((r) => (
+              <button
+                key={r.cidade.id}
+                type="button"
+                onClick={() => setOpenCidadeId(r.cidade.id)}
+                className={`w-full flex items-center justify-between gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors text-left ${!r.ativo ? "opacity-60" : ""}`}
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className="text-xs font-bold bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-gray-700 dark:text-gray-300 shrink-0">{r.estado.uf}</span>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{r.cidade.nome}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      {r.estado.nome} · {r.bairrosCount} bairro{r.bairrosCount !== 1 ? "s" : ""} cadastrado{r.bairrosCount !== 1 ? "s" : ""}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 shrink-0">
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                    r.ativo
+                      ? "bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400"
+                      : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400"
+                  }`}>
+                    {r.ativo ? "Ativa" : "Inativa"}
+                  </span>
+                  <i className="ri-arrow-right-s-line text-gray-400 text-lg" aria-hidden="true"></i>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Modal contextual da cidade aberta */}
+      {cidadeAberta && estadoAberto && (
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="cidade-modal-title"
+          onClick={(e) => { if (e.target === e.currentTarget) setOpenCidadeId(null); }}
+        >
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl max-w-lg w-full max-h-[85vh] flex flex-col">
+            {/* Header do modal */}
+            <div className="p-5 border-b border-gray-100 dark:border-gray-800 flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs font-bold bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-gray-700 dark:text-gray-300">{estadoAberto.uf}</span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">{estadoAberto.nome}</span>
+                </div>
+                <h3 id="cidade-modal-title" className="text-lg font-bold text-gray-900 dark:text-gray-100 truncate">
+                  {cidadeAberta.nome}
+                </h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{bairrosAbertos.length} bairro{bairrosAbertos.length !== 1 ? "s" : ""} cadastrado{bairrosAbertos.length !== 1 ? "s" : ""}</p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={toggleCidadeNoModal}
+                  className={`text-xs font-medium px-2.5 py-1 rounded-full cursor-pointer transition-colors ${
+                    cidadeAberta.ativo
+                      ? "bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900"
+                      : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                  }`}
+                >
+                  {cidadeAberta.ativo ? "Ativa" : "Inativa"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setOpenCidadeId(null)}
+                  className="size-8 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center justify-center cursor-pointer transition-colors"
+                  aria-label="Fechar"
+                >
+                  <i className="ri-close-line text-gray-500 text-lg" aria-hidden="true"></i>
+                </button>
+              </div>
+            </div>
+
+            {/* Form de novo bairro (contextual à cidade) */}
+            <form onSubmit={adicionarBairroNoModal} className="p-4 border-b border-gray-100 dark:border-gray-800 flex gap-2 items-end">
+              <div className="flex-1">
+                <label htmlFor="modal-novo-bairro" className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                  Novo bairro em <strong>{cidadeAberta.nome}</strong>
+                </label>
+                <input
+                  id="modal-novo-bairro"
+                  type="text"
+                  value={novoBairroNome}
+                  onChange={(e) => setNovoBairroNome(e.target.value)}
+                  placeholder="Ex.: Aldeia, Centro, Maracanã"
+                  className="w-full px-2 py-1.5 border border-gray-200 dark:border-gray-700 dark:bg-gray-800 rounded text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:border-emerald-500"
+                  maxLength={120}
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={submittingBairro || novoBairroNome.trim().length < 2}
+                className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold px-3 py-1.5 rounded cursor-pointer transition-colors flex items-center gap-1.5 whitespace-nowrap"
+              >
+                <i className="ri-add-line text-base" aria-hidden="true"></i>
+                Adicionar
+              </button>
+            </form>
+
+            {/* Lista de bairros (rolável) */}
+            <div className="flex-1 overflow-y-auto p-4">
+              {bairrosAbertos.length === 0 ? (
+                <div className="text-center py-8">
+                  <i className="ri-home-2-line text-3xl text-gray-200 dark:text-gray-700 mb-2 block" aria-hidden="true"></i>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Nenhum bairro cadastrado nesta cidade ainda.</p>
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  {bairrosAbertos.map((b) => (
+                    <div key={b.id} className={`flex items-center justify-between gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 ${!b.ativo ? "opacity-50" : ""}`}>
+                      <span className="text-sm text-gray-900 dark:text-gray-100 truncate flex-1">{b.nome}</span>
+                      <button
+                        type="button"
+                        onClick={() => toggleBairroNoModal(b)}
+                        className={`text-xs font-medium px-2 py-0.5 rounded-full cursor-pointer transition-colors ${
+                          b.ativo
+                            ? "bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900"
+                            : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                        }`}
+                      >
+                        {b.ativo ? "Ativo" : "Inativo"}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>
