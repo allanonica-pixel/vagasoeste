@@ -23,6 +23,8 @@ import { eq, inArray, and } from 'drizzle-orm';
 import { requireAuth, requireRole } from '../middleware/auth.js';
 import { logger } from '../lib/logger.js';
 import { gerarEEnviarLinkAtivacao } from './interesse.js';
+import { sendTransactional } from '../lib/email.js';
+import { buildCompanyApprovedEmail, buildCompanyRejectedEmail } from '../templates/company-emails.js';
 
 export const adminRouter = new Hono();
 
@@ -447,14 +449,32 @@ adminRouter.post('/companies/:id/aprovar', async (c) => {
     promotedJobsCount: promotedJobs.length,
   }, '✅ [admin/aprovar] Empresa aprovada — vagas promovidas');
 
-  // 8. TODO Fase 2: enviar e-mail real de aprovação ao contact_email
-  //    Por enquanto retorna email_pending: true pra UI sinalizar ao admin.
+  // 8. Envia e-mail real de aprovação ao contact_email
+  //    Falha de e-mail NÃO derruba a aprovação — banco já está consistente.
+  const platformBase = process.env.APP_URL ?? 'http://localhost:3001';
+  const approvedEmail = buildCompanyApprovedEmail({
+    contactName:      String(preCad.contact_name ?? 'responsável'),
+    companyName:      String(preCad.company_name ?? 'sua empresa'),
+    cnpj:             String(preCad.cnpj ?? ''),
+    promotedJobsCount: promotedJobs.length,
+    loginUrl:         `${platformBase}/login`,
+  });
+
+  const sendResult = await sendTransactional({
+    to:      email,
+    subject: approvedEmail.subject,
+    html:    approvedEmail.html,
+  });
+
   return c.json({
     success: true,
     company_id: company.id,
     promoted_jobs_count: promotedJobs.length,
-    email_pending: true,
-    message: 'Empresa aprovada. E-mail será enviado quando integração SMTP transacional for habilitada (Fase 2).',
+    email_sent: sendResult.sent,
+    email_reason: sendResult.sent ? undefined : sendResult.reason,
+    message: sendResult.sent
+      ? 'Empresa aprovada e e-mail de notificação enviado.'
+      : 'Empresa aprovada. E-mail de notificação NÃO foi enviado — verifique configuração SMTP.',
   });
 });
 
@@ -530,12 +550,31 @@ adminRouter.post('/companies/:id/rejeitar', async (c) => {
     cancelledJobsCount,
   }, '🔴 [admin/rejeitar] Pré-cadastro rejeitado');
 
+  // Envia e-mail real de rejeição com motivo
+  const platformBase = process.env.APP_URL ?? 'http://localhost:3001';
+  const rejectedEmail = buildCompanyRejectedEmail({
+    contactName:        String(preCad.contact_name ?? 'responsável'),
+    companyName:        String(preCad.company_name ?? 'sua empresa'),
+    cnpj:               String(preCad.cnpj ?? ''),
+    motivo,
+    contactSupportUrl:  `${platformBase}/contato`,
+  });
+
+  const sendResult = await sendTransactional({
+    to:      email,
+    subject: rejectedEmail.subject,
+    html:    rejectedEmail.html,
+  });
+
   return c.json({
     success: true,
     company_id: company?.id ?? null,
     cancelled_jobs_count: cancelledJobsCount,
-    email_pending: true,
-    message: 'Pré-cadastro rejeitado. E-mail será enviado quando integração SMTP transacional for habilitada (Fase 2).',
+    email_sent: sendResult.sent,
+    email_reason: sendResult.sent ? undefined : sendResult.reason,
+    message: sendResult.sent
+      ? 'Pré-cadastro rejeitado e e-mail de notificação enviado.'
+      : 'Pré-cadastro rejeitado. E-mail de notificação NÃO foi enviado — verifique configuração SMTP.',
   });
 });
 

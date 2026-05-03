@@ -212,10 +212,11 @@ export default function AdminCompanies() {
       if (action === "approve") {
         const promoted = typeof json.promoted_jobs_count === "number" ? json.promoted_jobs_count : 0;
         const jobsMsg  = promoted > 0 ? ` ${promoted} vaga${promoted > 1 ? "s" : ""} ativada${promoted > 1 ? "s" : ""}.` : "";
-        // E-mail real depende da Fase 2 (SMTP transacional). Por enquanto registramos.
-        showToast(`Empresa "${company.name}" aprovada.${jobsMsg} (E-mail de notificação será enviado quando integração SMTP estiver disponível.)`, "success");
+        const emailMsg = json.email_sent ? " E-mail de notificação enviado." : " ⚠️ E-mail não foi enviado — verifique configuração SMTP no .env da API.";
+        showToast(`Empresa "${company.name}" aprovada.${jobsMsg}${emailMsg}`, "success");
       } else {
-        showToast(`Empresa "${company.name}" rejeitada. (E-mail de notificação será enviado quando integração SMTP estiver disponível.)`, "error");
+        const emailMsg = json.email_sent ? " E-mail de notificação enviado." : " ⚠️ E-mail não foi enviado — verifique configuração SMTP no .env da API.";
+        showToast(`Empresa "${company.name}" rejeitada.${emailMsg}`, "error");
       }
     } catch {
       showToast("Não foi possível contatar a API. Verifique a conexão.", "error");
