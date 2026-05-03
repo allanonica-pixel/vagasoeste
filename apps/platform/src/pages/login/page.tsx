@@ -107,6 +107,7 @@ export default function LoginPage() {
     const verifiedFactor = factors?.totp?.find((f) => f.status === "verified");
 
     if (verifiedFactor) {
+      // Já tem MFA configurado → desafio TOTP normal
       setFactorId(verifiedFactor.id);
       const { data: challenge, error: challengeErr } = await supabase.auth.mfa.challenge({
         factorId: verifiedFactor.id,
@@ -118,9 +119,15 @@ export default function LoginPage() {
       setChallengeId(challenge.id);
       setStep("verify-mfa");
     } else {
-      await startEnrollment();
+      // Sem MFA → navega direto pro destino com flag pra dashboard sugerir setup.
+      // (Política antiga forçava enrollment imediato — UX agressiva. Novo modelo:
+      //  empresa entra e o painel mostra banner persistente sugerindo configurar.)
+      const dest = mfaDestination.includes("?")
+        ? `${mfaDestination}&suggest_mfa=1`
+        : `${mfaDestination}?suggest_mfa=1`;
+      navigate(dest, { replace: true });
     }
-  }, [startEnrollment]);
+  }, [mfaDestination, navigate, startEnrollment]);
 
   // ── Verifica sessão já ativa no carregamento ──────────────────
 
