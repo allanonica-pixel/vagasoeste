@@ -40,7 +40,7 @@ export default function PreCadastroPage() {
   const currentStepIndex = STEPS.findIndex((s) => s.id === step);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-dvh bg-gray-50">
       <Navbar />
 
       {/* Hero Header */}
@@ -48,12 +48,12 @@ export default function PreCadastroPage() {
         <div className="max-w-4xl mx-auto px-4 md:px-6">
           <div className="flex items-center gap-2 text-emerald-300 text-xs mb-4">
             <Link to="/" className="hover:text-white transition-colors cursor-pointer">Início</Link>
-            <i className="ri-arrow-right-s-line"></i>
+            <i className="ri-arrow-right-s-line" aria-hidden="true"></i>
             <Link to="/para-empresas" className="hover:text-white transition-colors cursor-pointer">Para Empresas</Link>
-            <i className="ri-arrow-right-s-line"></i>
+            <i className="ri-arrow-right-s-line" aria-hidden="true"></i>
             <span className="text-white">Pré-Cadastro</span>
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
+          <h1 className="text-3xl md:text-4xl font-bold text-white mb-2 text-balance">
             Pré-Cadastro de Empresa
           </h1>
           <p className="text-emerald-200 text-sm max-w-xl">
@@ -65,8 +65,8 @@ export default function PreCadastroPage() {
       {/* Info Banner */}
       <div className="bg-amber-50 border-b border-amber-100">
         <div className="max-w-4xl mx-auto px-4 md:px-6 py-3 flex items-start gap-3">
-          <div className="w-5 h-5 flex items-center justify-center mt-0.5 shrink-0">
-            <i className="ri-information-line text-amber-600 text-sm"></i>
+          <div className="size-5 flex items-center justify-center mt-0.5 shrink-0">
+            <i className="ri-information-line text-amber-600 text-sm" aria-hidden="true"></i>
           </div>
           <p className="text-amber-800 text-xs leading-relaxed">
             <strong>Como funciona o pré-cadastro:</strong> Você preenche os dados da empresa e cadastra suas vagas com login e senha provisórios. A equipe VagasOeste validará o cadastro em até <strong>48 horas úteis</strong>. Após aprovação, suas vagas ficam visíveis no site público e você recebe um email de confirmação.
@@ -86,7 +86,7 @@ export default function PreCadastroPage() {
                 <div key={s.id} className="flex items-center flex-1">
                   <div className="flex flex-col items-center">
                     <div
-                      className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold transition-all ${
+                      className={`size-9 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
                         isCompleted
                           ? "bg-emerald-600 text-white"
                           : isCurrent
@@ -95,9 +95,9 @@ export default function PreCadastroPage() {
                       }`}
                     >
                       {isCompleted ? (
-                        <i className="ri-check-line text-sm"></i>
+                        <i className="ri-check-line text-sm" aria-hidden="true"></i>
                       ) : (
-                        <i className={`${s.icon} text-sm`}></i>
+                        <i className={`${s.icon} text-sm`} aria-hidden="true"></i>
                       )}
                     </div>
                     <span
@@ -110,7 +110,7 @@ export default function PreCadastroPage() {
                   </div>
                   {!isLast && (
                     <div
-                      className={`flex-1 h-0.5 mx-2 transition-all ${
+                      className={`flex-1 h-0.5 mx-2 transition-colors ${
                         i < currentStepIndex ? "bg-emerald-500" : "bg-gray-200"
                       }`}
                     />
@@ -174,10 +174,10 @@ function SuccessScreen({
 }) {
   return (
     <div className="max-w-xl mx-auto text-center py-12">
-      <div className="w-24 h-24 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-6">
-        <i className="ri-checkbox-circle-fill text-emerald-600 text-5xl"></i>
+      <div className="size-24 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-6">
+        <i className="ri-checkbox-circle-fill text-emerald-600 text-5xl" aria-hidden="true"></i>
       </div>
-      <h2 className="text-2xl font-bold text-gray-900 mb-2">Pré-cadastro enviado!</h2>
+      <h2 className="text-2xl font-bold text-gray-900 mb-2 text-balance">Pré-cadastro enviado!</h2>
       <p className="text-emerald-600 font-semibold text-lg mb-4">Parabéns, {companyName}!</p>
       <p className="text-gray-500 text-sm leading-relaxed mb-6">
         Seu pré-cadastro foi recebido com sucesso. Nossa equipe irá analisar e validar os dados da sua empresa em até <strong>48 horas úteis</strong>. Você receberá um email em <strong>{email}</strong> com a confirmação e as instruções de acesso definitivo.
@@ -185,7 +185,7 @@ function SuccessScreen({
 
       <div className="bg-amber-50 border border-amber-100 rounded-xl p-5 mb-6 text-left">
         <p className="text-amber-900 font-semibold text-sm mb-3 flex items-center gap-2">
-          <i className="ri-time-line text-amber-600"></i>
+          <i className="ri-time-line text-amber-600" aria-hidden="true"></i>
           Próximos passos
         </p>
         <ul className="space-y-2">
@@ -205,7 +205,7 @@ function SuccessScreen({
 
       <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4 mb-6 text-left">
         <p className="text-emerald-800 text-sm font-semibold mb-1 flex items-center gap-2">
-          <i className="ri-shield-check-line text-emerald-600"></i>
+          <i className="ri-shield-check-line text-emerald-600" aria-hidden="true"></i>
           Acesso provisório disponível
         </p>
         <p className="text-emerald-700 text-xs leading-relaxed">
@@ -215,6 +215,7 @@ function SuccessScreen({
 
       <div className="flex flex-col sm:flex-row gap-3">
         <button
+          type="button"
           onClick={onGoToPlatform}
           className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl text-sm cursor-pointer transition-colors whitespace-nowrap"
         >

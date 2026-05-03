@@ -118,8 +118,8 @@ export default function PreCadastroVagas({ companyName, onFinish, onBack }: PreC
         <div className="flex items-start justify-between gap-4">
           <div>
             <h3 className="font-bold text-gray-900 mb-1 flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
-                <i className="ri-briefcase-line text-emerald-600 text-sm"></i>
+              <div className="size-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+                <i className="ri-briefcase-line text-emerald-600 text-sm" aria-hidden="true"></i>
               </div>
               Cadastrar Vagas
             </h3>
@@ -128,10 +128,11 @@ export default function PreCadastroVagas({ companyName, onFinish, onBack }: PreC
             </p>
           </div>
           <button
+            type="button"
             onClick={addVaga}
             className="flex items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold px-3 py-2 rounded-lg text-xs cursor-pointer transition-colors whitespace-nowrap"
           >
-            <i className="ri-add-line text-sm"></i>
+            <i className="ri-add-line text-sm" aria-hidden="true"></i>
             Nova vaga
           </button>
         </div>
@@ -155,8 +156,11 @@ export default function PreCadastroVagas({ companyName, onFinish, onBack }: PreC
                   <span
                     onClick={(e) => { e.stopPropagation(); removeVaga(i); }}
                     className="ml-1 hover:text-red-400 cursor-pointer"
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Remover vaga ${i + 1}`}
                   >
-                    <i className="ri-close-line text-xs"></i>
+                    <i className="ri-close-line text-xs" aria-hidden="true"></i>
                   </span>
                 )}
               </button>
@@ -173,7 +177,7 @@ export default function PreCadastroVagas({ companyName, onFinish, onBack }: PreC
           </h4>
           {Object.keys(vagaErrors).length > 0 && (
             <span className="text-xs text-red-500 flex items-center gap-1">
-              <i className="ri-error-warning-line"></i>
+              <i className="ri-error-warning-line" aria-hidden="true"></i>
               Preencha os campos obrigatórios
             </span>
           )}
@@ -369,8 +373,8 @@ export default function PreCadastroVagas({ companyName, onFinish, onBack }: PreC
 
       {/* Pending notice */}
       <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 mt-4 flex items-start gap-3">
-        <div className="w-5 h-5 flex items-center justify-center mt-0.5 shrink-0">
-          <i className="ri-time-line text-amber-600 text-sm"></i>
+        <div className="size-5 flex items-center justify-center mt-0.5 shrink-0">
+          <i className="ri-time-line text-amber-600 text-sm" aria-hidden="true"></i>
         </div>
         <div>
           <p className="text-amber-900 font-semibold text-sm mb-1">Vagas ficam pendentes até aprovação</p>
@@ -387,7 +391,7 @@ export default function PreCadastroVagas({ companyName, onFinish, onBack }: PreC
           onClick={onBack}
           className="flex items-center justify-center gap-2 border border-gray-200 text-gray-600 font-medium px-6 py-3 rounded-xl text-sm cursor-pointer hover:bg-gray-50 transition-colors whitespace-nowrap"
         >
-          <i className="ri-arrow-left-line text-sm"></i>
+          <i className="ri-arrow-left-line text-sm" aria-hidden="true"></i>
           Voltar
         </button>
         <button
@@ -397,12 +401,12 @@ export default function PreCadastroVagas({ companyName, onFinish, onBack }: PreC
         >
           {submitting ? (
             <>
-              <i className="ri-loader-4-line animate-spin text-sm"></i>
+              <i className="ri-loader-4-line motion-safe:animate-spin text-sm" role="status" aria-label="Enviando pré-cadastro"></i>
               Enviando pré-cadastro...
             </>
           ) : (
             <>
-              <i className="ri-send-plane-line text-sm"></i>
+              <i className="ri-send-plane-line text-sm" aria-hidden="true"></i>
               Enviar pré-cadastro ({vagas.length} vaga{vagas.length !== 1 ? "s" : ""})
             </>
           )}

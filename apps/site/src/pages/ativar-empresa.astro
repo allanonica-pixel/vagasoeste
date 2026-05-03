@@ -1,0 +1,268 @@
+---
+/**
+ * /ativar-empresa?token=xxx
+ *
+ * Página estática (SSG). O JS client-side lê o token da URL,
+ * chama GET /v1/interesse/ativar?token=xxx e exibe o estado correto:
+ *
+ *  • loading  — spinner enquanto aguarda a API
+ *  • success  — "Seu Pré-Cadastro está liberado!"
+ *  • expired  — "Link inválido ou expirado" (com Criar nova conta)
+ *  • used     — "Link já utilizado" (mesmo layout de expired)
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+export const prerender = true;
+
+const appUrl = import.meta.env.PUBLIC_APP_URL ?? 'http://localhost:3001';
+const apiUrl = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3000';
+---
+
+<BaseLayout
+  title="Ativar Pré-Cadastro — VagasOeste"
+  description="Clique no link enviado ao seu e-mail para ativar seu pré-cadastro na VagasOeste."
+>
+
+  <section class="min-h-dvh bg-gray-50 flex items-center justify-center px-4 py-16">
+    <div class="w-full max-w-md">
+
+      <!-- ── Loading ──────────────────────────────────────────────────────── -->
+      <div id="state-loading" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-10 text-center">
+        <div class="size-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <i class="ri-loader-4-line motion-safe:animate-spin text-3xl text-emerald-600" aria-hidden="true"></i>
+        </div>
+        <h1 class="text-xl font-bold text-gray-900 mb-2 text-balance">Verificando seu link…</h1>
+        <p class="text-sm text-gray-500 text-pretty">Aguarde um instante enquanto validamos seu pré-cadastro.</p>
+      </div>
+
+      <!-- ── Sucesso ───────────────────────────────────────────────────────── -->
+      <div id="state-success" class="hidden bg-white rounded-2xl shadow-sm border border-gray-100 p-10 text-center">
+        <div class="size-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-5">
+          <i class="ri-checkbox-circle-fill text-4xl text-emerald-500" aria-hidden="true"></i>
+        </div>
+        <p class="text-xs font-semibold text-emerald-600 uppercase tracking-wide mb-1">Pré-Cadastro Ativo</p>
+        <h1 class="text-xl font-bold text-gray-900 mb-3 text-balance">
+          Seu Pré-Cadastro está liberado!
+        </h1>
+        <p class="text-sm text-gray-600 text-pretty mb-2">
+          Bem-vindo(a) à VagasOeste, <strong id="success-company-name" class="text-gray-900"></strong>!
+          Sua conta foi criada — você já pode acessar a plataforma e cadastrar suas vagas de emprego.
+        </p>
+        <div class="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-7 text-left">
+          <div class="flex items-start gap-2">
+            <i class="ri-time-line text-amber-500 shrink-0 mt-0.5 text-base" aria-hidden="true"></i>
+            <p class="text-xs text-amber-700 text-pretty">
+              <strong>Importante:</strong> suas vagas ficarão visíveis para todos os candidatos após a
+              ativação final realizada pela equipe VagasOeste.
+            </p>
+          </div>
+        </div>
+        <a
+          id="success-link"
+          href="#"
+          class="btn-primary w-full justify-center py-3 text-base"
+        >
+          <i class="ri-building-line" aria-hidden="true"></i>
+          Acessar a Plataforma
+        </a>
+        <p class="text-xs text-gray-400 mt-4">
+          Use o e-mail e a senha que você cadastrou para entrar.
+        </p>
+      </div>
+
+      <!-- ── Link expirado / inválido ──────────────────────────────────────── -->
+      <div id="state-expired" class="hidden bg-white rounded-2xl shadow-sm border border-gray-100 p-10 text-center">
+        <div class="size-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-5">
+          <i class="ri-time-line text-3xl text-red-400" aria-hidden="true"></i>
+        </div>
+        <h1 class="text-xl font-bold text-gray-900 mb-3 text-balance">Link inválido ou expirado</h1>
+        <p id="expired-desc" class="text-sm text-gray-500 text-pretty mb-7">
+          O link de confirmação pode ter expirado ou já foi utilizado.
+          Faça login ou solicite um novo cadastro.
+        </p>
+        <a
+          id="btn-ir-login"
+          href="#"
+          class="btn-primary w-full justify-center py-3 text-base mb-3"
+        >
+          <i class="ri-login-box-line" aria-hidden="true"></i>
+          Ir para o Login
+        </a>
+        <button
+          type="button"
+          id="btn-criar-nova-conta"
+          class="w-full text-sm text-gray-500 hover:text-gray-700 transition-colors py-2 cursor-pointer"
+        >
+          Criar nova conta
+        </button>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       MODAL — Criar conta (Candidato ou Empresa)
+  ═══════════════════════════════════════════════════════════════════════════ -->
+  <div
+    id="modal-criar-conta"
+    class="hidden fixed inset-0 z-50 flex items-center justify-center p-4"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="criar-conta-title"
+  >
+    <div
+      class="absolute inset-0 bg-black/50 backdrop-blur-sm"
+      id="modal-backdrop"
+    ></div>
+
+    <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+      <!-- Header -->
+      <div class="flex items-start justify-between mb-1">
+        <div>
+          <h2 id="criar-conta-title" class="text-lg font-bold text-gray-900">Criar conta</h2>
+          <p class="text-sm text-gray-500 mt-0.5">Como você quer se cadastrar?</p>
+        </div>
+        <button
+          type="button"
+          id="btn-fechar-modal"
+          aria-label="Fechar"
+          class="size-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors shrink-0"
+        >
+          <i class="ri-close-line text-lg" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <!-- Opções -->
+      <div class="mt-5 space-y-3">
+        <!-- Candidato -->
+        <a
+          href="/cadastro"
+          class="flex items-center gap-4 p-4 rounded-xl border border-gray-200 hover:border-emerald-400 hover:bg-emerald-50 transition-colors group"
+        >
+          <div class="size-10 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+            <i class="ri-user-line text-lg text-emerald-600" aria-hidden="true"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-semibold text-gray-900 group-hover:text-emerald-700 transition-colors">
+              Cadastro como Candidato a Vaga
+            </p>
+            <p class="text-xs text-gray-500 mt-0.5 text-pretty">
+              Crie seu perfil e candidate-se às vagas
+            </p>
+          </div>
+          <i class="ri-arrow-right-s-line text-gray-400 group-hover:text-emerald-500 text-lg shrink-0 transition-colors" aria-hidden="true"></i>
+        </a>
+
+        <!-- Empresa -->
+        <a
+          href="/interesse-empresa"
+          class="flex items-center gap-4 p-4 rounded-xl border border-gray-200 hover:border-emerald-400 hover:bg-emerald-50 transition-colors group"
+        >
+          <div class="size-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+            <i class="ri-building-line text-lg text-gray-600" aria-hidden="true"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-semibold text-gray-900 group-hover:text-emerald-700 transition-colors">
+              Cadastro de sua Empresa
+            </p>
+            <p class="text-xs text-gray-500 mt-0.5 text-pretty">
+              Publique vagas e contrate talentos
+            </p>
+          </div>
+          <i class="ri-arrow-right-s-line text-gray-400 group-hover:text-emerald-500 text-lg shrink-0 transition-colors" aria-hidden="true"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+
+</BaseLayout>
+
+<script define:vars={{ appUrl, apiUrl }}>
+
+function showState(id) {
+  ['state-loading', 'state-success', 'state-expired'].forEach((s) => {
+    document.getElementById(s).classList.toggle('hidden', s !== id);
+  });
+}
+
+function openModal() {
+  document.getElementById('modal-criar-conta').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+  document.getElementById('btn-fechar-modal')?.focus();
+}
+
+function closeModal() {
+  document.getElementById('modal-criar-conta').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+
+// Configura o estado "expirado/inválido"
+function mostrarExpirado(descricao) {
+  const desc = document.getElementById('expired-desc');
+  if (desc && descricao) desc.textContent = descricao;
+  document.getElementById('btn-ir-login').href = `${appUrl}/acesso-restrito`;
+  showState('state-expired');
+}
+
+// ── Lógica principal ──────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+
+  // Eventos do modal
+  document.getElementById('btn-fechar-modal')?.addEventListener('click', closeModal);
+  document.getElementById('modal-backdrop')?.addEventListener('click', closeModal);
+  document.getElementById('btn-criar-nova-conta')?.addEventListener('click', openModal);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeModal();
+  });
+
+  // Lê token da URL
+  const params = new URLSearchParams(window.location.search);
+  const token  = params.get('token')?.trim();
+
+  if (!token) {
+    mostrarExpirado('Nenhum token de ativação foi encontrado nesta URL.');
+    return;
+  }
+
+  // Chama a API de ativação
+  try {
+    const res  = await fetch(`${apiUrl}/v1/interesse/ativar?token=${encodeURIComponent(token)}`);
+    const json = await res.json();
+
+    if (res.ok && json.success) {
+      // Sucesso ─────────────────────────────────────────────────────────────
+      const nameEl = document.getElementById('success-company-name');
+      if (nameEl) nameEl.textContent = json.company_name ?? '';
+
+      const link = document.getElementById('success-link');
+      if (link) link.href = `${appUrl}/acesso-restrito`;
+
+      showState('state-success');
+      return;
+    }
+
+    // Tratamento de erros específicos
+    const error = json.error ?? '';
+
+    if (error === 'ALREADY_ACTIVATED') {
+      mostrarExpirado('Este link já foi utilizado. Acesse a plataforma com seu e-mail e senha.');
+      return;
+    }
+
+    if (error === 'TOKEN_EXPIRED') {
+      mostrarExpirado('Este link de ativação expirou (validade 48h). Solicite um novo pré-cadastro.');
+      return;
+    }
+
+    if (error === 'PRECAD_UNAVAILABLE') {
+      mostrarExpirado('Este pré-cadastro não está disponível. Entre em contato com o suporte.');
+      return;
+    }
+
+    // TOKEN_INVALID, TOKEN_MISSING ou outro erro
+    mostrarExpirado(json.message ?? 'Link inválido ou expirado.');
+  } catch {
+    mostrarExpirado('Não foi possível verificar seu link. Verifique sua conexão e tente novamente.');
+  }
+});
+</script>

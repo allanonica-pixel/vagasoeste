@@ -37,7 +37,8 @@ const SETORES = [
   'Alimentação', 'Tecnologia', 'Educação', 'Indústria', 'Serviços', 'Outro',
 ];
 
-const apiUrl = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3000';
+const appUrl = import.meta.env.PUBLIC_APP_URL ?? 'http://localhost:3001';
+const apiUrl = import.meta.env.PUBLIC_API_URL  ?? 'http://localhost:3000';
 ---
 
 <BaseLayout
@@ -51,9 +52,9 @@ const apiUrl = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3000';
       <nav aria-label="breadcrumb" class="mb-8">
         <ol class="flex items-center gap-1.5 text-xs text-gray-500">
           <li><a href="/" class="hover:text-emerald-600 transition-colors">Início</a></li>
-          <li><i class="ri-arrow-right-s-line"></i></li>
+          <li><i class="ri-arrow-right-s-line" aria-hidden="true"></i></li>
           <li><a href="/para-empresas" class="hover:text-emerald-600 transition-colors">Para Empresas</a></li>
-          <li><i class="ri-arrow-right-s-line"></i></li>
+          <li><i class="ri-arrow-right-s-line" aria-hidden="true"></i></li>
           <li class="text-gray-900 font-medium">Falar com a Equipe</li>
         </ol>
       </nav>
@@ -62,46 +63,92 @@ const apiUrl = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3000';
 
         <!-- ── Formulário ──────────────────────────────────────────────────── -->
         <div class="lg:col-span-3" id="form-wrapper">
-          <h1 class="text-2xl font-bold text-gray-900 mb-2">Quero contratar pela VagasOeste</h1>
-          <p class="text-sm text-gray-600 mb-8">
+          <h1 class="text-2xl font-bold text-gray-900 mb-2 text-balance">Quero contratar pela VagasOeste</h1>
+          <p class="text-sm text-gray-600 mb-6 text-pretty">
             Preencha o formulário abaixo. Nossa equipe retorna em até 1 dia útil para criar sua conta e configurar as vagas.
           </p>
 
+          <!-- ── Abas ──────────────────────────────────────────────────────── -->
+          <div class="flex gap-1 bg-gray-100 p-1 rounded-xl mb-6" role="tablist" aria-label="Seções do formulário">
+            <button
+              type="button"
+              role="tab"
+              id="tab-empresa"
+              aria-controls="panel-empresa"
+              aria-selected="true"
+              class="tab-btn flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-sm font-medium transition-colors bg-white text-gray-900 shadow-sm"
+            >
+              <i class="ri-building-line text-emerald-600" aria-hidden="true"></i>
+              Dados da Empresa
+            </button>
+            <button
+              type="button"
+              role="tab"
+              id="tab-responsavel"
+              aria-controls="panel-responsavel"
+              aria-selected="false"
+              class="tab-btn flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-sm font-medium transition-colors text-gray-500 hover:text-gray-700"
+            >
+              <i class="ri-user-line" aria-hidden="true"></i>
+              Responsável pelo Contato
+            </button>
+          </div>
+
           <form id="form-interesse" class="space-y-6" novalidate>
 
-            <!-- Dados da Empresa -->
-            <fieldset>
-              <legend class="text-sm font-bold text-gray-900 mb-4 pb-2 border-b border-gray-100 w-full flex items-center gap-2">
-                <i class="ri-building-line text-emerald-600"></i>
-                Dados da Empresa
-              </legend>
+            <!-- ══════════════════════════════════════════════════════════════
+                 PAINEL 1 — Dados da Empresa
+            ══════════════════════════════════════════════════════════════════ -->
+            <div id="panel-empresa" role="tabpanel" aria-labelledby="tab-empresa">
+
+              <!-- Banner: CNPJ já cadastrado (oculto por padrão) -->
+              <div id="cnpj-exists-banner" class="hidden mb-4 bg-amber-50 border border-amber-200 rounded-xl p-4" role="alert" aria-live="polite">
+                <div class="flex items-start gap-3">
+                  <div class="size-8 rounded-lg bg-amber-100 flex items-center justify-center shrink-0 mt-0.5">
+                    <i class="ri-information-line text-amber-600" aria-hidden="true"></i>
+                  </div>
+                  <div class="min-w-0">
+                    <p id="cnpj-exists-title" class="text-sm font-bold text-amber-900 text-balance"></p>
+                    <p id="cnpj-exists-msg"   class="text-xs text-amber-700 mt-0.5 text-pretty"></p>
+                    <a
+                      id="cnpj-exists-link"
+                      href="#"
+                      class="inline-flex items-center gap-1.5 mt-2.5 text-xs font-semibold text-emerald-700 hover:text-emerald-900 underline-offset-2 hover:underline transition-colors"
+                    >
+                      <i class="ri-login-box-line" aria-hidden="true"></i>
+                      <span id="cnpj-exists-link-text"></span>
+                    </a>
+                  </div>
+                </div>
+              </div>
 
               <!-- CNPJ -->
               <div class="mb-4">
-                <label for="cnpj" class="block text-xs font-medium text-gray-700 mb-1">CNPJ</label>
+                <label for="cnpj" class="block text-xs font-medium text-gray-700 mb-1">CNPJ *</label>
                 <div class="relative">
                   <input id="cnpj" name="cnpj" type="text" inputmode="numeric" maxlength="18"
                     placeholder="00.000.000/0001-00"
                     class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 transition-colors pr-10"
                   />
-                  <span id="cnpj-spinner" class="absolute right-3 top-1/2 -translate-y-1/2 hidden"><i class="ri-loader-4-line animate-spin text-emerald-500"></i></span>
-                  <span id="cnpj-ok"      class="absolute right-3 top-1/2 -translate-y-1/2 hidden"><i class="ri-checkbox-circle-line text-emerald-500"></i></span>
-                  <span id="cnpj-err"     class="absolute right-3 top-1/2 -translate-y-1/2 hidden"><i class="ri-error-warning-line text-red-400"></i></span>
+                  <span id="cnpj-spinner" class="absolute right-3 top-1/2 -translate-y-1/2 hidden" role="status" aria-label="Consultando CNPJ"><i class="ri-loader-4-line motion-safe:animate-spin text-emerald-500" aria-hidden="true"></i></span>
+                  <span id="cnpj-ok"      class="absolute right-3 top-1/2 -translate-y-1/2 hidden"><i class="ri-checkbox-circle-line text-emerald-500" aria-hidden="true"></i></span>
+                  <span id="cnpj-err"     class="absolute right-3 top-1/2 -translate-y-1/2 hidden"><i class="ri-error-warning-line text-red-400" aria-hidden="true"></i></span>
                 </div>
                 <p id="cnpj-msg" class="text-xs mt-1 hidden"></p>
               </div>
 
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <!-- Razão Social (auto-fill) -->
+                <!-- Razão Social (auto-fill via CNPJ) -->
                 <div class="sm:col-span-2">
                   <label for="razao_social" class="block text-xs font-medium text-gray-700 mb-1">
-                    Razão Social
-                    <span class="text-gray-400 font-normal ml-1">(preenchida automaticamente)</span>
+                    Razão Social *
+                    <span class="text-gray-400 font-normal ml-1">(preenchida automaticamente via CNPJ)</span>
                   </label>
                   <input id="razao_social" name="razao_social" type="text" readonly
-                    placeholder="Preenchida via CNPJ"
+                    placeholder="Digite o CNPJ acima para preencher"
                     class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none bg-gray-50 transition-colors"
                   />
+                  <p id="razao-social-msg" class="text-xs mt-1 hidden"></p>
                 </div>
 
                 <!-- Nome Fantasia -->
@@ -139,7 +186,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3000';
                       class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 transition-colors pr-8"
                     />
                     <span id="cep-spinner" class="absolute right-2.5 top-1/2 -translate-y-1/2 hidden">
-                      <i class="ri-loader-4-line animate-spin text-emerald-500 text-sm"></i>
+                      <i class="ri-loader-4-line motion-safe:animate-spin text-emerald-500 text-sm" aria-hidden="true"></i>
                     </span>
                   </div>
                 </div>
@@ -191,96 +238,168 @@ const apiUrl = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3000';
                 </div>
                 <p id="setores-msg" class="text-xs mt-1.5 text-red-500 hidden">Selecione ao menos um setor.</p>
               </div>
-            </fieldset>
 
-            <!-- Responsável pelo Contato -->
-            <fieldset>
-              <legend class="text-sm font-bold text-gray-900 mb-4 pb-2 border-b border-gray-100 w-full flex items-center gap-2">
-                <i class="ri-user-line text-emerald-600"></i>
-                Responsável pelo Contato
-              </legend>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label for="contact_name" class="block text-xs font-medium text-gray-700 mb-1">Nome *</label>
-                  <input id="contact_name" name="contact_name" type="text" required autocomplete="name"
-                    style="text-transform: uppercase"
-                    class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 transition-colors"
-                  />
-                </div>
-                <div>
-                  <label for="contact_role" class="block text-xs font-medium text-gray-700 mb-1">Cargo *</label>
-                  <input id="contact_role" name="contact_role" type="text" required
-                    placeholder="GERENTE DE RH"
-                    style="text-transform: uppercase"
-                    class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 transition-colors"
-                  />
-                </div>
-                <div>
-                  <label for="contact_email" class="block text-xs font-medium text-gray-700 mb-1">Email *</label>
-                  <input id="contact_email" name="contact_email" type="email" required autocomplete="email"
-                    placeholder="email@empresa.com"
-                    class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 transition-colors"
-                  />
-                  <p id="email-msg" class="text-xs mt-1 hidden"></p>
-                </div>
-                <div>
-                  <label for="contact_whatsapp" class="block text-xs font-medium text-gray-700 mb-1">WhatsApp *</label>
-                  <input id="contact_whatsapp" name="contact_whatsapp" type="tel" required
-                    inputmode="tel" maxlength="16" autocomplete="tel"
-                    placeholder="(93) 9 9999-9999"
-                    class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 transition-colors"
-                  />
-                  <p id="whatsapp-msg" class="text-xs mt-1 hidden"></p>
-                </div>
+              <!-- Botão próximo -->
+              <div class="mt-8">
+                <button type="button" id="btn-proximo"
+                  class="btn-primary w-full justify-center py-3 text-base"
+                >
+                  Próximo — Responsável pelo Contato
+                  <i class="ri-arrow-right-line" aria-hidden="true"></i>
+                </button>
               </div>
-            </fieldset>
-
-            <!-- Informações Adicionais -->
-            <fieldset>
-              <legend class="text-sm font-bold text-gray-900 mb-4 pb-2 border-b border-gray-100 w-full flex items-center gap-2">
-                <i class="ri-information-line text-emerald-600"></i>
-                Informações Adicionais
-              </legend>
-              <div class="space-y-4">
-                <div>
-                  <label class="block text-xs font-medium text-gray-700 mb-2">
-                    Quantas vagas pretende publicar? *
-                  </label>
-                  <div class="flex flex-wrap gap-2" id="vagas-container">
-                    {['1 a 3', '4 a 10', '11 a 30', 'Mais de 30'].map((qty) => (
-                      <label class="cursor-pointer">
-                        <input type="radio" name="vacancies_qty" value={qty} class="sr-only peer vagas-radio" />
-                        <span class="inline-flex items-center px-4 py-2 rounded-full border border-gray-200 text-sm text-gray-700 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 peer-checked:text-emerald-700 transition-colors select-none">
-                          {qty}
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                  <p id="vagas-msg" class="text-xs mt-1.5 text-red-500 hidden">Selecione a quantidade de vagas.</p>
-                </div>
-                <div>
-                  <label for="message" class="block text-xs font-medium text-gray-700 mb-1">Mensagem (opcional)</label>
-                  <textarea id="message" name="message" rows={3}
-                    placeholder="Conte mais sobre suas necessidades de contratação..."
-                    class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 transition-colors resize-none"
-                  ></textarea>
-                </div>
-              </div>
-            </fieldset>
-
-            <!-- Erro global -->
-            <div id="form-error" class="hidden bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700 flex items-center gap-2">
-              <i class="ri-error-warning-line shrink-0"></i>
-              <span id="form-error-msg"></span>
             </div>
 
-            <button type="submit" id="btn-submit" class="btn-primary w-full justify-center py-3 text-base">
-              <i class="ri-send-plane-line"></i>
-              Enviar Solicitação
-            </button>
-            <p class="text-xs text-gray-400 text-center">
-              Após o envio, você receberá um código via WhatsApp para validar seu pré-cadastro.
-            </p>
+            <!-- ══════════════════════════════════════════════════════════════
+                 PAINEL 2 — Responsável pelo Contato + Informações Adicionais
+            ══════════════════════════════════════════════════════════════════ -->
+            <div id="panel-responsavel" role="tabpanel" aria-labelledby="tab-responsavel" class="hidden">
+
+              <!-- Responsável pelo Contato -->
+              <fieldset>
+                <legend class="text-sm font-bold text-gray-900 mb-4 pb-2 border-b border-gray-100 w-full flex items-center gap-2">
+                  <i class="ri-user-line text-emerald-600" aria-hidden="true"></i>
+                  Responsável pelo Contato
+                </legend>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label for="contact_name" class="block text-xs font-medium text-gray-700 mb-1">Nome *</label>
+                    <input id="contact_name" name="contact_name" type="text" required autocomplete="name"
+                      style="text-transform: uppercase"
+                      class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label for="contact_role" class="block text-xs font-medium text-gray-700 mb-1">Cargo *</label>
+                    <input id="contact_role" name="contact_role" type="text" required
+                      placeholder="GERENTE DE RH"
+                      style="text-transform: uppercase"
+                      class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label for="contact_email" class="block text-xs font-medium text-gray-700 mb-1">Email *</label>
+                    <input id="contact_email" name="contact_email" type="email" required autocomplete="email"
+                      placeholder="email@empresa.com"
+                      class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 transition-colors"
+                    />
+                    <p id="email-msg" class="text-xs mt-1 hidden"></p>
+                  </div>
+                  <div>
+                    <label for="contact_whatsapp" class="block text-xs font-medium text-gray-700 mb-1">WhatsApp *</label>
+                    <input id="contact_whatsapp" name="contact_whatsapp" type="tel" required
+                      inputmode="tel" maxlength="16" autocomplete="tel"
+                      placeholder="(93) 9 9999-9999"
+                      class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 transition-colors"
+                    />
+                    <p id="whatsapp-msg" class="text-xs mt-1 hidden"></p>
+                  </div>
+
+                  <!-- Senha Plataforma -->
+                  <div>
+                    <label for="contact_password" class="block text-xs font-medium text-gray-700 mb-1">
+                      Senha Plataforma *
+                    </label>
+                    <div class="relative">
+                      <input id="contact_password" name="contact_password" type="password" required
+                        autocomplete="new-password" minlength="8"
+                        placeholder="Mínimo 8 caracteres"
+                        class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 transition-colors pr-10"
+                      />
+                      <button
+                        type="button"
+                        id="btn-toggle-senha"
+                        aria-label="Mostrar senha"
+                        class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                      >
+                        <i id="icon-toggle-senha" class="ri-eye-line text-base" aria-hidden="true"></i>
+                      </button>
+                    </div>
+                    <p id="senha-msg" class="text-xs mt-1 hidden"></p>
+                  </div>
+
+                  <!-- Confirmar Senha -->
+                  <div>
+                    <label for="contact_password_confirm" class="block text-xs font-medium text-gray-700 mb-1">
+                      Confirmar Senha *
+                    </label>
+                    <div class="relative">
+                      <input id="contact_password_confirm" name="contact_password_confirm" type="password" required
+                        autocomplete="new-password" minlength="8"
+                        placeholder="Repita a senha"
+                        class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 transition-colors pr-10"
+                      />
+                      <button
+                        type="button"
+                        id="btn-toggle-senha-confirm"
+                        aria-label="Mostrar confirmação de senha"
+                        class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                      >
+                        <i id="icon-toggle-senha-confirm" class="ri-eye-line text-base" aria-hidden="true"></i>
+                      </button>
+                    </div>
+                    <p id="senha-confirm-msg" class="text-xs mt-1 hidden"></p>
+                  </div>
+                </div>
+              </fieldset>
+
+              <!-- Informações Adicionais -->
+              <fieldset class="mt-6">
+                <legend class="text-sm font-bold text-gray-900 mb-4 pb-2 border-b border-gray-100 w-full flex items-center gap-2">
+                  <i class="ri-information-line text-emerald-600" aria-hidden="true"></i>
+                  Informações Adicionais
+                </legend>
+                <div class="space-y-4">
+                  <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-2">
+                      Quantas vagas pretende publicar? *
+                    </label>
+                    <div class="flex flex-wrap gap-2" id="vagas-container">
+                      {['1 a 3', '4 a 10', '11 a 30', 'Mais de 30'].map((qty) => (
+                        <label class="cursor-pointer">
+                          <input type="radio" name="vacancies_qty" value={qty} class="sr-only peer vagas-radio" />
+                          <span class="inline-flex items-center px-4 py-2 rounded-full border border-gray-200 text-sm text-gray-700 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 peer-checked:text-emerald-700 transition-colors select-none">
+                            {qty}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                    <p id="vagas-msg" class="text-xs mt-1.5 text-red-500 hidden">Selecione a quantidade de vagas.</p>
+                  </div>
+                  <div>
+                    <label for="message" class="block text-xs font-medium text-gray-700 mb-1">Mensagem (opcional)</label>
+                    <textarea id="message" name="message" rows={3}
+                      placeholder="Conte mais sobre suas necessidades de contratação..."
+                      class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:border-emerald-500 transition-colors resize-none"
+                    ></textarea>
+                  </div>
+                </div>
+              </fieldset>
+
+              <!-- Erro global -->
+              <div id="form-error" class="hidden mt-4 bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700 flex items-center gap-2">
+                <i class="ri-error-warning-line shrink-0" aria-hidden="true"></i>
+                <span id="form-error-msg"></span>
+              </div>
+
+              <!-- Rodapé: voltar + enviar -->
+              <div class="mt-6 flex flex-col sm:flex-row gap-3">
+                <button type="button" id="btn-voltar"
+                  class="sm:w-auto flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+                >
+                  <i class="ri-arrow-left-line" aria-hidden="true"></i>
+                  Voltar
+                </button>
+                <button type="submit" id="btn-submit" class="btn-primary flex-1 justify-center py-3 text-base">
+                  <i class="ri-send-plane-line" aria-hidden="true"></i>
+                  Enviar Solicitação
+                </button>
+              </div>
+              <p class="text-xs text-gray-400 text-center mt-3">
+                Após o envio, você receberá um código via WhatsApp para validar seu pré-cadastro.
+              </p>
+            </div>
+
           </form>
         </div>
 
@@ -288,14 +407,14 @@ const apiUrl = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3000';
         <aside class="lg:col-span-2 space-y-5">
           <!-- Contato direto -->
           <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-5">
-            <h2 class="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              <i class="ri-customer-service-2-line text-emerald-600"></i>
+            <h2 class="font-semibold text-gray-900 mb-3 flex items-center gap-2 text-balance">
+              <i class="ri-customer-service-2-line text-emerald-600" aria-hidden="true"></i>
               Prefere falar direto?
             </h2>
             <div class="space-y-3">
               <a href="https://wa.me/559399999000" target="_blank" rel="noopener noreferrer"
                 class="flex items-center gap-3 bg-white rounded-lg p-3 border border-emerald-100 hover:border-emerald-300 transition-colors">
-                <i class="ri-whatsapp-line text-2xl text-green-500"></i>
+                <i class="ri-whatsapp-line text-2xl text-green-500" aria-hidden="true"></i>
                 <div>
                   <p class="text-xs font-semibold text-gray-900">(93) 99999-0000</p>
                   <p class="text-xs text-gray-500">WhatsApp — Seg a Sex, 8h–18h</p>
@@ -303,7 +422,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3000';
               </a>
               <a href="mailto:empresas@santarem.app"
                 class="flex items-center gap-3 bg-white rounded-lg p-3 border border-emerald-100 hover:border-emerald-300 transition-colors">
-                <i class="ri-mail-line text-2xl text-emerald-500"></i>
+                <i class="ri-mail-line text-2xl text-emerald-500" aria-hidden="true"></i>
                 <div>
                   <p class="text-xs font-semibold text-gray-900">empresas@santarem.app</p>
                   <p class="text-xs text-gray-500">Resposta em até 24h</p>
@@ -324,7 +443,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3000';
                 { icon: 'ri-customer-service-2-line', text: 'Suporte dedicado da nossa equipe' },
               ].map((item) => (
                 <li class="flex items-start gap-2 text-sm text-gray-700">
-                  <i class={`${item.icon} text-emerald-500 shrink-0 mt-0.5`}></i>
+                  <i class={`${item.icon} text-emerald-500 shrink-0 mt-0.5`} aria-hidden="true"></i>
                   {item.text}
                 </li>
               ))}
@@ -351,16 +470,16 @@ const apiUrl = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3000';
   <!-- ═══════════════════════════════════════════════════════════════════════
        MODAL OTP — código enviado por WhatsApp
   ═══════════════════════════════════════════════════════════════════════════ -->
-  <div id="modal-otp" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+  <div id="modal-otp" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="otp-title">
     <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" id="otp-backdrop"></div>
-    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-7">
+    <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-md p-7">
       <!-- Header -->
       <div class="text-center mb-6">
-        <div class="w-14 h-14 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <i class="ri-whatsapp-line text-3xl text-green-500"></i>
+        <div class="size-14 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <i class="ri-whatsapp-line text-3xl text-green-500" aria-hidden="true"></i>
         </div>
-        <h2 class="text-xl font-bold text-gray-900 mb-2">Valide seu Pré-Cadastro</h2>
-        <p class="text-sm text-gray-600">
+        <h2 id="otp-title" class="text-xl font-bold text-gray-900 mb-2 text-balance">Valide seu Pré-Cadastro</h2>
+        <p class="text-sm text-gray-600 text-pretty">
           Insira o código enviado para o WhatsApp:<br/>
           <strong id="otp-phone-display" class="text-gray-900"></strong>
         </p>
@@ -375,14 +494,15 @@ const apiUrl = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3000';
           maxlength="6"
           placeholder="000000"
           autocomplete="one-time-code"
+          aria-label="Código de 6 dígitos"
           class="w-full border-2 border-gray-200 rounded-xl px-4 py-4 text-2xl font-bold text-center text-gray-900 tracking-[0.5em] focus:outline-none focus:border-emerald-500 transition-colors"
         />
-        <p id="otp-error" class="text-xs text-red-500 text-center mt-2 hidden"></p>
+        <p id="otp-error" class="text-xs text-red-500 text-center mt-2 hidden" role="alert"></p>
       </div>
 
       <!-- Ações -->
-      <button id="btn-verificar" class="btn-primary w-full justify-center py-3 text-base mb-3">
-        <i class="ri-shield-check-line"></i>
+      <button id="btn-verificar" type="button" class="btn-primary w-full justify-center py-3 text-base mb-3">
+        <i class="ri-shield-check-line" aria-hidden="true"></i>
         Verificar Código
       </button>
 
@@ -395,27 +515,27 @@ const apiUrl = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3000';
         </button>
       </div>
 
-      <p id="otp-reenviar-timer" class="text-xs text-gray-400 text-center mt-2"></p>
+      <p id="otp-reenviar-timer" class="text-xs text-gray-400 text-center mt-2" aria-live="polite"></p>
     </div>
   </div>
 
   <!-- ═══════════════════════════════════════════════════════════════════════
        MODAL RESUMO DO PRÉ-CADASTRO
   ═══════════════════════════════════════════════════════════════════════════ -->
-  <div id="modal-resumo" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+  <div id="modal-resumo" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="resumo-title">
     <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
-    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-7">
+    <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-7">
       <!-- Header -->
       <div class="flex items-start justify-between mb-6">
         <div>
           <p class="text-xs font-semibold text-emerald-600 uppercase tracking-wide mb-0.5">Confirmação</p>
-          <h2 class="text-xl font-bold text-gray-900">Resumo do Pré-Cadastro</h2>
+          <h2 id="resumo-title" class="text-xl font-bold text-gray-900 text-balance">Resumo do Pré-Cadastro</h2>
           <p class="text-sm text-gray-500 mt-1">Confira os dados antes de confirmar.</p>
         </div>
         <button id="btn-resumo-fechar" type="button"
-          class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 cursor-pointer transition-colors shrink-0"
+          class="size-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 cursor-pointer transition-colors shrink-0"
           aria-label="Fechar e editar">
-          <i class="ri-close-line text-lg"></i>
+          <i class="ri-close-line text-lg" aria-hidden="true"></i>
         </button>
       </div>
 
@@ -424,36 +544,46 @@ const apiUrl = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3000';
         <!-- Preenchido por JS -->
       </div>
 
-      <p class="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-5 flex items-start gap-2">
-        <i class="ri-information-line shrink-0 mt-0.5"></i>
+      <p class="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-5 flex items-start gap-2 text-pretty">
+        <i class="ri-information-line shrink-0 mt-0.5" aria-hidden="true"></i>
         Se fechar para editar, será necessário um novo código de validação via WhatsApp.
       </p>
 
       <!-- Botão Confirmar -->
-      <button id="btn-confirmar" class="btn-primary w-full justify-center py-3 text-base">
-        <i class="ri-check-double-line"></i>
+      <button id="btn-confirmar" type="button" class="btn-primary w-full justify-center py-3 text-base">
+        <i class="ri-check-double-line" aria-hidden="true"></i>
         Confirmar Pré-Cadastro
       </button>
 
-      <div id="resumo-error" class="hidden mt-3 text-xs text-red-600 text-center bg-red-50 rounded-lg px-3 py-2"></div>
+      <div id="resumo-error" class="hidden mt-3 text-xs text-red-600 text-center bg-red-50 rounded-lg px-3 py-2" role="alert"></div>
     </div>
   </div>
 
   <!-- ═══════════════════════════════════════════════════════════════════════
-       MODAL SUCESSO
+       MODAL SUCESSO — E-mail de ativação enviado
   ═══════════════════════════════════════════════════════════════════════════ -->
-  <div id="modal-sucesso" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+  <div id="modal-sucesso" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="sucesso-title">
     <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
-    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 text-center">
-      <div class="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-5">
-        <i class="ri-checkbox-circle-fill text-4xl text-emerald-500"></i>
+    <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-md p-8 text-center">
+      <div class="size-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-5">
+        <i class="ri-mail-check-line text-4xl text-emerald-500" aria-hidden="true"></i>
       </div>
-      <h2 class="text-2xl font-bold text-gray-900 mb-2">Pré-Cadastro Enviado!</h2>
-      <p class="text-sm text-gray-600 mb-6 leading-relaxed">
-        Recebemos seu interesse. Nossa equipe entrará em contato em até <strong>1 dia útil</strong> pelo WhatsApp ou email para criar sua conta.
+      <p class="text-xs font-semibold text-emerald-600 uppercase tracking-wide mb-1">Quase lá!</p>
+      <h2 id="sucesso-title" class="text-xl font-bold text-gray-900 mb-3 text-balance">Verifique seu e-mail para ativar o acesso</h2>
+      <p class="text-sm text-gray-600 mb-2 text-pretty">
+        Enviamos um link de ativação para:
       </p>
+      <p id="sucesso-email" class="text-sm font-semibold text-gray-900 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 mb-5 font-mono break-all"></p>
+      <div class="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-6 text-left">
+        <div class="flex items-start gap-2">
+          <i class="ri-information-line text-amber-500 shrink-0 mt-0.5" aria-hidden="true"></i>
+          <p class="text-xs text-amber-700 text-pretty">
+            O link expira em <strong>48 horas</strong>. Verifique também a pasta de spam.
+          </p>
+        </div>
+      </div>
       <a href="/para-empresas" class="btn-primary justify-center w-full py-3">
-        <i class="ri-arrow-left-line"></i>
+        <i class="ri-arrow-left-line" aria-hidden="true"></i>
         Voltar para Empresas
       </a>
     </div>
@@ -462,9 +592,9 @@ const apiUrl = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3000';
 </BaseLayout>
 
 <!-- ═══════════════════════════════════════════════════════════════════════════
-     JavaScript — máscaras, validações e fluxo OTP
+     JavaScript — abas, máscaras, validações e fluxo OTP
 ═══════════════════════════════════════════════════════════════════════════════ -->
-<script define:vars={{ apiUrl }}>
+<script define:vars={{ apiUrl, appUrl }}>
 
 // ── Utilitários de máscara ─────────────────────────────────────────────────
 function maskCNPJ(v) {
@@ -518,13 +648,13 @@ function setField(input, valid, msgEl, msg) {
   }
 }
 
-// ── Helper: seta valor num campo (só pula null/undefined) ─────────────────
+// ── Helper: seta valor num campo ──────────────────────────────────────────
 function setVal(id, val) {
   const el = document.getElementById(id);
   if (el && val != null && val !== undefined) el.value = String(val);
 }
 
-// ── Máscara CEP: 00000-000 ─────────────────────────────────────────────────
+// ── Máscara CEP ────────────────────────────────────────────────────────────
 function maskCEP(v) {
   v = v.replace(/\D/g, '').substring(0, 8);
   if (v.length > 5) return v.replace(/^(\d{5})(\d{0,3})/, '$1-$2');
@@ -540,59 +670,122 @@ async function lookupCEP(digits) {
     const res  = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
     const data = await res.json();
     if (data.erro) throw new Error('CEP não encontrado.');
-    // Preenche logradouro, bairro fiscal e sugere Bairro Atual
     setVal('logradouro',     data.logradouro ?? '');
     setVal('bairro_empresa', data.bairro     ?? '');
-    // Bairro Atual recebe sugestão do bairro fiscal (só se ainda vazio)
     const nb = document.getElementById('neighborhood');
     if (nb && !nb.value && data.bairro) nb.value = data.bairro;
-  } catch { /* silencia — usuário digita manualmente */ }
+  } catch { /* silencia */ }
   finally { spinner?.classList.add('hidden'); }
 }
 
-// ── BrasilAPI CNPJ lookup ──────────────────────────────────────────────────
+// ── Estado CNPJ já cadastrado ──────────────────────────────────────────────
+let _cnpjBloqueado      = false;
+let _lastLookedUpCNPJ   = '';   // evita chamadas duplicadas (input + blur)
+
+function showCnpjExistsBanner(status) {
+  const banner  = document.getElementById('cnpj-exists-banner');
+  const title   = document.getElementById('cnpj-exists-title');
+  const msg     = document.getElementById('cnpj-exists-msg');
+  const link    = document.getElementById('cnpj-exists-link');
+  const linkTxt = document.getElementById('cnpj-exists-link-text');
+
+  if (status === 'ativo') {
+    title.textContent   = 'CNPJ já possui Cadastro';
+    msg.textContent     = 'Este CNPJ já possui uma conta ativa na plataforma. Acesse a plataforma para gerenciar suas vagas.';
+    link.href           = `${appUrl}/acesso-restrito`;
+    linkTxt.textContent = 'Acessar a plataforma →';
+  } else if (status === 'pendente') {
+    title.textContent   = 'Pré-cadastro já em análise';
+    msg.textContent     = 'Este CNPJ já possui um pré-cadastro pendente. Nossa equipe entrará em contato pelo WhatsApp ou e-mail em breve.';
+    link.href           = 'mailto:empresas@santarem.app';
+    linkTxt.textContent = 'Entrar em contato por e-mail →';
+  }
+
+  _cnpjBloqueado = true;
+  banner.classList.remove('hidden');
+}
+
+function hideCnpjExistsBanner() {
+  document.getElementById('cnpj-exists-banner').classList.add('hidden');
+  _cnpjBloqueado = false;
+}
+
+// ── Limpa os indicadores visuais do campo CNPJ ────────────────────────────
+function resetCnpjIndicators() {
+  document.getElementById('cnpj-spinner').classList.add('hidden');
+  document.getElementById('cnpj-ok').classList.add('hidden');
+  document.getElementById('cnpj-err').classList.add('hidden');
+  const msgEl = document.getElementById('cnpj-msg');
+  msgEl.classList.add('hidden');
+  msgEl.textContent = '';
+}
+
+// ── Lookup CNPJ: plataforma primeiro → Receita Federal depois ─────────────
 async function lookupCNPJ(digits) {
   const spinner = document.getElementById('cnpj-spinner');
-  const ok      = document.getElementById('cnpj-ok');
-  const err     = document.getElementById('cnpj-err');
-  const msg     = document.getElementById('cnpj-msg');
+  const okIcon  = document.getElementById('cnpj-ok');
+  const errIcon = document.getElementById('cnpj-err');
+  const msgEl   = document.getElementById('cnpj-msg');
 
+  // Mostra spinner, oculta ícones anteriores
   spinner.classList.remove('hidden');
-  ok.classList.add('hidden');
-  err.classList.add('hidden');
-  msg.classList.add('hidden');
+  okIcon.classList.add('hidden');
+  errIcon.classList.add('hidden');
+  msgEl.classList.add('hidden');
+  hideCnpjExistsBanner();
 
   try {
-    const res  = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${digits}`);
+    // ── ETAPA 1: verifica na nossa base de dados ───────────────────────────
+    const checkRes  = await fetch(`${apiUrl}/v1/interesse/check-cnpj?cnpj=${digits}`);
+    const checkData = await checkRes.json();
+
+    if (checkData.status) {
+      // CNPJ já cadastrado → bloqueia e exibe banner imediatamente
+      spinner.classList.add('hidden');
+      errIcon.classList.remove('hidden');
+      msgEl.textContent = checkData.status === 'ativo'
+        ? 'CNPJ já possui Cadastro na plataforma.'
+        : 'Pré-cadastro já em análise para este CNPJ.';
+      msgEl.className = 'text-xs mt-1 text-amber-600';
+      msgEl.classList.remove('hidden');
+      showCnpjExistsBanner(checkData.status);
+      return; // não consulta Receita Federal
+    }
+
+    // ── ETAPA 2: CNPJ livre → busca dados na Receita Federal (BrasilAPI) ──
+    const res = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${digits}`);
     if (!res.ok) throw new Error('CNPJ não encontrado na Receita Federal.');
     const data = await res.json();
 
-    // Preenche todos os campos — usa setVal que aceita strings vazias
     setVal('razao_social',   data.razao_social ?? '');
     setVal('company_name',   data.nome_fantasia || data.razao_social || '');
+
+    // Limpa erro da Razão Social se estava marcado
+    const rsEl    = document.getElementById('razao_social');
+    const rsMsgEl = document.getElementById('razao-social-msg');
+    rsEl?.classList.remove('border-red-400');
+    rsMsgEl?.classList.add('hidden');
     setVal('logradouro',     data.logradouro ?? '');
     setVal('numero',         data.numero      ?? '');
     setVal('bairro_empresa', data.bairro      ?? '');
 
-    // CEP: formata com máscara ao preencher
     const cepRaw = (data.cep ?? '').replace(/\D/g, '');
     setVal('cep', maskCEP(cepRaw));
 
-    // Bairro Atual: sugere o mesmo valor do Bairro fiscal
     const nb = document.getElementById('neighborhood');
     if (nb && data.bairro) nb.value = data.bairro;
 
     spinner.classList.add('hidden');
-    ok.classList.remove('hidden');
-    msg.textContent = 'Dados preenchidos automaticamente.';
-    msg.className = 'text-xs mt-1 text-emerald-600';
-    msg.classList.remove('hidden');
+    okIcon.classList.remove('hidden');
+    msgEl.textContent = 'Dados preenchidos automaticamente.';
+    msgEl.className = 'text-xs mt-1 text-emerald-600';
+    msgEl.classList.remove('hidden');
   } catch (e) {
     spinner.classList.add('hidden');
-    err.classList.remove('hidden');
-    msg.textContent = e.message ?? 'CNPJ não encontrado.';
-    msg.className = 'text-xs mt-1 text-red-500';
-    msg.classList.remove('hidden');
+    errIcon.classList.remove('hidden');
+    msgEl.textContent = e.message ?? 'CNPJ não encontrado.';
+    msgEl.className = 'text-xs mt-1 text-red-500';
+    msgEl.classList.remove('hidden');
   }
 }
 
@@ -617,76 +810,193 @@ function coletarDados() {
   const setores = [...document.querySelectorAll('.setor-check:checked')].map(el => el.value);
   const vagasEl = document.querySelector('input[name="vacancies_qty"]:checked');
   return {
-    cnpj:             g('cnpj'),
-    razao_social:     g('razao_social'),
-    company_name:     g('company_name'),
+    cnpj:              g('cnpj'),
+    razao_social:      g('razao_social'),
+    company_name:      g('company_name'),
     setores,
-    neighborhood:     g('neighborhood'),
-    cep:              g('cep').replace(/\D/g, ''), // armazena só dígitos
-    logradouro:       g('logradouro'),
-    numero:           g('numero'),
-    bairro_empresa:   g('bairro_empresa'),
-    contact_name:     g('contact_name').toUpperCase(),
-    contact_role:     g('contact_role').toUpperCase(),
-    contact_email:    g('contact_email'),
-    contact_whatsapp: g('contact_whatsapp'),
-    vacancies_qty:    vagasEl?.value ?? '',
-    message:          g('message'),
+    neighborhood:      g('neighborhood'),
+    cep:               g('cep').replace(/\D/g, ''),
+    logradouro:        g('logradouro'),
+    numero:            g('numero'),
+    bairro_empresa:    g('bairro_empresa'),
+    contact_name:      g('contact_name').toUpperCase(),
+    contact_role:      g('contact_role').toUpperCase(),
+    contact_email:     g('contact_email'),
+    contact_whatsapp:  g('contact_whatsapp'),
+    contact_password:  g('contact_password'),
+    vacancies_qty:     vagasEl?.value ?? '',
+    message:           g('message'),
   };
 }
 
-// ── Validação do formulário (retorna true se OK) ───────────────────────────
-function validarForm() {
+// ── Validação aba 1 (Dados da Empresa) ────────────────────────────────────
+function validarAba1() {
   let ok = true;
-  const dados = coletarDados();
 
-  // Nome empresa
+  // ── CNPJ: obrigatório, 14 dígitos, válido, sem bloqueio ──────────────
+  const cnpjEl      = document.getElementById('cnpj');
+  const cnpjErrIcon = document.getElementById('cnpj-err');
+  const cnpjOkIcon  = document.getElementById('cnpj-ok');
+  const cnpjMsgEl   = document.getElementById('cnpj-msg');
+  const digits      = (cnpjEl?.value ?? '').replace(/\D/g, '');
+
+  if (!digits) {
+    cnpjEl?.classList.add('border-red-400');
+    cnpjEl?.classList.remove('border-emerald-400');
+    cnpjOkIcon?.classList.add('hidden');
+    cnpjErrIcon?.classList.remove('hidden');
+    cnpjMsgEl.textContent = 'O CNPJ é obrigatório.';
+    cnpjMsgEl.className   = 'text-xs mt-1 text-red-500';
+    cnpjMsgEl.classList.remove('hidden');
+    ok = false;
+  } else if (digits.length < 14) {
+    cnpjEl?.classList.add('border-red-400');
+    cnpjEl?.classList.remove('border-emerald-400');
+    cnpjOkIcon?.classList.add('hidden');
+    cnpjErrIcon?.classList.remove('hidden');
+    cnpjMsgEl.textContent = 'CNPJ incompleto — informe os 14 dígitos.';
+    cnpjMsgEl.className   = 'text-xs mt-1 text-red-500';
+    cnpjMsgEl.classList.remove('hidden');
+    ok = false;
+  } else if (!validarCNPJ(digits)) {
+    cnpjEl?.classList.add('border-red-400');
+    cnpjEl?.classList.remove('border-emerald-400');
+    cnpjOkIcon?.classList.add('hidden');
+    cnpjErrIcon?.classList.remove('hidden');
+    cnpjMsgEl.textContent = 'CNPJ inválido. Verifique e tente novamente.';
+    cnpjMsgEl.className   = 'text-xs mt-1 text-red-500';
+    cnpjMsgEl.classList.remove('hidden');
+    ok = false;
+  } else if (_cnpjBloqueado) {
+    // Banner de bloqueio já está visível — só impede avançar
+    ok = false;
+  }
+
+  // ── Razão Social: obrigatória (auto-preenchida pelo lookup do CNPJ) ──
+  const rsEl    = document.getElementById('razao_social');
+  const rsMsgEl = document.getElementById('razao-social-msg');
+  if (!rsEl?.value.trim()) {
+    rsEl?.classList.add('border-red-400');
+    rsMsgEl.textContent = (digits.length === 14 && validarCNPJ(digits) && !_cnpjBloqueado)
+      ? 'Razão Social não encontrada. Verifique o CNPJ ou sua conexão e aguarde a busca automática.'
+      : 'Digite um CNPJ válido acima para preencher a Razão Social automaticamente.';
+    rsMsgEl.className = 'text-xs mt-1 text-red-500';
+    rsMsgEl.classList.remove('hidden');
+    ok = false;
+  } else {
+    rsEl?.classList.remove('border-red-400');
+    rsMsgEl.classList.add('hidden');
+  }
+
+  // ── Nome Fantasia ────────────────────────────────────────────────────
   const nameEl = document.getElementById('company_name');
-  if (!dados.company_name) { setField(nameEl, false); ok = false; }
+  if (!nameEl?.value.trim()) { setField(nameEl, false); ok = false; }
   else setField(nameEl, true);
 
-  // Bairro
+  // ── Bairro ───────────────────────────────────────────────────────────
   const nbEl = document.getElementById('neighborhood');
-  if (!dados.neighborhood) { setField(nbEl, false); ok = false; }
+  if (!nbEl?.value.trim()) { setField(nbEl, false); ok = false; }
   else setField(nbEl, true);
 
-  // Setores
+  // ── Setores ──────────────────────────────────────────────────────────
   const setoresMsg = document.getElementById('setores-msg');
-  if (dados.setores.length === 0) { setoresMsg.classList.remove('hidden'); ok = false; }
+  const setores    = [...document.querySelectorAll('.setor-check:checked')];
+  if (setores.length === 0) { setoresMsg.classList.remove('hidden'); ok = false; }
   else setoresMsg.classList.add('hidden');
 
-  // Nome contato
+  return ok;
+}
+
+// ── Validação aba 2 (Responsável + Informações) ───────────────────────────
+function validarAba2() {
+  let ok = true;
+
   const cnEl = document.getElementById('contact_name');
-  if (!dados.contact_name) { setField(cnEl, false); ok = false; }
+  if (!cnEl?.value.trim()) { setField(cnEl, false); ok = false; }
   else setField(cnEl, true);
 
-  // Cargo
   const crEl = document.getElementById('contact_role');
-  if (!dados.contact_role) { setField(crEl, false); ok = false; }
+  if (!crEl?.value.trim()) { setField(crEl, false); ok = false; }
   else setField(crEl, true);
 
-  // Email
-  const emailEl = document.getElementById('contact_email');
+  const emailEl  = document.getElementById('contact_email');
   const emailMsg = document.getElementById('email-msg');
-  if (!dados.contact_email || !validarEmail(dados.contact_email)) {
+  if (!emailEl?.value || !validarEmail(emailEl.value)) {
     setField(emailEl, false, emailMsg, 'E-mail inválido.');
     ok = false;
   } else setField(emailEl, true, emailMsg, '');
 
-  // WhatsApp
   const waEl  = document.getElementById('contact_whatsapp');
   const waMsg = document.getElementById('whatsapp-msg');
-  if (!dados.contact_whatsapp || !validarPhone(dados.contact_whatsapp)) {
+  if (!waEl?.value || !validarPhone(waEl.value)) {
     setField(waEl, false, waMsg, 'Número inválido. Use (93) 9 9999-9999.');
     ok = false;
   } else setField(waEl, true, waMsg, '');
 
+  // Senha
+  const senhaEl    = document.getElementById('contact_password');
+  const senhaMsg   = document.getElementById('senha-msg');
+  const confirmEl  = document.getElementById('contact_password_confirm');
+  const confirmMsg = document.getElementById('senha-confirm-msg');
+  const senhaVal   = senhaEl?.value ?? '';
+  const confirmVal = confirmEl?.value ?? '';
+
+  if (senhaVal.length < 8) {
+    setField(senhaEl, false, senhaMsg, 'A senha deve ter no mínimo 8 caracteres.');
+    ok = false;
+  } else {
+    setField(senhaEl, true, senhaMsg, '');
+  }
+
+  if (!confirmVal) {
+    setField(confirmEl, false, confirmMsg, 'Confirme a senha.');
+    ok = false;
+  } else if (confirmVal !== senhaVal) {
+    setField(confirmEl, false, confirmMsg, 'As senhas não coincidem.');
+    ok = false;
+  } else {
+    setField(confirmEl, true, confirmMsg, '');
+  }
+
   // Vagas
   const vagasMsg = document.getElementById('vagas-msg');
-  if (!dados.vacancies_qty) { vagasMsg.classList.remove('hidden'); ok = false; }
+  const vagasEl  = document.querySelector('input[name="vacancies_qty"]:checked');
+  if (!vagasEl) { vagasMsg.classList.remove('hidden'); ok = false; }
   else vagasMsg.classList.add('hidden');
 
   return ok;
+}
+
+// ── Lógica das abas ────────────────────────────────────────────────────────
+function ativarAba(aba) {
+  // aba: 'empresa' | 'responsavel'
+  const panelEmpresa     = document.getElementById('panel-empresa');
+  const panelResponsavel = document.getElementById('panel-responsavel');
+  const tabEmpresa       = document.getElementById('tab-empresa');
+  const tabResponsavel   = document.getElementById('tab-responsavel');
+
+  const isEmpresa = aba === 'empresa';
+
+  panelEmpresa.classList.toggle('hidden', !isEmpresa);
+  panelResponsavel.classList.toggle('hidden', isEmpresa);
+
+  // Estilo da aba ativa
+  tabEmpresa.setAttribute('aria-selected', isEmpresa ? 'true' : 'false');
+  tabResponsavel.setAttribute('aria-selected', isEmpresa ? 'false' : 'true');
+
+  if (isEmpresa) {
+    tabEmpresa.classList.add('bg-white', 'text-gray-900', 'shadow-sm');
+    tabEmpresa.classList.remove('text-gray-500', 'hover:text-gray-700');
+    tabResponsavel.classList.remove('bg-white', 'text-gray-900', 'shadow-sm');
+    tabResponsavel.classList.add('text-gray-500', 'hover:text-gray-700');
+  } else {
+    tabResponsavel.classList.add('bg-white', 'text-gray-900', 'shadow-sm');
+    tabResponsavel.classList.remove('text-gray-500', 'hover:text-gray-700');
+    tabEmpresa.classList.remove('bg-white', 'text-gray-900', 'shadow-sm');
+    tabEmpresa.classList.add('text-gray-500', 'hover:text-gray-700');
+    // Rola para o topo do formulário
+    document.getElementById('form-wrapper')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 }
 
 // ── Exibe/oculta modais ────────────────────────────────────────────────────
@@ -727,6 +1037,7 @@ function preencherResumo(dados) {
     linha('WhatsApp',      dados.contact_whatsapp),
     linha('Vagas',         dados.vacancies_qty),
     linha('Mensagem',      dados.message),
+    // Senha não exibida no resumo por segurança
   ].join('');
 }
 
@@ -750,33 +1061,102 @@ function iniciarTimer() {
   _timerInterval = setInterval(tick, 1000);
 }
 
+// ── Toggle visibilidade de senha ──────────────────────────────────────────
+function setupPasswordToggle(btnId, inputId, iconId) {
+  const btn   = document.getElementById(btnId);
+  const input = document.getElementById(inputId);
+  const icon  = document.getElementById(iconId);
+  if (!btn || !input || !icon) return;
+
+  btn.addEventListener('click', () => {
+    const isPassword = input.type === 'password';
+    input.type = isPassword ? 'text' : 'password';
+    icon.className = isPassword ? 'ri-eye-off-line text-base' : 'ri-eye-line text-base';
+    btn.setAttribute('aria-label', isPassword ? 'Ocultar senha' : 'Mostrar senha');
+  });
+}
+
 // ── Fluxo principal ────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
 
-  // ── CNPJ
+  // ── Abas: clique direto nas tabs ───────────────────────────────────────
+  document.getElementById('tab-empresa')?.addEventListener('click', () => ativarAba('empresa'));
+  document.getElementById('tab-responsavel')?.addEventListener('click', () => {
+    // Permitir navegar para responsável via clique direto (sem validação)
+    ativarAba('responsavel');
+  });
+
+  // ── Botão Próximo ──────────────────────────────────────────────────────
+  document.getElementById('btn-proximo')?.addEventListener('click', () => {
+    if (!validarAba1()) {
+      document.querySelector('#panel-empresa .border-red-400, #panel-empresa .text-red-500:not(.hidden)')
+        ?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      return;
+    }
+    ativarAba('responsavel');
+  });
+
+  // ── Botão Voltar ───────────────────────────────────────────────────────
+  document.getElementById('btn-voltar')?.addEventListener('click', () => ativarAba('empresa'));
+
+  // ── CNPJ ───────────────────────────────────────────────────────────────
   const cnpjEl = document.getElementById('cnpj');
-  cnpjEl?.addEventListener('input', () => { cnpjEl.value = maskCNPJ(cnpjEl.value); });
-  cnpjEl?.addEventListener('blur', async () => {
-    const d = cnpjEl.value.replace(/\D/g, '');
-    if (d.length === 14) {
-      const err = document.getElementById('cnpj-err');
-      const msg = document.getElementById('cnpj-msg');
-      if (!validarCNPJ(d)) {
-        err.classList.remove('hidden');
-        msg.textContent = 'CNPJ inválido.';
-        msg.className = 'text-xs mt-1 text-red-500';
-        msg.classList.remove('hidden');
+
+  cnpjEl?.addEventListener('input', async () => {
+    cnpjEl.value = maskCNPJ(cnpjEl.value);
+    const digits = cnpjEl.value.replace(/\D/g, '');
+
+    // Enquanto o usuário edita (< 14 dígitos): limpa tudo
+    if (digits.length < 14) {
+      hideCnpjExistsBanner();
+      resetCnpjIndicators();
+      _lastLookedUpCNPJ = '';
+      return;
+    }
+
+    // Chegou em 14 dígitos e ainda não foi consultado
+    if (digits.length === 14 && digits !== _lastLookedUpCNPJ) {
+      const errIcon = document.getElementById('cnpj-err');
+      const msgEl   = document.getElementById('cnpj-msg');
+
+      if (!validarCNPJ(digits)) {
+        resetCnpjIndicators();
+        errIcon.classList.remove('hidden');
+        msgEl.textContent = 'CNPJ inválido.';
+        msgEl.className   = 'text-xs mt-1 text-red-500';
+        msgEl.classList.remove('hidden');
         return;
       }
-      await lookupCNPJ(d);
+
+      _lastLookedUpCNPJ = digits; // marca antes da chamada para evitar duplo disparo
+      await lookupCNPJ(digits);
     }
+  });
+
+  // blur: consulta apenas se ainda não foi buscado (ex.: CNPJ colado no campo)
+  cnpjEl?.addEventListener('blur', async () => {
+    const digits = cnpjEl.value.replace(/\D/g, '');
+    if (digits.length !== 14 || digits === _lastLookedUpCNPJ) return;
+
+    const errIcon = document.getElementById('cnpj-err');
+    const msgEl   = document.getElementById('cnpj-msg');
+
+    if (!validarCNPJ(digits)) {
+      resetCnpjIndicators();
+      errIcon.classList.remove('hidden');
+      msgEl.textContent = 'CNPJ inválido.';
+      msgEl.className   = 'text-xs mt-1 text-red-500';
+      msgEl.classList.remove('hidden');
+      return;
+    }
+
+    _lastLookedUpCNPJ = digits;
+    await lookupCNPJ(digits);
   });
 
   // CEP: máscara + lookup ViaCEP ao sair do campo
   const cepEl = document.getElementById('cep');
-  cepEl?.addEventListener('input', () => {
-    cepEl.value = maskCEP(cepEl.value);
-  });
+  cepEl?.addEventListener('input', () => { cepEl.value = maskCEP(cepEl.value); });
   cepEl?.addEventListener('blur', async () => {
     const digits = cepEl.value.replace(/\D/g, '');
     if (digits.length === 8) await lookupCEP(digits);
@@ -820,17 +1200,44 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // Validação senha em tempo real
+  const senhaEl   = document.getElementById('contact_password');
+  const senhaMsg  = document.getElementById('senha-msg');
+  const confirmEl = document.getElementById('contact_password_confirm');
+  const confMsg   = document.getElementById('senha-confirm-msg');
+
+  senhaEl?.addEventListener('blur', () => {
+    if (!senhaEl.value) return;
+    const ok = senhaEl.value.length >= 8;
+    setField(senhaEl, ok, senhaMsg, ok ? '' : 'A senha deve ter no mínimo 8 caracteres.');
+    // Re-valida confirmação se já foi preenchida
+    if (confirmEl.value) {
+      const match = confirmEl.value === senhaEl.value;
+      setField(confirmEl, match, confMsg, match ? '' : 'As senhas não coincidem.');
+    }
+  });
+
+  confirmEl?.addEventListener('blur', () => {
+    if (!confirmEl.value) return;
+    const match = confirmEl.value === senhaEl.value;
+    setField(confirmEl, match, confMsg, match ? '' : 'As senhas não coincidem.');
+  });
+
+  // Toggle dos olhinhos
+  setupPasswordToggle('btn-toggle-senha',         'contact_password',         'icon-toggle-senha');
+  setupPasswordToggle('btn-toggle-senha-confirm', 'contact_password_confirm', 'icon-toggle-senha-confirm');
+
   // ── Submissão do formulário → abre modal OTP ───────────────────────────
-  const form    = document.getElementById('form-interesse');
-  const btnSub  = document.getElementById('btn-submit');
-  const errBox  = document.getElementById('form-error');
-  const errMsg  = document.getElementById('form-error-msg');
+  const form   = document.getElementById('form-interesse');
+  const btnSub = document.getElementById('btn-submit');
+  const errBox = document.getElementById('form-error');
+  const errMsg = document.getElementById('form-error-msg');
 
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
     errBox.classList.add('hidden');
 
-    if (!validarForm()) {
+    if (!validarAba2()) {
       errMsg.textContent = 'Corrija os campos indicados antes de continuar.';
       errBox.classList.remove('hidden');
       errBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -838,7 +1245,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     btnSub.disabled = true;
-    btnSub.innerHTML = '<i class="ri-loader-4-line animate-spin"></i> Enviando código...';
+    btnSub.innerHTML = '<i class="ri-loader-4-line motion-safe:animate-spin" aria-hidden="true"></i> Enviando código...';
 
     const dados = coletarDados();
     _phone = dados.contact_whatsapp;
@@ -863,15 +1270,15 @@ document.addEventListener('DOMContentLoaded', () => {
       errBox.classList.remove('hidden');
     } finally {
       btnSub.disabled = false;
-      btnSub.innerHTML = '<i class="ri-send-plane-line"></i> Enviar Solicitação';
+      btnSub.innerHTML = '<i class="ri-send-plane-line" aria-hidden="true"></i> Enviar Solicitação';
     }
   });
 
   // ── Verificar código OTP ───────────────────────────────────────────────
   document.getElementById('btn-verificar')?.addEventListener('click', async () => {
-    const codigo    = document.getElementById('otp-input').value.trim();
-    const errEl     = document.getElementById('otp-error');
-    const btnVerif  = document.getElementById('btn-verificar');
+    const codigo   = document.getElementById('otp-input').value.trim();
+    const errEl    = document.getElementById('otp-error');
+    const btnVerif = document.getElementById('btn-verificar');
 
     if (codigo.length !== 6) {
       errEl.textContent = 'Digite os 6 dígitos do código.';
@@ -880,7 +1287,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     btnVerif.disabled = true;
-    btnVerif.innerHTML = '<i class="ri-loader-4-line animate-spin"></i> Verificando...';
+    btnVerif.innerHTML = '<i class="ri-loader-4-line motion-safe:animate-spin" aria-hidden="true"></i> Verificando...';
     errEl.classList.add('hidden');
 
     try {
@@ -896,7 +1303,6 @@ document.addEventListener('DOMContentLoaded', () => {
       _sessionId = json.sessionId;
       hideModal('modal-otp');
 
-      // Preenche e abre o resumo
       const dados = coletarDados();
       preencherResumo(dados);
       document.getElementById('resumo-error').classList.add('hidden');
@@ -906,7 +1312,7 @@ document.addEventListener('DOMContentLoaded', () => {
       errEl.classList.remove('hidden');
     } finally {
       btnVerif.disabled = false;
-      btnVerif.innerHTML = '<i class="ri-shield-check-line"></i> Verificar Código';
+      btnVerif.innerHTML = '<i class="ri-shield-check-line" aria-hidden="true"></i> Verificar Código';
     }
   });
 
@@ -958,7 +1364,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     btnCon.disabled = true;
-    btnCon.innerHTML = '<i class="ri-loader-4-line animate-spin"></i> Enviando...';
+    btnCon.innerHTML = '<i class="ri-loader-4-line motion-safe:animate-spin" aria-hidden="true"></i> Enviando...';
 
     try {
       const dados = coletarDados();
@@ -972,6 +1378,11 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!res.ok) throw new Error(json.error ?? 'Erro ao enviar.');
 
       _sessionId = null;
+
+      // Exibe o e-mail no modal de sucesso
+      const emailEl = document.getElementById('sucesso-email');
+      if (emailEl) emailEl.textContent = json.email ?? dados.contact_email ?? '';
+
       hideModal('modal-resumo');
       showModal('modal-sucesso');
     } catch (err) {
@@ -979,7 +1390,7 @@ document.addEventListener('DOMContentLoaded', () => {
       errEl.classList.remove('hidden');
     } finally {
       btnCon.disabled = false;
-      btnCon.innerHTML = '<i class="ri-check-double-line"></i> Confirmar Pré-Cadastro';
+      btnCon.innerHTML = '<i class="ri-check-double-line" aria-hidden="true"></i> Confirmar Pré-Cadastro';
     }
   });
 

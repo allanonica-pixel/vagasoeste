@@ -122,13 +122,13 @@ export default function InteresseEmpresaPage() {
 
   if (status === "success") {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-dvh bg-gray-50">
         <Navbar />
         <div className="max-w-xl mx-auto px-4 py-32 text-center">
-          <div className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-6">
-            <i className="ri-checkbox-circle-fill text-emerald-600 text-4xl"></i>
+          <div className="size-20 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-6">
+            <i className="ri-checkbox-circle-fill text-emerald-600 text-4xl" aria-hidden="true"></i>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-3">Interesse recebido!</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-3 text-balance">Interesse recebido!</h2>
           <p className="text-gray-500 text-sm leading-relaxed mb-2">
             Obrigado pelo interesse, <strong className="text-gray-700">{form.nomeEmpresa}</strong>!
           </p>
@@ -137,7 +137,7 @@ export default function InteresseEmpresaPage() {
           </p>
           <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-5 mb-8 text-left">
             <p className="text-emerald-800 text-sm font-semibold mb-3 flex items-center gap-2">
-              <i className="ri-time-line text-emerald-600"></i>
+              <i className="ri-time-line text-emerald-600" aria-hidden="true"></i>
               O que acontece agora?
             </p>
             <ul className="space-y-2">
@@ -156,6 +156,7 @@ export default function InteresseEmpresaPage() {
           </div>
           <div className="flex flex-col sm:flex-row gap-3">
             <button
+              type="button"
               onClick={() => navigate("/para-empresas")}
               className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-sm cursor-pointer transition-colors whitespace-nowrap"
             >
@@ -175,7 +176,7 @@ export default function InteresseEmpresaPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-dvh bg-gray-50">
       <Navbar />
 
       {/* Hero */}
@@ -187,16 +188,16 @@ export default function InteresseEmpresaPage() {
         <div className="relative max-w-5xl mx-auto px-4 md:px-6 pt-24 pb-14">
           <div className="flex items-center gap-2 text-emerald-300 text-xs mb-4">
             <Link to="/" className="hover:text-white transition-colors cursor-pointer">Início</Link>
-            <i className="ri-arrow-right-s-line"></i>
+            <i className="ri-arrow-right-s-line" aria-hidden="true"></i>
             <Link to="/para-empresas" className="hover:text-white transition-colors cursor-pointer">Para Empresas</Link>
-            <i className="ri-arrow-right-s-line"></i>
+            <i className="ri-arrow-right-s-line" aria-hidden="true"></i>
             <span className="text-white">Falar com a Equipe</span>
           </div>
           <div className="max-w-2xl">
             <span className="inline-block bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-xs font-semibold px-3 py-1 rounded-full mb-4 uppercase tracking-wide">
               Contato Comercial
             </span>
-            <h1 className="text-3xl md:text-4xl font-bold text-white mb-4 leading-tight">
+            <h1 className="text-3xl md:text-4xl font-bold text-white mb-4 leading-tight text-balance">
               Fale com nossa equipe e comece a contratar
             </h1>
             <p className="text-emerald-100 text-base leading-relaxed">
@@ -217,8 +218,8 @@ export default function InteresseEmpresaPage() {
               { icon: "ri-user-heart-line", text: "Candidatos qualificados" },
             ].map((b) => (
               <div key={b.text} className="flex items-center gap-2">
-                <div className="w-5 h-5 flex items-center justify-center">
-                  <i className={`${b.icon} text-emerald-600 text-sm`}></i>
+                <div className="size-5 flex items-center justify-center">
+                  <i className={`${b.icon} text-emerald-600 text-sm`} aria-hidden="true"></i>
                 </div>
                 <span className="text-gray-600 text-xs font-medium">{b.text}</span>
               </div>
@@ -242,8 +243,8 @@ export default function InteresseEmpresaPage() {
               {/* Dados da Empresa */}
               <div className="bg-white rounded-2xl border border-gray-100 p-6">
                 <h2 className="font-bold text-gray-900 mb-5 flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
-                    <i className="ri-building-line text-emerald-600 text-sm"></i>
+                  <div className="size-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+                    <i className="ri-building-line text-emerald-600 text-sm" aria-hidden="true"></i>
                   </div>
                   Dados da Empresa
                 </h2>
@@ -327,8 +328,8 @@ export default function InteresseEmpresaPage() {
               {/* Responsável */}
               <div className="bg-white rounded-2xl border border-gray-100 p-6">
                 <h2 className="font-bold text-gray-900 mb-5 flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
-                    <i className="ri-user-line text-emerald-600 text-sm"></i>
+                  <div className="size-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+                    <i className="ri-user-line text-emerald-600 text-sm" aria-hidden="true"></i>
                   </div>
                   Responsável pelo Contato
                 </h2>
@@ -387,8 +388,8 @@ export default function InteresseEmpresaPage() {
                       WhatsApp <span className="text-red-400">*</span>
                     </label>
                     <div className="relative">
-                      <div className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center pointer-events-none">
-                        <i className="ri-whatsapp-line text-gray-400 text-sm"></i>
+                      <div className="absolute left-3 top-1/2 -translate-y-1/2 size-5 flex items-center justify-center pointer-events-none">
+                        <i className="ri-whatsapp-line text-gray-400 text-sm" aria-hidden="true"></i>
                       </div>
                       <input
                         type="tel"
@@ -402,11 +403,11 @@ export default function InteresseEmpresaPage() {
                     </div>
                     {errors.whatsapp ? (
                       <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
-                        <i className="ri-error-warning-line"></i>{errors.whatsapp}
+                        <i className="ri-error-warning-line" aria-hidden="true"></i>{errors.whatsapp}
                       </p>
                     ) : form.whatsapp && isValidBrazilPhone(form.whatsapp) ? (
                       <p className="text-emerald-600 text-xs mt-1 flex items-center gap-1">
-                        <i className="ri-checkbox-circle-line"></i>Número válido
+                        <i className="ri-checkbox-circle-line" aria-hidden="true"></i>Número válido
                       </p>
                     ) : null}
                   </div>
@@ -416,8 +417,8 @@ export default function InteresseEmpresaPage() {
               {/* Mensagem + Como conheceu */}
               <div className="bg-white rounded-2xl border border-gray-100 p-6">
                 <h2 className="font-bold text-gray-900 mb-5 flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
-                    <i className="ri-chat-3-line text-emerald-600 text-sm"></i>
+                  <div className="size-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+                    <i className="ri-chat-3-line text-emerald-600 text-sm" aria-hidden="true"></i>
                   </div>
                   Informações Adicionais
                 </h2>
@@ -463,7 +464,7 @@ export default function InteresseEmpresaPage() {
 
               {/* Privacy notice */}
               <div className="bg-gray-50 rounded-xl p-4 text-xs text-gray-500 leading-relaxed">
-                <i className="ri-shield-check-line text-emerald-500 mr-1"></i>
+                <i className="ri-shield-check-line text-emerald-500 mr-1" aria-hidden="true"></i>
                 Seus dados são utilizados exclusivamente para entrar em contato sobre a plataforma VagasOeste. Não compartilhamos suas informações com terceiros.
               </div>
 
@@ -471,7 +472,7 @@ export default function InteresseEmpresaPage() {
               {status === "error" && (
                 <div className="bg-red-50 border border-red-100 rounded-xl p-4 flex items-center gap-3">
                   <div className="w-5 h-5 flex items-center justify-center shrink-0">
-                    <i className="ri-error-warning-line text-red-500 text-sm"></i>
+                    <i className="ri-error-warning-line text-red-500 text-sm" aria-hidden="true"></i>
                   </div>
                   <p className="text-red-700 text-sm">Ocorreu um erro ao enviar. Tente novamente ou entre em contato pelo WhatsApp.</p>
                 </div>
@@ -484,12 +485,12 @@ export default function InteresseEmpresaPage() {
               >
                 {status === "submitting" ? (
                   <>
-                    <i className="ri-loader-4-line animate-spin text-base"></i>
+                    <i className="ri-loader-4-line motion-safe:animate-spin text-base" role="status" aria-label="Enviando formulário"></i>
                     Enviando...
                   </>
                 ) : (
                   <>
-                    <i className="ri-send-plane-line text-base"></i>
+                    <i className="ri-send-plane-line text-base" aria-hidden="true"></i>
                     Enviar interesse e aguardar contato
                   </>
                 )}
@@ -508,30 +509,30 @@ export default function InteresseEmpresaPage() {
                 rel="nofollow noopener noreferrer"
                 className="flex items-center gap-3 bg-emerald-50 border border-emerald-100 rounded-xl p-4 cursor-pointer hover:bg-emerald-100 transition-colors mb-3"
               >
-                <div className="w-10 h-10 rounded-full bg-emerald-600 flex items-center justify-center shrink-0">
-                  <i className="ri-whatsapp-line text-white text-lg"></i>
+                <div className="size-10 rounded-full bg-emerald-600 flex items-center justify-center shrink-0">
+                  <i className="ri-whatsapp-line text-white text-lg" aria-hidden="true"></i>
                 </div>
                 <div>
                   <p className="font-semibold text-gray-900 text-sm">WhatsApp</p>
                   <p className="text-gray-500 text-xs">(93) 99999-9999</p>
                 </div>
-                <div className="ml-auto w-5 h-5 flex items-center justify-center">
-                  <i className="ri-arrow-right-line text-emerald-600 text-sm"></i>
+                <div className="ml-auto size-5 flex items-center justify-center">
+                  <i className="ri-arrow-right-line text-emerald-600 text-sm" aria-hidden="true"></i>
                 </div>
               </a>
               <a
                 href="mailto:contato@santarem.app"
                 className="flex items-center gap-3 bg-gray-50 border border-gray-100 rounded-xl p-4 cursor-pointer hover:bg-gray-100 transition-colors"
               >
-                <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center shrink-0">
-                  <i className="ri-mail-line text-gray-600 text-lg"></i>
+                <div className="size-10 rounded-full bg-gray-200 flex items-center justify-center shrink-0">
+                  <i className="ri-mail-line text-gray-600 text-lg" aria-hidden="true"></i>
                 </div>
                 <div>
                   <p className="font-semibold text-gray-900 text-sm">Email</p>
                   <p className="text-gray-500 text-xs">contato@santarem.app</p>
                 </div>
-                <div className="ml-auto w-5 h-5 flex items-center justify-center">
-                  <i className="ri-arrow-right-line text-gray-400 text-sm"></i>
+                <div className="ml-auto size-5 flex items-center justify-center">
+                  <i className="ri-arrow-right-line text-gray-400 text-sm" aria-hidden="true"></i>
                 </div>
               </a>
             </div>
@@ -548,8 +549,8 @@ export default function InteresseEmpresaPage() {
                   { icon: "ri-customer-service-line", text: "Suporte humano em cada etapa" },
                 ].map((item) => (
                   <li key={item.text} className="flex items-start gap-2.5">
-                    <div className="w-5 h-5 flex items-center justify-center shrink-0 mt-0.5">
-                      <i className={`${item.icon} text-emerald-200 text-sm`}></i>
+                    <div className="size-5 flex items-center justify-center shrink-0 mt-0.5">
+                      <i className={`${item.icon} text-emerald-200 text-sm`} aria-hidden="true"></i>
                     </div>
                     <span className="text-emerald-100 text-xs leading-relaxed">{item.text}</span>
                   </li>

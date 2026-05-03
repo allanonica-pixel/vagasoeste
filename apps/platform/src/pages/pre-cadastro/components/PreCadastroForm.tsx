@@ -114,8 +114,8 @@ export default function PreCadastroForm({ initialData, onNext, onBack }: PreCada
         {/* Dados da Empresa */}
         <div className="bg-white rounded-2xl border border-gray-100 p-6">
           <h3 className="font-bold text-gray-900 mb-5 flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
-              <i className="ri-building-line text-emerald-600 text-sm"></i>
+            <div className="size-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+              <i className="ri-building-line text-emerald-600 text-sm" aria-hidden="true"></i>
             </div>
             Dados da Empresa
           </h3>
@@ -161,8 +161,8 @@ export default function PreCadastroForm({ initialData, onNext, onBack }: PreCada
         {/* Localização */}
         <div className="bg-white rounded-2xl border border-gray-100 p-6">
           <h3 className="font-bold text-gray-900 mb-5 flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
-              <i className="ri-map-pin-line text-emerald-600 text-sm"></i>
+            <div className="size-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+              <i className="ri-map-pin-line text-emerald-600 text-sm" aria-hidden="true"></i>
             </div>
             Localização
           </h3>
@@ -201,8 +201,8 @@ export default function PreCadastroForm({ initialData, onNext, onBack }: PreCada
         {/* Responsável */}
         <div className="bg-white rounded-2xl border border-gray-100 p-6">
           <h3 className="font-bold text-gray-900 mb-5 flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
-              <i className="ri-user-line text-emerald-600 text-sm"></i>
+            <div className="size-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+              <i className="ri-user-line text-emerald-600 text-sm" aria-hidden="true"></i>
             </div>
             Responsável pelo Cadastro
           </h3>
@@ -219,8 +219,8 @@ export default function PreCadastroForm({ initialData, onNext, onBack }: PreCada
                 Telefone <span className="text-red-400">*</span>
               </label>
               <div className="relative">
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center pointer-events-none">
-                  <i className="ri-phone-line text-gray-400 text-xs"></i>
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 size-5 flex items-center justify-center pointer-events-none">
+                  <i className="ri-phone-line text-gray-400 text-xs" aria-hidden="true"></i>
                 </div>
                 <input
                   type="tel"
@@ -240,7 +240,7 @@ export default function PreCadastroForm({ initialData, onNext, onBack }: PreCada
                 </p>
               ) : form.telefone && isValidBrazilPhone(form.telefone) ? (
                 <p className="text-emerald-600 text-xs mt-1 flex items-center gap-1">
-                  <i className="ri-checkbox-circle-line"></i>
+                  <i className="ri-checkbox-circle-line" aria-hidden="true"></i>
                   Número válido
                 </p>
               ) : null}
@@ -252,8 +252,8 @@ export default function PreCadastroForm({ initialData, onNext, onBack }: PreCada
                 WhatsApp <span className="text-gray-400 font-normal text-xs">(opcional)</span>
               </label>
               <div className="relative">
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center pointer-events-none">
-                  <i className="ri-whatsapp-line text-gray-400 text-xs"></i>
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 size-5 flex items-center justify-center pointer-events-none">
+                  <i className="ri-whatsapp-line text-gray-400 text-xs" aria-hidden="true"></i>
                 </div>
                 <input
                   type="tel"
@@ -273,7 +273,7 @@ export default function PreCadastroForm({ initialData, onNext, onBack }: PreCada
                 </p>
               ) : form.whatsapp && isValidBrazilPhone(form.whatsapp) ? (
                 <p className="text-emerald-600 text-xs mt-1 flex items-center gap-1">
-                  <i className="ri-checkbox-circle-line"></i>
+                  <i className="ri-checkbox-circle-line" aria-hidden="true"></i>
                   Número válido
                 </p>
               ) : null}
@@ -284,8 +284,8 @@ export default function PreCadastroForm({ initialData, onNext, onBack }: PreCada
         {/* Acesso Provisório */}
         <div className="bg-white rounded-2xl border border-gray-100 p-6">
           <h3 className="font-bold text-gray-900 mb-2 flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
-              <i className="ri-lock-line text-amber-600 text-sm"></i>
+            <div className="size-8 rounded-lg bg-amber-50 flex items-center justify-center">
+              <i className="ri-lock-line text-amber-600 text-sm" aria-hidden="true"></i>
             </div>
             Senha de Acesso Provisório
           </h3>
@@ -312,7 +312,7 @@ export default function PreCadastroForm({ initialData, onNext, onBack }: PreCada
                   onClick={() => setShowSenha(!showSenha)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center cursor-pointer text-gray-400"
                 >
-                  <i className={`${showSenha ? "ri-eye-off-line" : "ri-eye-line"} text-sm`}></i>
+                  <i className={`${showSenha ? "ri-eye-off-line" : "ri-eye-line"} text-sm`} aria-hidden="true"></i>
                 </button>
               </div>
               {errors.senha && <p className="text-red-500 text-xs mt-1">{errors.senha}</p>}
@@ -336,7 +336,7 @@ export default function PreCadastroForm({ initialData, onNext, onBack }: PreCada
                   onClick={() => setShowConfirmar(!showConfirmar)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center cursor-pointer text-gray-400"
                 >
-                  <i className={`${showConfirmar ? "ri-eye-off-line" : "ri-eye-line"} text-sm`}></i>
+                  <i className={`${showConfirmar ? "ri-eye-off-line" : "ri-eye-line"} text-sm`} aria-hidden="true"></i>
                 </button>
               </div>
               {errors.confirmarSenha && <p className="text-red-500 text-xs mt-1">{errors.confirmarSenha}</p>}
@@ -346,7 +346,7 @@ export default function PreCadastroForm({ initialData, onNext, onBack }: PreCada
 
         {/* Terms */}
         <div className="bg-gray-50 rounded-xl p-4 text-xs text-gray-500 leading-relaxed">
-          <i className="ri-shield-check-line text-emerald-500 mr-1"></i>
+          <i className="ri-shield-check-line text-emerald-500 mr-1" aria-hidden="true"></i>
           Ao continuar, você concorda com os <strong className="text-gray-700">Termos de Uso</strong> e a <strong className="text-gray-700">Política de Privacidade</strong> da VagasOeste. Seus dados serão utilizados exclusivamente para o processo de cadastro e validação.
         </div>
 
@@ -357,7 +357,7 @@ export default function PreCadastroForm({ initialData, onNext, onBack }: PreCada
             onClick={onBack}
             className="flex items-center justify-center gap-2 border border-gray-200 text-gray-600 font-medium px-6 py-3 rounded-xl text-sm cursor-pointer hover:bg-gray-50 transition-colors whitespace-nowrap"
           >
-            <i className="ri-arrow-left-line text-sm"></i>
+            <i className="ri-arrow-left-line text-sm" aria-hidden="true"></i>
             Voltar
           </button>
           <button
@@ -365,7 +365,7 @@ export default function PreCadastroForm({ initialData, onNext, onBack }: PreCada
             className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-sm cursor-pointer transition-colors flex items-center justify-center gap-2 whitespace-nowrap"
           >
             Continuar para cadastro de vagas
-            <i className="ri-arrow-right-line text-sm"></i>
+            <i className="ri-arrow-right-line text-sm" aria-hidden="true"></i>
           </button>
         </div>
       </form>
