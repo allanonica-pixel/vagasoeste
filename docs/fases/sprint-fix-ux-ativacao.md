@@ -75,6 +75,27 @@ Detalhes do diagnóstico estão consolidados nos prints da conversa de PO + Tech
 
 ---
 
+### Bug F (P1 — UX/transparência) — Auto-preenchimento confuso entre Razão Social e Nome Fantasia
+
+**Sintoma:** ao cadastrar empresa com CNPJ válido, BrasilAPI retorna razão social oficial (ex.: "ONICA SISTEMAS"). O código faz fallback `data.nome_fantasia || data.razao_social || ''` — se Receita não tem nome fantasia distinto, **copia a razão social pro campo "Nome Fantasia"**, dando impressão de que o usuário digitou esse valor.
+
+**Esperado:** "Nome Fantasia" só auto-preenche se Receita tem nome fantasia próprio. Caso contrário fica vazio com placeholder claro pra forçar decisão consciente do usuário.
+
+**Confirmado em investigação:** o nome "ONICA SISTEMAS" vem **exclusivamente da Receita Federal pública** via [BrasilAPI](https://brasilapi.com.br/api/cnpj/v1/CNPJ). Não há linkagem com banco anterior nem cache local. **Não é vazamento de dados** — é dado público obrigatório (registro oficial RFB).
+
+**Arquivo:** `apps/site/src/pages/interesse-empresa.astro` linha 761
+
+**Fix proposto (1 linha):**
+```javascript
+// ANTES
+setVal('company_name', data.nome_fantasia || data.razao_social || '');
+// DEPOIS
+setVal('company_name', data.nome_fantasia || '');
+```
+Adicionar placeholder claro tipo "Como sua empresa é conhecida pelos clientes" e label de ajuda "Pode ser diferente da razão social".
+
+---
+
 ### Bug E (a investigar) — Painel da empresa mostra candidatos em conta nova
 
 **Sintoma:** empresa3 acabou de ser criada do zero (limpeza completa em `auth.users`, `empresa_pre_cadastros`, `companies`). No painel `/empresa/dashboard`, aparecem "3 novos candidatos aguardando análise!" e "5 CANDIDATOS" listados.
