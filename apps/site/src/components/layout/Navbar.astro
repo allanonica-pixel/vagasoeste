@@ -77,7 +77,7 @@ const currentPath = Astro.url.pathname;
     </div>
 
     <!-- Mobile: ilha React para interatividade do hambúrguer -->
-    <NavbarMobile client:load navLinks={navLinks} appUrl={appUrl} />
+    <NavbarMobile client:idle navLinks={navLinks} appUrl={appUrl} />
   </div>
 </header>
 

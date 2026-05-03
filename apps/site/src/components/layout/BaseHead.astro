@@ -1,6 +1,21 @@
 ---
 import { buildOrganizationSchema } from '../../lib/schemas';
 
+// ─── Fontes self-hosted (subset latin) ──────────────────────────────────────
+// Substitui Google Fonts CDN. Vite empacota os woff2 com hash, sem render-blocking.
+import '@fontsource/inter/latin-400.css';
+import '@fontsource/inter/latin-500.css';
+import '@fontsource/inter/latin-600.css';
+import '@fontsource/inter/latin-700.css';
+import '@fontsource/inter/latin-800.css';
+
+// URL da fonte mais usada (peso 400) para preload — reduz LCP em mobile
+import inter400Url from '@fontsource/inter/files/inter-latin-400-normal.woff2?url';
+
+// ─── Ícones self-hosted ─────────────────────────────────────────────────────
+// Substitui jsdelivr CDN. Bundle local, sem render-blocking externo.
+import 'remixicon/fonts/remixicon.css';
+
 interface Props {
   title: string;
   description: string;
@@ -80,19 +95,10 @@ const schemas = [organizationSchema, ...pageSchemas];
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
-<!-- Preconnect Google Fonts -->
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link
-  href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
-  rel="stylesheet"
-/>
+<!-- Preload da fonte crítica (Inter 400) — reduz LCP em mobile -->
+<link rel="preload" href={inter400Url} as="font" type="font/woff2" crossorigin />
+<!-- Demais fontes e ícones bundled via import do frontmatter (sem render-blocking externo) -->
 
-<!-- Remix Icon CDN -->
-<link
-  href="https://cdn.jsdelivr.net/npm/remixicon@4.0.0/fonts/remixicon.css"
-  rel="stylesheet"
-/>
 
 <!-- Schema.org JSON-LD -->
 {schemas.map((s) => (
