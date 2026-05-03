@@ -20,22 +20,37 @@
 
 ## Roadmap de fases
 
-### Fase 1 — SEO técnico do site (em execução)
+### Fase 1 — SEO técnico do site (PAUSADA em 90%)
 **Objetivo:** levar o `apps/site` ao nível "production-grade" em SEO técnico antes do lançamento público, garantindo Lighthouse SEO ≥ 95 e estrutura de schema completa pra ranqueamento local Santarém/PA.
+
+**Pausa:** vide [ADR 0002](./adr/0002-pausa-fase1-fix-aprovacao-empresa.md). Pendente apenas Bloco B4-B6 (assets gráficos) e Bloco D (Lighthouse benchmark + validação JobPosting com vaga real).
 
 Documento: [`docs/fases/001-seo-tecnico-site.md`](./fases/001-seo-tecnico-site.md)
 
-### Fase 2 — Hardening de produção (planejada)
+### Sprint Bugfix — Aprovação de Empresa (em execução)
+**Objetivo:** corrigir 3 bugs críticos no fluxo `etapa 1 (ativação) → etapa 2 (aprovação admin)` antes de retomar a Fase 1.
+- Bug 1: Aprovação não envia e-mail
+- Bug 2: Forgot-password não acha empresa em `empresa_pre_cadastros`
+- Bug 3: Admin pode "aprovar" empresa que nunca ativou
+
+ADR: [0002](./adr/0002-pausa-fase1-fix-aprovacao-empresa.md)
+
+### Fase 2 — Marketplace Operacional (planejada)
+**Objetivo:** habilitar e-mail transacional real, limites de candidaturas por empresa/vaga, pausa de vaga com limpeza de candidaturas + notificação.
+
+Documento: [`docs/fases/002-marketplace-operacional.md`](./fases/002-marketplace-operacional.md)
+
+Pré-requisito: Sprint Bugfix fechado + Fase 1 reaberta e fechada.
+
+### Fase 3 — Hardening de produção (planejada)
 **Objetivo:** preparar projeto pra deploy real (Vercel + Fly.io + Supabase PROD), com observabilidade, monitoramento, SSL enforce, secrets em provedores e plano de rollback.
-
-Pré-requisito: Fase 1 fechada.
-
-### Fase 3 — Lançamento e captação inicial (planejada)
-**Objetivo:** colocar `santarem.app` no ar, submeter ao Google Search Console, popular banco PROD com primeiras vagas reais, primeiros candidatos cadastrados.
 
 Pré-requisito: Fase 2 fechada.
 
-### Fase 4+ — Crescimento e escala
+### Fase 4 — Lançamento e captação inicial (planejada)
+**Objetivo:** colocar `santarem.app` no ar, submeter ao Google Search Console, popular banco PROD com primeiras vagas reais, primeiros candidatos cadastrados.
+
+### Fase 5+ — Crescimento e escala
 **Objetivo:** otimizações de escala (cache, particionamento, CDN tuning) à medida que o volume justificar. Definidas com dados, não especulação.
 
 ---

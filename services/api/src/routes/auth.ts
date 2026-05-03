@@ -146,13 +146,21 @@ authRouter.post('/forgot-password', async (c) => {
   }
 
   // ── 4. Verifica existência via supabaseAdmin (bypass RLS, sem depender do Drizzle) ──
-  const [{ data: candRow }, { data: compRow }, { data: admRow }] = await Promise.all([
+  // Inclui empresa_pre_cadastros.contact_email como fallback — empresas que ativaram
+  // pré-cadastro mas ainda não foram aprovadas pelo admin estão lá.
+  // Defesa em profundidade: cobre estado fantasma onde companies pode estar vazio.
+  const [{ data: candRow }, { data: compRow }, { data: admRow }, { data: preCadRow }] = await Promise.all([
     supabaseAdmin.from('candidates').select('id').eq('email', email).maybeSingle(),
     supabaseAdmin.from('companies').select('id').eq('email', email).maybeSingle(),
     supabaseAdmin.from('admin_users').select('id').eq('email', email).maybeSingle(),
+    supabaseAdmin.from('empresa_pre_cadastros').select('id, ativado_em').eq('contact_email', email).maybeSingle(),
   ]);
 
-  const emailExists = !!(candRow ?? compRow ?? admRow);
+  // Pré-cadastro só conta como existente se já ativado (auth.users tem email_confirmed)
+  // Sem isso, resetPasswordForEmail falha silenciosamente em users não confirmados.
+  const preCadValid = preCadRow && (preCadRow as { ativado_em?: string | null }).ativado_em != null;
+
+  const emailExists = !!(candRow ?? compRow ?? admRow ?? (preCadValid ? preCadRow : null));
 
   if (!emailExists) {
     logger.info({ email, ip }, '📧 Tentativa de recuperação para email não cadastrado');

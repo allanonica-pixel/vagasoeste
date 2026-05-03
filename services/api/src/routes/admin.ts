@@ -10,6 +10,8 @@
  *  POST /v1/admin/companies/:id/excluir                 → exclusão lógica (cascata vagas)
  *  POST /v1/admin/companies/:id/reativar                → reativa empresa inativa
  *  POST /v1/admin/companies/:id/reenviar-ativacao       → reenvia e-mail de ativação
+ *  POST /v1/admin/companies/:id/aprovar                 → aprova empresa ativada (etapa 2)
+ *  POST /v1/admin/companies/:id/rejeitar                → rejeita pré-cadastro
  *  GET  /v1/admin/audit                                 → trilha de auditoria
  */
 
@@ -356,6 +358,185 @@ adminRouter.post('/companies/:id/reenviar-ativacao', async (c) => {
   logger.info({ preId, company: preCad.company_name, email: preCad.contact_email }, '📧 [admin] E-mail de ativação reenviado');
 
   return c.json({ success: true, email: String(preCad.contact_email ?? '') });
+});
+
+// ── POST /v1/admin/companies/:id/aprovar ──────────────────────────────────────
+// Aprova um pré-cadastro de empresa (etapa 2 do fluxo).
+//
+// Pré-condições:
+//   1. empresa_pre_cadastros existe
+//   2. ativado_em IS NOT NULL  → empresa já clicou no link de ativação (etapa 1)
+//   3. existe row em companies vinculada (status = 'parcial')
+//   4. status atual do pre_cadastro permite aprovação (pendente)
+//
+// Efeitos:
+//   - empresa_pre_cadastros.status = 'aprovado'
+//   - companies.status = 'ativo' + validadoEm = now
+//   - Todas as jobs WHERE company_id = X AND status = 'pendente' viram 'ativo'
+//   - (Plano B no e-mail) Loga aprovação e retorna email_pending: true
+//     A integração com SMTP transacional está na Fase 2 — ver ADR 0002
+adminRouter.post('/companies/:id/aprovar', async (c) => {
+  const preId = c.req.param('id');
+  const now   = new Date().toISOString();
+
+  // 1. Busca o pré-cadastro
+  const { data: preCad, error: preErr } = await supabaseAdmin
+    .from('empresa_pre_cadastros')
+    .select('*')
+    .eq('id', preId)
+    .single();
+
+  if (preErr || !preCad) return c.json({ error: 'Pré-cadastro não encontrado.' }, 404);
+
+  // 2. Valida que empresa ativou (etapa 1) — sem isso, não pode aprovar
+  if (!preCad.ativado_em) {
+    return c.json({
+      error: 'NOT_ACTIVATED',
+      message: 'Empresa ainda não ativou o pré-cadastro. Use "Reenviar e-mail de ativação".',
+    }, 400);
+  }
+
+  // 3. Valida status atual permite aprovação
+  if (preCad.status === 'aprovado') return c.json({ error: 'ALREADY_APPROVED', message: 'Empresa já está aprovada.' }, 409);
+  if (['rejeitado', 'inativo', 'excluido'].includes(String(preCad.status))) {
+    return c.json({ error: 'PRECAD_UNAVAILABLE', message: 'Pré-cadastro não está disponível para aprovação.' }, 403);
+  }
+
+  // 4. Localiza row em companies (linkada por contact_email — fallback por cnpj)
+  const email = String(preCad.contact_email ?? '').toLowerCase();
+  const cnpj  = String(preCad.cnpj ?? '');
+
+  const company =
+    await db.query.companies.findFirst({ where: eq(companies.email, email) }).catch(() => null)
+    ?? (cnpj ? await db.query.companies.findFirst({ where: eq(companies.cnpj, cnpj) }).catch(() => null) : null);
+
+  if (!company) {
+    logger.error({ preId, email }, '[admin/aprovar] Estado inconsistente: pre_cadastro ativado mas sem row em companies');
+    return c.json({
+      error: 'COMPANY_MISSING',
+      message: 'Estado inconsistente — empresa ativou mas registro principal não existe. Contate o desenvolvedor.',
+    }, 500);
+  }
+
+  if (company.status === 'ativo') {
+    logger.info({ preId, companyId: company.id }, '[admin/aprovar] Empresa já estava como ativo — só sincroniza pre_cadastro');
+  }
+
+  // 5. Atualiza companies → ativo
+  await db.update(companies)
+    .set({ status: 'ativo', validadoEm: new Date(now), updatedAt: new Date(now) })
+    .where(eq(companies.id, company.id));
+
+  // 6. Promove vagas pendentes da empresa para ativo
+  const promotedJobs = await db.update(jobs)
+    .set({ status: 'ativo', publishedAt: new Date(now), updatedAt: new Date(now) })
+    .where(and(eq(jobs.companyId, company.id), eq(jobs.status, 'pendente')))
+    .returning({ id: jobs.id });
+
+  // 7. Atualiza pre_cadastro
+  await supabaseAdmin
+    .from('empresa_pre_cadastros')
+    .update({ status: 'aprovado', updated_at: now })
+    .eq('id', preId);
+
+  logger.info({
+    preId,
+    companyId: company.id,
+    company: preCad.company_name,
+    email,
+    promotedJobsCount: promotedJobs.length,
+  }, '✅ [admin/aprovar] Empresa aprovada — vagas promovidas');
+
+  // 8. TODO Fase 2: enviar e-mail real de aprovação ao contact_email
+  //    Por enquanto retorna email_pending: true pra UI sinalizar ao admin.
+  return c.json({
+    success: true,
+    company_id: company.id,
+    promoted_jobs_count: promotedJobs.length,
+    email_pending: true,
+    message: 'Empresa aprovada. E-mail será enviado quando integração SMTP transacional for habilitada (Fase 2).',
+  });
+});
+
+// ── POST /v1/admin/companies/:id/rejeitar ─────────────────────────────────────
+// Rejeita um pré-cadastro de empresa.
+//
+// Pré-condições:
+//   1. empresa_pre_cadastros existe
+//   2. status atual é 'pendente' (ou 'aprovado' caso queira reverter)
+//
+// Efeitos:
+//   - empresa_pre_cadastros.status = 'rejeitado' + motivo_rejeicao
+//   - Se houver row em companies, marca como inativo
+//   - Vagas existentes da empresa viram 'encerrado'
+//   - (Plano B no e-mail) email_pending: true (Fase 2 envia)
+adminRouter.post('/companies/:id/rejeitar', async (c) => {
+  const preId = c.req.param('id');
+  const body  = await c.req.json().catch(() => ({}));
+  const motivo = typeof body?.motivo === 'string' ? body.motivo.trim() : '';
+  const now   = new Date().toISOString();
+
+  if (!motivo) {
+    return c.json({ error: 'MOTIVO_REQUIRED', message: 'Informe o motivo da rejeição.' }, 400);
+  }
+
+  const { data: preCad, error: preErr } = await supabaseAdmin
+    .from('empresa_pre_cadastros')
+    .select('*')
+    .eq('id', preId)
+    .single();
+
+  if (preErr || !preCad) return c.json({ error: 'Pré-cadastro não encontrado.' }, 404);
+
+  if (preCad.status === 'rejeitado') return c.json({ error: 'ALREADY_REJECTED', message: 'Pré-cadastro já está rejeitado.' }, 409);
+  if (['inativo', 'excluido'].includes(String(preCad.status))) {
+    return c.json({ error: 'PRECAD_UNAVAILABLE', message: 'Pré-cadastro não pode ser rejeitado neste estado.' }, 403);
+  }
+
+  // 1. Atualiza pre_cadastro com motivo
+  await supabaseAdmin
+    .from('empresa_pre_cadastros')
+    .update({ status: 'rejeitado', motivo_rejeicao: motivo, updated_at: now })
+    .eq('id', preId);
+
+  // 2. Se já havia row em companies (empresa tinha ativado), marca como inativo + encerra vagas
+  const email = String(preCad.contact_email ?? '').toLowerCase();
+  const cnpj  = String(preCad.cnpj ?? '');
+
+  const company =
+    await db.query.companies.findFirst({ where: eq(companies.email, email) }).catch(() => null)
+    ?? (cnpj ? await db.query.companies.findFirst({ where: eq(companies.cnpj, cnpj) }).catch(() => null) : null);
+
+  let cancelledJobsCount = 0;
+  if (company) {
+    await db.update(companies)
+      .set({ status: 'rejeitado', motivoRejeicao: motivo, updatedAt: new Date(now) })
+      .where(eq(companies.id, company.id));
+
+    const cancelled = await db.update(jobs)
+      .set({ status: 'encerrado', updatedAt: new Date(now) })
+      .where(and(eq(jobs.companyId, company.id), inArray(jobs.status, ['ativo', 'pendente', 'pausado'])))
+      .returning({ id: jobs.id });
+
+    cancelledJobsCount = cancelled.length;
+  }
+
+  logger.info({
+    preId,
+    companyId: company?.id,
+    company: preCad.company_name,
+    email,
+    motivo,
+    cancelledJobsCount,
+  }, '🔴 [admin/rejeitar] Pré-cadastro rejeitado');
+
+  return c.json({
+    success: true,
+    company_id: company?.id ?? null,
+    cancelled_jobs_count: cancelledJobsCount,
+    email_pending: true,
+    message: 'Pré-cadastro rejeitado. E-mail será enviado quando integração SMTP transacional for habilitada (Fase 2).',
+  });
 });
 
 // ── GET /v1/admin/audit ───────────────────────────────────────────────────────

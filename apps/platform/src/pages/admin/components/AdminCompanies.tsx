@@ -158,32 +158,67 @@ export default function AdminCompanies() {
   const handleConfirmValidation = async (action: "approve" | "reject", motivo?: string) => {
     if (!validationModal) return;
     const { company } = validationModal;
-    const dbStatus = action === "approve" ? "aprovado" : "rejeitado";
-    const uiStatus: AdminCompany["status"] = action === "approve" ? "ativo" : "rejeitado";
-    const now = new Date().toISOString();
 
-    const { error } = await supabase
-      .from("empresa_pre_cadastros")
-      .update({ status: dbStatus, updated_at: now })
-      .eq("id", company.id);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token   = session?.access_token;
+      const API_URL = import.meta.env.VITE_API_URL ?? import.meta.env.PUBLIC_API_URL ?? "http://localhost:3000";
 
-    if (error) {
-      showToast("Erro ao salvar. Verifique a conexão e tente novamente.", "error");
-      return;
-    }
+      const endpoint = action === "approve"
+        ? `${API_URL}/v1/admin/companies/${company.id}/aprovar`
+        : `${API_URL}/v1/admin/companies/${company.id}/rejeitar`;
 
-    setCompanies((prev) =>
-      prev.map((c) =>
-        c.id === company.id ? { ...c, status: uiStatus, validadoEm: isoToBR(now), motivoRejeicao: motivo, senhaProvisoria: false } : c
-      )
-    );
-    setValidationModal(null);
-    setSelected(null);
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: action === "reject" ? JSON.stringify({ motivo: motivo ?? "" }) : undefined,
+      });
+      const json = await res.json().catch(() => ({}));
 
-    if (action === "approve") {
-      showToast(`Empresa "${company.name}" aprovada! Email de confirmação enviado para ${company.email}.`, "success");
-    } else {
-      showToast(`Empresa "${company.name}" rejeitada. Email de notificação enviado.`, "error");
+      if (!res.ok) {
+        // Erros conhecidos do backend
+        if (json.error === "NOT_ACTIVATED") {
+          showToast(json.message ?? "Empresa ainda não ativou o pré-cadastro. Use 'Reenviar e-mail de ativação'.", "error");
+        } else if (json.error === "ALREADY_APPROVED") {
+          showToast("Empresa já está aprovada.", "error");
+        } else if (json.error === "ALREADY_REJECTED") {
+          showToast("Empresa já está rejeitada.", "error");
+        } else if (json.error === "COMPANY_MISSING") {
+          showToast("Estado inconsistente — empresa ativou mas registro principal está faltando. Contate o desenvolvedor.", "error");
+        } else if (json.error === "MOTIVO_REQUIRED") {
+          showToast("Informe o motivo da rejeição.", "error");
+        } else {
+          showToast(json.message ?? json.error ?? "Erro ao processar. Tente novamente.", "error");
+        }
+        return;
+      }
+
+      const now      = new Date().toISOString();
+      const uiStatus: AdminCompany["status"] = action === "approve" ? "ativo" : "rejeitado";
+
+      setCompanies((prev) =>
+        prev.map((c) =>
+          c.id === company.id
+            ? { ...c, status: uiStatus, validadoEm: isoToBR(now), motivoRejeicao: motivo, senhaProvisoria: false }
+            : c,
+        ),
+      );
+      setValidationModal(null);
+      setSelected(null);
+
+      if (action === "approve") {
+        const promoted = typeof json.promoted_jobs_count === "number" ? json.promoted_jobs_count : 0;
+        const jobsMsg  = promoted > 0 ? ` ${promoted} vaga${promoted > 1 ? "s" : ""} ativada${promoted > 1 ? "s" : ""}.` : "";
+        // E-mail real depende da Fase 2 (SMTP transacional). Por enquanto registramos.
+        showToast(`Empresa "${company.name}" aprovada.${jobsMsg} (E-mail de notificação será enviado quando integração SMTP estiver disponível.)`, "success");
+      } else {
+        showToast(`Empresa "${company.name}" rejeitada. (E-mail de notificação será enviado quando integração SMTP estiver disponível.)`, "error");
+      }
+    } catch {
+      showToast("Não foi possível contatar a API. Verifique a conexão.", "error");
     }
   };
 
