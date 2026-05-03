@@ -16,42 +16,26 @@ const jobs = await getAllJobs();
 const featuredPosts = await getFeaturedPosts(3);
 const appUrl = import.meta.env.PUBLIC_APP_URL ?? 'https://app.santarem.app';
 
-// Mock fallback para quando o Supabase ainda não tiver vagas cadastradas
-const mockFallbackJobs = [
-  { id: '1', title: 'Auxiliar Administrativo', sector: 'Comércio', area: 'Administrativo', contractType: 'CLT', neighborhood: 'Centro', city: 'Santarém', state: 'PA', salaryRange: 'R$ 1.800 – R$ 2.200', description: 'Apoio em rotinas administrativas, controle de documentos e atendimento interno.', requirements: 'Ensino médio completo, pacote Office básico', tags: [], isActive: true, createdAt: '2026-04-10' },
-  { id: '2', title: 'Operador de Caixa', sector: 'Comércio', area: 'Varejo', contractType: 'CLT', neighborhood: 'Maracanã', city: 'Santarém', state: 'PA', salaryRange: 'R$ 1.600 – R$ 1.900', description: 'Atendimento ao cliente, operação de caixa e controle de troco.', requirements: 'Ensino médio completo, experiência em varejo', tags: [], isActive: true, createdAt: '2026-04-11' },
-  { id: '3', title: 'Motorista Entregador', sector: 'Logística', area: 'Logística', contractType: 'CLT', neighborhood: 'Jardim Santarém', city: 'Santarém', state: 'PA', salaryRange: 'R$ 2.200 – R$ 2.800', description: 'Entrega de mercadorias na região de Santarém, uso de aplicativo de rotas.', requirements: 'CNH B, experiência com entregas', tags: [], isActive: true, createdAt: '2026-04-12' },
-  { id: '4', title: 'Recepcionista', sector: 'Saúde', area: 'Atendimento', contractType: 'CLT', neighborhood: 'Aldeia', city: 'Santarém', state: 'PA', salaryRange: 'R$ 1.700 – R$ 2.100', description: 'Recepção de clientes, agendamentos e suporte à equipe administrativa.', requirements: 'Ensino médio completo, boa comunicação', tags: [], isActive: true, createdAt: '2026-04-12' },
-  { id: '5', title: 'Auxiliar de Limpeza', sector: 'Serviços', area: 'Serviços Gerais', contractType: 'CLT', neighborhood: 'Santa Clara', city: 'Santarém', state: 'PA', salaryRange: 'R$ 1.500 – R$ 1.700', description: 'Limpeza e conservação de ambientes comerciais e industriais.', requirements: 'Ensino fundamental, experiência na área', tags: [], isActive: true, createdAt: '2026-04-13' },
-  { id: '6', title: 'Vendedor Externo', sector: 'Comércio', area: 'Vendas', contractType: 'PJ', neighborhood: 'Aparecida', city: 'Santarém', state: 'PA', salaryRange: 'R$ 2.500 – R$ 4.000 + comissão', description: 'Prospecção e atendimento de clientes na região de Santarém, metas mensais.', requirements: 'Experiência em vendas externas, CNH', tags: [], isActive: true, createdAt: '2026-04-13' },
-  { id: '7', title: 'Técnico de Informática', sector: 'Tecnologia', area: 'TI', contractType: 'CLT', neighborhood: 'Centro', city: 'Santarém', state: 'PA', salaryRange: 'R$ 2.800 – R$ 3.500', description: 'Suporte técnico, manutenção de computadores e redes locais.', requirements: 'Curso técnico em TI, experiência em suporte', tags: [], isActive: true, createdAt: '2026-04-14' },
-  { id: '8', title: 'Cozinheiro(a)', sector: 'Alimentação', area: 'Alimentação', contractType: 'CLT', neighborhood: 'Maracanã', city: 'Santarém', state: 'PA', salaryRange: 'R$ 2.000 – R$ 2.600', description: 'Preparo de refeições para restaurante de médio porte, cardápio variado.', requirements: 'Experiência em cozinha, curso de gastronomia desejável', tags: [], isActive: true, createdAt: '2026-04-14' },
-];
+// Mocks REMOVIDOS em 2026-05-03 a pedido do PO. Agora a home reflete o estado
+// real do banco: vagas/contagens vêm exclusivamente de `jobs` (Supabase).
+// Empty state aparece quando ainda não há vagas reais cadastradas e aprovadas.
 
-const displayJobs = jobs.length > 0 ? jobs.slice(0, 8) : mockFallbackJobs;
-const totalJobCount = jobs.length > 0 ? jobs.length : 12;
+const displayJobs = jobs.slice(0, 8);
+const totalJobCount = jobs.length;
 
-// Contagem de vagas reais por setor — passada para a island SectorCards
-const rawSectorCounts = jobs.reduce((acc: Record<string, number>, job) => {
+// Contagem por setor a partir das vagas reais
+const sectorCounts = jobs.reduce((acc: Record<string, number>, job) => {
   if (job.sector) acc[job.sector] = (acc[job.sector] ?? 0) + 1;
   return acc;
 }, {});
 
-// Fallback mock para quando não há vagas no banco ainda
-const mockSectorCounts: Record<string, number> = {
-  'Comércio': 4, 'Logística': 2, 'Saúde': 1, 'Serviços': 1,
-  'Tecnologia': 1, 'Alimentação': 1, 'Construção Civil': 1, 'Indústria': 1,
-};
-
-const sectorCounts = jobs.length > 0 ? rawSectorCounts : mockSectorCounts;
-
-// Contagem de vagas por função/cargo — mesma lógica do filtro de JobsFilter
+// Contagem por função/cargo — mesma lógica do filtro de JobsFilter, sem fallback
 const FUNCOES_NAMES = [
   'Vendedor(a)', 'Auxiliar Administrativo', 'Recepcionista',
   'Operador de Caixa', 'Motorista/Entregador', 'Auxiliar de Limpeza',
   'Cozinheiro(a)', 'Manutenção/Eletricista',
 ];
-const rawFuncaoCounts = FUNCOES_NAMES.reduce((acc: Record<string, number>, funcao) => {
+const funcaoCounts = FUNCOES_NAMES.reduce((acc: Record<string, number>, funcao) => {
   const fq = funcao.toLowerCase().replace(/\(.*?\)/g, '').trim().replace(/\//g, ' ');
   acc[funcao] = jobs.filter(j =>
     j.title.toLowerCase().includes(fq.split(' ')[0]) ||
@@ -59,18 +43,14 @@ const rawFuncaoCounts = FUNCOES_NAMES.reduce((acc: Record<string, number>, funca
   ).length;
   return acc;
 }, {});
-const mockFuncaoCounts: Record<string, number> = {
-  'Vendedor(a)': 3, 'Auxiliar Administrativo': 2, 'Recepcionista': 1,
-  'Operador de Caixa': 1, 'Motorista/Entregador': 1, 'Auxiliar de Limpeza': 1,
-  'Cozinheiro(a)': 1, 'Manutenção/Eletricista': 1,
-};
-const funcaoCounts = jobs.length > 0 ? rawFuncaoCounts : mockFuncaoCounts;
 
+// Estatísticas — TODO Fase futura: conectar 'Candidatos', 'Empresas', 'Contratações'
+// a queries reais do Supabase em vez de strings estáticas.
 const stats = [
-  { label: 'Vagas Ativas', value: `${totalJobCount}+` },
-  { label: 'Candidatos Cadastrados', value: '8.500+' },
-  { label: 'Empresas Parceiras', value: '320+' },
-  { label: 'Contratações em 2026', value: '2.100+' },
+  { label: 'Vagas Ativas',           value: totalJobCount > 0 ? `${totalJobCount}+` : '0' },
+  { label: 'Candidatos Cadastrados', value: '—' },
+  { label: 'Empresas Parceiras',     value: '—' },
+  { label: 'Contratações em 2026',   value: '—' },
 ];
 
 const testimonials = [

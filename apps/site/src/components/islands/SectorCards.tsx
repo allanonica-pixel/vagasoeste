@@ -1,21 +1,30 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
-// Estados e cidades disponíveis na plataforma
+// Estados e cidades disponíveis na plataforma — TODO Fase 1.7: alimentar via /v1/regioes/cobertas
 const LOCATIONS: Record<string, string[]> = {
   Pará: ['Santarém'],
 };
 
-const SECTORS = [
-  { name: 'Saúde',            icon: 'ri-heart-pulse-line'        },
-  { name: 'Comércio',         icon: 'ri-store-2-line'             },
-  { name: 'Construção Civil', icon: 'ri-building-4-line'          },
-  { name: 'Serviços',         icon: 'ri-tools-line'               },
-  { name: 'Logística',        icon: 'ri-truck-line'               },
-  { name: 'Alimentação',      icon: 'ri-restaurant-line'          },
-  { name: 'Tecnologia',       icon: 'ri-computer-line'            },
-  { name: 'Indústria',        icon: 'ri-factory-line'             },
-];
+// Mapeamento de ícones por nome de setor (fallback pra ri-stack-line se não conhecido).
+// Setores cadastrados via Painel-admin não precisam estar aqui — recebem ícone genérico.
+const SECTOR_ICONS: Record<string, string> = {
+  'Saúde':            'ri-heart-pulse-line',
+  'Comércio':         'ri-store-2-line',
+  'Construção Civil': 'ri-building-4-line',
+  'Serviços':         'ri-tools-line',
+  'Logística':        'ri-truck-line',
+  'Alimentação':      'ri-restaurant-line',
+  'Tecnologia':       'ri-computer-line',
+  'Indústria':        'ri-factory-line',
+  'Educação':         'ri-graduation-cap-line',
+  'Agronegócio':      'ri-plant-line',
+};
 
+const DEFAULT_SECTOR_ICON = 'ri-stack-line';
+
+// TODO Fase 1.7: tornar Funções/Cargos dinâmicos também.
+// Por ora a lista é curadoria estática (cargos mais buscados no oeste do PA).
+// Decisão de produto pendente: virar tabela 'funcoes' no banco OU agregar de jobs.title?
 const FUNCOES = [
   { name: 'Vendedor(a)',              icon: 'ri-customer-service-2-line' },
   { name: 'Auxiliar Administrativo',  icon: 'ri-file-list-3-line'        },
@@ -29,15 +38,35 @@ const FUNCOES = [
 
 type Tab = 'setor' | 'funcao';
 
+interface SectorItem { name: string; icon: string; }
+
 interface SectorCardsProps {
+  /** Setores ativos vindos do banco (Painel-admin → Setores). Se vazio, mostra empty state. */
+  sectors?: Array<{ nome: string }>;
   sectorCounts?: Record<string, number>;
   funcaoCounts?: Record<string, number>;
 }
 
-export default function SectorCards({ sectorCounts = {}, funcaoCounts = {} }: SectorCardsProps) {
+export default function SectorCards({ sectors: initialSectors = [], sectorCounts = {}, funcaoCounts = {} }: SectorCardsProps) {
   const [activeTab, setActiveTab] = useState<Tab>('setor');
   const [modal, setModal] = useState<{ name: string; type: Tab } | null>(null);
   const [selectedEstado, setSelectedEstado] = useState('');
+  const [sectors, setSectors] = useState<Array<{ nome: string }>>(initialSectors);
+  const [loadingSectors, setLoadingSectors] = useState(initialSectors.length === 0);
+
+  // Busca setores reais do banco em tempo real (SectorCards é client-side, não SSG).
+  // Garante que admin cadastra setor novo no Painel-admin e ele aparece sem rebuild.
+  useEffect(() => {
+    if (initialSectors.length > 0) return;
+    const apiUrl = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3000';
+    fetch(`${apiUrl}/v1/setores`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data?.setores)) setSectors(data.setores);
+      })
+      .catch(() => { /* mantém empty state */ })
+      .finally(() => setLoadingSectors(false));
+  }, [initialSectors.length]);
 
   const estados = Object.keys(LOCATIONS);
   const cidades = selectedEstado ? (LOCATIONS[selectedEstado] ?? []) : [];
@@ -65,7 +94,14 @@ export default function SectorCards({ sectorCounts = {}, funcaoCounts = {} }: Se
     window.location.href = `/vagas?${params.toString()}`;
   };
 
-  const cards = activeTab === 'setor' ? SECTORS : FUNCOES;
+  // Setores reais cadastrados pelo admin (Painel-admin → Setores). Mapeamento
+  // de ícones por nome (fallback ri-stack-line pra setores novos).
+  const sectorsCards: SectorItem[] = sectors.map((s) => ({
+    name: s.nome,
+    icon: SECTOR_ICONS[s.nome] ?? DEFAULT_SECTOR_ICON,
+  }));
+
+  const cards: SectorItem[] = activeTab === 'setor' ? sectorsCards : FUNCOES;
 
   return (
     <>
@@ -93,6 +129,20 @@ export default function SectorCards({ sectorCounts = {}, funcaoCounts = {} }: Se
       </div>
 
       {/* ── Cards ── */}
+      {activeTab === 'setor' && loadingSectors ? (
+        <div className="bg-gray-50 border border-gray-200 rounded-xl p-8 text-center">
+          <i className="ri-loader-4-line text-3xl text-emerald-500 motion-safe:animate-spin block mx-auto" aria-hidden="true"></i>
+        </div>
+      ) : cards.length === 0 ? (
+        <div className="bg-gray-50 border border-gray-200 rounded-xl p-8 text-center">
+          <i className="ri-stack-line text-4xl text-gray-300 mb-3 block" aria-hidden="true"></i>
+          <p className="text-sm text-gray-500">
+            {activeTab === 'setor'
+              ? 'Setores ainda não cadastrados pela equipe.'
+              : 'Funções/cargos ainda não definidos.'}
+          </p>
+        </div>
+      ) : (
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {cards.map((card) => {
           const count = activeTab === 'setor'
@@ -123,6 +173,7 @@ export default function SectorCards({ sectorCounts = {}, funcaoCounts = {} }: Se
           );
         })}
       </div>
+      )}
 
       {/* ── Modal de seleção de localização ── */}
       {modal && (
