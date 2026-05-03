@@ -13,7 +13,7 @@ export default function NeighborhoodSection() {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-12">
           <div>
             <span className="text-emerald-600 text-xs font-semibold uppercase tracking-widest">Localização</span>
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mt-2">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mt-2 text-balance">
               Vagas por Bairro
             </h2>
             <p className="text-gray-700 text-sm mt-2 max-w-md">
@@ -21,12 +21,13 @@ export default function NeighborhoodSection() {
             </p>
           </div>
           <button
+            type="button"
             onClick={() => navigate("/vagas")}
             className="text-sm font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-1 cursor-pointer whitespace-nowrap"
           >
             Ver todos os bairros
-            <div className="w-4 h-4 flex items-center justify-center">
-              <i className="ri-arrow-right-line text-sm"></i>
+            <div className="size-4 flex items-center justify-center">
+              <i className="ri-arrow-right-line text-sm" aria-hidden="true"></i>
             </div>
           </button>
         </div>
@@ -52,8 +53,8 @@ export default function NeighborhoodSection() {
               {/* Default State */}
               <div className={`absolute inset-0 flex flex-col justify-end p-5 transition-opacity duration-300 ${hovered === neighborhood.name ? "opacity-0" : "opacity-100"}`}>
                 <div className="flex items-center gap-1 mb-1">
-                  <div className="w-4 h-4 flex items-center justify-center">
-                    <i className="ri-map-pin-line text-emerald-400 text-xs"></i>
+                  <div className="size-4 flex items-center justify-center">
+                    <i className="ri-map-pin-line text-emerald-400 text-xs" aria-hidden="true"></i>
                   </div>
                   <span className="text-white/70 text-xs">{neighborhood.jobCount} vagas</span>
                 </div>
@@ -62,8 +63,8 @@ export default function NeighborhoodSection() {
 
               {/* Hover State */}
               <div className={`absolute inset-0 flex flex-col items-center justify-center p-5 transition-opacity duration-300 ${hovered === neighborhood.name ? "opacity-100" : "opacity-0"}`}>
-                <div className="w-10 h-10 rounded-full bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center mb-3">
-                  <i className="ri-search-line text-emerald-300 text-sm"></i>
+                <div className="size-10 rounded-full bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center mb-3">
+                  <i className="ri-search-line text-emerald-300 text-sm" aria-hidden="true"></i>
                 </div>
                 <p className="text-white font-bold text-lg">{neighborhood.name}</p>
                 <p className="text-emerald-300 text-sm font-semibold mt-1">{neighborhood.jobCount} vagas disponíveis</p>
@@ -75,8 +76,8 @@ export default function NeighborhoodSection() {
 
         {/* Anonymous Notice */}
         <div className="mt-8 flex items-center gap-3 bg-emerald-50 border border-emerald-100 rounded-xl p-4">
-          <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-emerald-100">
-            <i className="ri-shield-check-line text-emerald-600 text-sm"></i>
+          <div className="size-8 flex items-center justify-center rounded-lg bg-emerald-100">
+            <i className="ri-shield-check-line text-emerald-600 text-sm" aria-hidden="true"></i>
           </div>
           <p className="text-sm text-emerald-800">
             <strong>Processo seguro:</strong> O nome da empresa só é revelado após você ser selecionado para a vaga. Seu processo seletivo é conduzido pela equipe VagasOeste.

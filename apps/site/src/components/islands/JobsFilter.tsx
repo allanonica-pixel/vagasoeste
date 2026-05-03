@@ -60,11 +60,12 @@ function ActivePill({ label, onRemove }: { label: string; onRemove: () => void }
     <span className="inline-flex items-center gap-1 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-medium px-2.5 py-1 rounded-full">
       {label}
       <button
+        type="button"
         onClick={onRemove}
         className="ml-0.5 text-emerald-500 hover:text-emerald-700 cursor-pointer"
         aria-label={`Remover filtro ${label}`}
       >
-        <i className="ri-close-line text-xs"></i>
+        <i className="ri-close-line text-xs" aria-hidden="true"></i>
       </button>
     </span>
   );
@@ -208,14 +209,15 @@ export default function JobsFilter({
       {hasLocationFilter && (
         <div className="bg-emerald-800 -mx-4 md:-mx-6 px-4 md:px-6 py-2.5 mb-4 flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2 flex-wrap">
-            <i className="ri-filter-line text-emerald-300 text-xs"></i>
+            <i className="ri-filter-line text-emerald-300 text-xs" aria-hidden="true"></i>
             <span className="text-white/90 text-xs font-medium">{filterBreadcrumb}</span>
           </div>
           <button
+            type="button"
             onClick={goHome}
             className="flex items-center gap-1.5 text-xs text-emerald-300 hover:text-white transition-colors cursor-pointer whitespace-nowrap"
           >
-            <i className="ri-close-circle-line text-sm"></i>
+            <i className="ri-close-circle-line text-sm" aria-hidden="true"></i>
             Limpar Filtros
           </button>
         </div>
@@ -224,7 +226,7 @@ export default function JobsFilter({
       {/* Barra principal: Estado · Cidade · Setor */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3">
         <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-lg px-3 py-2.5">
-          <i className="ri-map-pin-line text-emerald-600 text-sm shrink-0"></i>
+          <i className="ri-map-pin-line text-emerald-600 text-sm shrink-0" aria-hidden="true"></i>
           <select
             value={estado}
             onChange={handleEstadoChange}
@@ -239,7 +241,7 @@ export default function JobsFilter({
         </div>
 
         <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-lg px-3 py-2.5">
-          <i className="ri-building-2-line text-emerald-600 text-sm shrink-0"></i>
+          <i className="ri-building-2-line text-emerald-600 text-sm shrink-0" aria-hidden="true"></i>
           <select
             value={cidade}
             onChange={(e) => setCidade(e.target.value)}
@@ -255,7 +257,7 @@ export default function JobsFilter({
         </div>
 
         <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-lg px-3 py-2.5">
-          <i className="ri-briefcase-line text-emerald-600 text-sm shrink-0"></i>
+          <i className="ri-briefcase-line text-emerald-600 text-sm shrink-0" aria-hidden="true"></i>
           <select
             value={sector}
             onChange={(e) => setSector(e.target.value)}
@@ -273,7 +275,7 @@ export default function JobsFilter({
       {/* Busca + Mais Filtros + Ordenação */}
       <div className="flex flex-col sm:flex-row gap-2 mb-3">
         <div className="flex-1 flex items-center gap-2 bg-white border border-gray-200 rounded-lg px-3 py-2.5">
-          <i className="ri-search-line text-gray-400 text-sm shrink-0"></i>
+          <i className="ri-search-line text-gray-400 text-sm shrink-0" aria-hidden="true"></i>
           <input
             type="text"
             value={query}
@@ -283,14 +285,15 @@ export default function JobsFilter({
             aria-label="Buscar vagas"
           />
           {query && (
-            <button onClick={() => setQuery('')} className="text-gray-400 hover:text-gray-600 cursor-pointer">
-              <i className="ri-close-line text-sm"></i>
+            <button type="button" onClick={() => setQuery('')} className="text-gray-400 hover:text-gray-600 cursor-pointer">
+              <i className="ri-close-line text-sm" aria-hidden="true"></i>
             </button>
           )}
         </div>
 
         {/* Botão Mais Filtros — quando ativo mostra "Limpar filtro" */}
         <button
+          type="button"
           onClick={() => {
             if (showFilters && hasContentFilters) {
               clearContentFilters();
@@ -304,7 +307,7 @@ export default function JobsFilter({
               : 'border-gray-200 text-gray-700 hover:bg-gray-50'
           }`}
         >
-          <i className="ri-filter-3-line"></i>
+          <i className="ri-filter-3-line" aria-hidden="true"></i>
           Mais filtros
           {showFilters ? (
             <span className="border-l border-emerald-300 pl-2 text-xs font-semibold text-emerald-600">
@@ -333,7 +336,7 @@ export default function JobsFilter({
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1.5">Função / Cargo</label>
             <div className="relative">
-              <i className="ri-user-search-line absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+              <i className="ri-user-search-line absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" aria-hidden="true"></i>
               <input
                 type="text"
                 value={funcao}
@@ -343,10 +346,11 @@ export default function JobsFilter({
               />
               {funcao && (
                 <button
+                  type="button"
                   onClick={() => setFuncao('')}
                   className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
                 >
-                  <i className="ri-close-line text-sm"></i>
+                  <i className="ri-close-line text-sm" aria-hidden="true"></i>
                 </button>
               )}
             </div>
@@ -374,7 +378,7 @@ export default function JobsFilter({
                   requiresCnh ? 'bg-emerald-600 border-emerald-600' : 'border-gray-300'
                 }`}
               >
-                {requiresCnh && <i className="ri-check-line text-white text-xs"></i>}
+                {requiresCnh && <i className="ri-check-line text-white text-xs" aria-hidden="true"></i>}
               </div>
               <input
                 type="checkbox"
@@ -416,6 +420,7 @@ export default function JobsFilter({
       {/* ── MOBILE: barra colapsável de filtros ────────────────────────── */}
       <div className="sm:hidden mb-4">
         <button
+          type="button"
           onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)}
           className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border text-sm font-medium transition-colors ${
             activeFilterCount > 0
@@ -424,7 +429,7 @@ export default function JobsFilter({
           }`}
         >
           <div className="flex items-center gap-2">
-            <i className="ri-filter-3-line"></i>
+            <i className="ri-filter-3-line" aria-hidden="true"></i>
             <span>
               {activeFilterCount > 0
                 ? `Filtros (${activeFilterCount} ativo${activeFilterCount > 1 ? 's' : ''})`
@@ -434,13 +439,14 @@ export default function JobsFilter({
           <div className="flex items-center gap-3">
             {activeFilterCount > 0 && (
               <button
+                type="button"
                 onClick={(e) => { e.stopPropagation(); clearAllFilters(); }}
                 className="text-xs text-emerald-600 font-semibold underline cursor-pointer"
               >
                 Limpar
               </button>
             )}
-            <i className={`ri-arrow-${mobileFiltersOpen ? 'up' : 'down'}-s-line text-base`}></i>
+            <i className={`ri-arrow-${mobileFiltersOpen ? 'up' : 'down'}-s-line text-base`} aria-hidden="true"></i>
           </div>
         </button>
 
@@ -471,10 +477,11 @@ export default function JobsFilter({
         </p>
         {hasAnyFilter && (
           <button
+            type="button"
             onClick={clearAllFilters}
             className="text-xs text-emerald-600 hover:text-emerald-700 font-medium flex items-center gap-1 cursor-pointer"
           >
-            <i className="ri-close-circle-line"></i>
+            <i className="ri-close-circle-line" aria-hidden="true"></i>
             Limpar filtros
           </button>
         )}
@@ -483,10 +490,11 @@ export default function JobsFilter({
       {/* ── Grid de vagas ── */}
       {filtered.length === 0 ? (
         <div className="text-center py-16">
-          <i className="ri-search-line text-4xl text-gray-300 mb-3 block"></i>
+          <i className="ri-search-line text-4xl text-gray-300 mb-3 block" aria-hidden="true"></i>
           <p className="text-gray-500 font-medium">Nenhuma vaga encontrada</p>
           <p className="text-gray-400 text-sm mt-1 mb-4">Tente outros filtros ou palavras-chave</p>
           <button
+            type="button"
             onClick={clearAllFilters}
             className="text-sm text-emerald-600 font-medium hover:underline cursor-pointer"
           >
@@ -499,11 +507,11 @@ export default function JobsFilter({
             <a
               key={job.id}
               href={`/vagas/${job.id}`}
-              className="block bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all hover:-translate-y-0.5 p-4 sm:p-5 no-underline group"
+              className="block bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:border-emerald-200 transition-shadow hover:-translate-y-0.5 p-4 sm:p-5 no-underline group"
             >
               {/* Título + área */}
               <div className="mb-3">
-                <h2 className="font-bold text-gray-900 text-base leading-tight mb-0.5 line-clamp-2">
+                <h2 className="font-bold text-gray-900 text-base leading-tight mb-0.5 line-clamp-2 text-balance">
                   {job.title}
                 </h2>
                 <p className="text-sm text-gray-500">{job.area}</p>
@@ -520,12 +528,12 @@ export default function JobsFilter({
 
               <div className="flex flex-wrap gap-x-4 gap-y-1.5 mb-3 text-sm text-gray-500">
                 <span className="flex items-center gap-1">
-                  <i className="ri-map-pin-line text-emerald-500"></i>
+                  <i className="ri-map-pin-line text-emerald-500" aria-hidden="true"></i>
                   {job.neighborhood}, {job.city}
                 </span>
                 {job.salaryRange && (
                   <span className="flex items-center gap-1 font-bold text-gray-900">
-                    <i className="ri-money-dollar-circle-line text-emerald-500"></i>
+                    <i className="ri-money-dollar-circle-line text-emerald-500" aria-hidden="true"></i>
                     {job.salaryRange}
                   </span>
                 )}
@@ -537,12 +545,12 @@ export default function JobsFilter({
 
               <div className="flex items-center justify-between">
                 <span className="text-xs text-gray-400 flex items-center gap-1">
-                  <i className="ri-time-line text-xs"></i>
+                  <i className="ri-time-line text-xs" aria-hidden="true"></i>
                   {timeAgo(job.createdAt)}
                 </span>
                 <span className="text-sm font-semibold text-emerald-600 group-hover:underline flex items-center gap-1 transition-colors">
                   Ver detalhes
-                  <i className="ri-arrow-right-line"></i>
+                  <i className="ri-arrow-right-line" aria-hidden="true"></i>
                 </span>
               </div>
             </a>

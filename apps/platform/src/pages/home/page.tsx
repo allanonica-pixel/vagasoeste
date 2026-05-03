@@ -11,7 +11,7 @@ import CTASection from "./components/CTASection";
 
 export default function Home() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-dvh">
       <Navbar />
       <main>
         {/* 1. Hero com busca */}

@@ -27,18 +27,18 @@ export default function TestimonialsSlider({ testimonials }: TestimonialsSliderP
         {testimonials.map((t, i) => (
           <div
             key={t.id}
-            className={`bg-white rounded-xl p-6 shadow-sm border border-gray-100 transition-all duration-300 ${
+            className={`bg-white rounded-xl p-6 shadow-sm border border-gray-100 transition-colors duration-300 ${
               i === current ? 'ring-2 ring-emerald-200' : ''
             } md:opacity-100 ${i !== current ? 'hidden md:block' : ''}`}
           >
             <div className="flex items-center gap-1 mb-3">
               {[...Array(5)].map((_, star) => (
-                <i key={star} className="ri-star-fill text-amber-400 text-sm"></i>
+                <i key={star} className="ri-star-fill text-amber-400 text-sm" aria-hidden="true"></i>
               ))}
             </div>
-            <p className="text-gray-600 text-sm leading-relaxed mb-5 italic">"{t.text}"</p>
+            <p className="text-gray-600 text-sm leading-relaxed mb-5 italic text-pretty">"{t.text}"</p>
             <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-full ${t.color} flex items-center justify-center shrink-0`}>
+              <div className={`size-10 rounded-full ${t.color} flex items-center justify-center shrink-0`}>
                 <span className="text-white text-xs font-bold">{t.initials}</span>
               </div>
               <div>
@@ -53,28 +53,31 @@ export default function TestimonialsSlider({ testimonials }: TestimonialsSliderP
       {/* Controles Mobile */}
       <div className="md:hidden flex items-center justify-center gap-4 mt-4">
         <button
+          type="button"
           onClick={prev}
-          className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-50"
+          className="size-9 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-50"
           aria-label="Depoimento anterior"
         >
-          <i className="ri-arrow-left-s-line text-xl"></i>
+          <i className="ri-arrow-left-s-line text-xl" aria-hidden="true"></i>
         </button>
         <div className="flex gap-1.5">
           {testimonials.map((_, i) => (
             <button
               key={i}
+              type="button"
               onClick={() => setCurrent(i)}
-              className={`w-2 h-2 rounded-full transition-colors ${i === current ? 'bg-emerald-600' : 'bg-gray-300'}`}
+              className={`size-2 rounded-full transition-colors ${i === current ? 'bg-emerald-600' : 'bg-gray-300'}`}
               aria-label={`Ir para depoimento ${i + 1}`}
             />
           ))}
         </div>
         <button
+          type="button"
           onClick={next}
-          className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-50"
+          className="size-9 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-50"
           aria-label="Próximo depoimento"
         >
-          <i className="ri-arrow-right-s-line text-xl"></i>
+          <i className="ri-arrow-right-s-line text-xl" aria-hidden="true"></i>
         </button>
       </div>
     </div>

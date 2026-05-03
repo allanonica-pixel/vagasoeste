@@ -22,6 +22,7 @@ import BlogPage from "../pages/blog/page";
 import BlogPostPage from "../pages/blog/post";
 import EsqueciSenhaPage from "../pages/esqueci-senha/page";
 import RedefinirSenhaPage from "../pages/redefinir-senha/page";
+import ConfirmacaoEmailPage from "../pages/confirmacao-email/page";
 
 const routes: RouteObject[] = [
   // ── Públicas ────────────────────────────────────────────────
@@ -41,6 +42,7 @@ const routes: RouteObject[] = [
   { path: "/blog/:slug", element: <BlogPostPage /> },
   { path: "/esqueci-senha", element: <EsqueciSenhaPage /> },
   { path: "/redefinir-senha", element: <RedefinirSenhaPage /> },
+  { path: "/confirmacao-email", element: <ConfirmacaoEmailPage /> },
 
   // ── Candidato ───────────────────────────────────────────────
   {

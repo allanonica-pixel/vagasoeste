@@ -190,13 +190,13 @@ export default function AcessoRestritoPage() {
   // ──────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center px-4">
+    <div className="min-h-dvh bg-gray-950 flex flex-col items-center justify-center px-4">
       <div className="w-full max-w-sm">
 
         {/* Logo minimalista */}
         <div className="flex justify-center mb-8">
-          <div className="w-12 h-12 rounded-xl bg-gray-800 border border-gray-700 flex items-center justify-center">
-            <i className={`${step === "credentials" ? "ri-shield-keyhole-line" : "ri-smartphone-line"} text-gray-400 text-xl`}></i>
+          <div className="size-12 rounded-xl bg-gray-800 border border-gray-700 flex items-center justify-center">
+            <i className={`${step === "credentials" ? "ri-shield-keyhole-line" : "ri-smartphone-line"} text-gray-400 text-xl`} aria-hidden="true"></i>
           </div>
         </div>
 
@@ -237,9 +237,10 @@ export default function AcessoRestritoPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-500 hover:text-gray-300"
+                    type="button"
+      className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-500 hover:text-gray-300"
                   >
-                    <i className={`${showPassword ? "ri-eye-off-line" : "ri-eye-line"} text-sm`}></i>
+                    <i className={`${showPassword ? "ri-eye-off-line" : "ri-eye-line"} text-sm`} aria-hidden="true"></i>
                   </button>
                 </div>
               </div>
@@ -339,6 +340,7 @@ export default function AcessoRestritoPage() {
             </form>
 
             <button
+              type="button"
               onClick={() => { setStep("credentials"); setTotpCode(""); setError(""); }}
               className="mt-4 w-full text-center text-xs text-gray-600 hover:text-gray-400 cursor-pointer transition-colors"
             >
@@ -362,7 +364,7 @@ export default function AcessoRestritoPage() {
 function ErrorBox({ message }: { message: string }) {
   return (
     <div className="bg-red-950 border border-red-900 rounded-lg px-4 py-3 flex items-center gap-2">
-      <i className="ri-error-warning-line text-red-400 text-sm shrink-0"></i>
+      <i className="ri-error-warning-line text-red-400 text-sm shrink-0" aria-hidden="true"></i>
       <p className="text-red-400 text-xs">{message}</p>
     </div>
   );
@@ -383,11 +385,11 @@ function SubmitButton({
     <button
       type="submit"
       disabled={loading || blocked}
-      className="w-full bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed text-gray-200 font-semibold py-2.5 rounded-xl text-sm transition-all cursor-pointer"
+      className="w-full bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed text-gray-200 font-semibold py-2.5 rounded-xl text-sm transition-colors cursor-pointer"
     >
       {loading ? (
         <span className="flex items-center justify-center gap-2">
-          <i className="ri-loader-4-line animate-spin text-sm"></i>
+          <i className="ri-loader-4-line motion-safe:animate-spin text-sm" aria-hidden="true"></i>
           {loadingLabel}
         </span>
       ) : blocked ? (

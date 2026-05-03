@@ -42,7 +42,7 @@ export default function TestimonialsSection() {
           <p className="text-xs font-semibold text-emerald-600 uppercase tracking-wide mb-1">
             Histórias reais
           </p>
-          <h2 className="text-2xl font-bold text-gray-900">O que dizem nossos candidatos</h2>
+          <h2 className="text-2xl font-bold text-gray-900 text-balance">O que dizem nossos candidatos</h2>
         </div>
 
         {/* Testimonial Card */}
@@ -51,17 +51,17 @@ export default function TestimonialsSection() {
             {/* Stars */}
             <div className="flex gap-1 mb-6">
               {[1, 2, 3, 4, 5].map((s) => (
-                <i key={s} className="ri-star-fill text-amber-400 text-base"></i>
+                <i key={s} className="ri-star-fill text-amber-400 text-base" aria-hidden="true"></i>
               ))}
             </div>
 
             {/* Quote */}
-            <p className="text-gray-800 text-lg leading-relaxed italic mb-8">"{t.text}"</p>
+            <p className="text-gray-800 text-lg leading-relaxed italic mb-8 text-pretty">"{t.text}"</p>
 
             {/* Author */}
             <div className="flex items-center gap-4">
               <div
-                className={`w-12 h-12 rounded-full ${t.color} flex items-center justify-center shrink-0`}
+                className={`size-12 rounded-full ${t.color} flex items-center justify-center shrink-0`}
               >
                 <span className="text-white font-bold text-sm">{t.initials}</span>
               </div>
@@ -75,16 +75,20 @@ export default function TestimonialsSection() {
               {/* Navigation */}
               <div className="ml-auto flex items-center gap-2">
                 <button
+                  type="button"
                   onClick={() => setActive((p) => (p - 1 + testimonials.length) % testimonials.length)}
-                  className="w-9 h-9 flex items-center justify-center rounded-full border border-gray-200 hover:border-emerald-300 text-gray-500 hover:text-emerald-600 transition-colors cursor-pointer"
+                  className="size-9 flex items-center justify-center rounded-full border border-gray-200 hover:border-emerald-300 text-gray-500 hover:text-emerald-600 transition-colors cursor-pointer"
+                  aria-label="Depoimento anterior"
                 >
-                  <i className="ri-arrow-left-line text-sm"></i>
+                  <i className="ri-arrow-left-line text-sm" aria-hidden="true"></i>
                 </button>
                 <button
+                  type="button"
                   onClick={() => setActive((p) => (p + 1) % testimonials.length)}
-                  className="w-9 h-9 flex items-center justify-center rounded-full bg-emerald-600 hover:bg-emerald-700 text-white transition-colors cursor-pointer"
+                  className="size-9 flex items-center justify-center rounded-full bg-emerald-600 hover:bg-emerald-700 text-white transition-colors cursor-pointer"
+                  aria-label="Próximo depoimento"
                 >
-                  <i className="ri-arrow-right-line text-sm"></i>
+                  <i className="ri-arrow-right-line text-sm" aria-hidden="true"></i>
                 </button>
               </div>
             </div>
@@ -95,8 +99,10 @@ export default function TestimonialsSection() {
             {testimonials.map((_, i) => (
               <button
                 key={i}
+                type="button"
                 onClick={() => setActive(i)}
-                className={`rounded-full transition-all cursor-pointer ${
+                aria-label={`Ir para depoimento ${i + 1}`}
+                className={`rounded-full transition-colors cursor-pointer ${
                   i === active ? "w-6 h-2 bg-emerald-600" : "w-2 h-2 bg-gray-300"
                 }`}
               />

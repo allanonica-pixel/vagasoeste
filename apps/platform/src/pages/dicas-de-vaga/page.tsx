@@ -211,7 +211,7 @@ export default function DicasDeVagaPage() {
   const relatedPosts = mockBlogPosts.slice(0, 3);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-dvh bg-gray-50">
       <Navbar />
 
       {/* Hero */}
@@ -227,15 +227,15 @@ export default function DicasDeVagaPage() {
         <div className="relative z-10 max-w-5xl mx-auto px-4 md:px-6 py-20 text-center">
           <AnimatedSection variant="fade-up">
             <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-4 py-1.5 mb-5">
-              <div className="w-4 h-4 flex items-center justify-center">
-                <i className="ri-lightbulb-flash-line text-yellow-300 text-sm"></i>
+              <div className="size-4 flex items-center justify-center">
+                <i className="ri-lightbulb-flash-line text-yellow-300 text-sm" aria-hidden="true"></i>
               </div>
               <span className="text-white/90 text-xs font-medium">Conteúdo gratuito para sua carreira em Santarém</span>
             </div>
-            <h1 className="text-3xl md:text-5xl font-bold text-white mb-4 leading-tight">
+            <h1 className="text-3xl md:text-5xl font-bold text-white mb-4 leading-tight text-balance">
               Dicas de Vaga
             </h1>
-            <p className="text-white/80 text-base md:text-lg max-w-2xl mx-auto leading-relaxed mb-8">
+            <p className="text-white/80 text-base md:text-lg max-w-2xl mx-auto leading-relaxed mb-8 text-pretty">
               Orientações práticas para você se destacar no mercado de trabalho de Santarém e conquistar a vaga dos seus sonhos.
             </p>
           </AnimatedSection>
@@ -245,8 +245,8 @@ export default function DicasDeVagaPage() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto">
               {marketStats.map((stat) => (
                 <div key={stat.label} className="bg-white/10 border border-white/15 rounded-xl p-3 text-center">
-                  <div className="w-8 h-8 flex items-center justify-center mx-auto mb-1">
-                    <i className={`${stat.icon} text-white text-lg`}></i>
+                  <div className="size-8 flex items-center justify-center mx-auto mb-1">
+                    <i className={`${stat.icon} text-white text-lg`} aria-hidden="true"></i>
                   </div>
                   <p className="text-xl font-bold text-white">{stat.value}</p>
                   <p className="text-white/60 text-xs mt-0.5">{stat.label}</p>
@@ -261,15 +261,15 @@ export default function DicasDeVagaPage() {
       <section className="max-w-7xl mx-auto px-4 md:px-6 py-14">
         <AnimatedSection variant="fade-up" className="mb-8">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-8 h-8 flex items-center justify-center bg-emerald-100 rounded-lg">
-              <i className="ri-map-pin-2-line text-emerald-600"></i>
+            <div className="size-8 flex items-center justify-center bg-emerald-100 rounded-lg">
+              <i className="ri-map-pin-2-line text-emerald-600" aria-hidden="true"></i>
             </div>
             <span className="text-emerald-600 text-xs font-semibold uppercase tracking-widest">Mercado Local</span>
           </div>
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 text-balance">
             Setores que mais contratam em Santarém
           </h2>
-          <p className="text-gray-700 text-sm mt-2 max-w-2xl">
+          <p className="text-gray-700 text-sm mt-2 max-w-2xl text-pretty">
             Entenda o cenário atual do mercado de trabalho na região oeste do Pará e saiba onde estão as melhores oportunidades.
           </p>
         </AnimatedSection>
@@ -277,10 +277,10 @@ export default function DicasDeVagaPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {santaremSectors.map((sector, index) => (
             <AnimatedSection key={sector.sector} variant="fade-up" delay={index * 80}>
-              <div className="bg-white rounded-xl border border-gray-100 p-5 hover:border-emerald-200 transition-all h-full">
+              <div className="bg-white rounded-xl border border-gray-100 p-5 hover:border-emerald-200 transition-colors h-full">
                 <div className="flex items-start gap-3 mb-3">
-                  <div className="w-10 h-10 flex items-center justify-center bg-emerald-50 rounded-lg shrink-0">
-                    <i className={`${sector.icon} text-emerald-600 text-lg`}></i>
+                  <div className="size-10 flex items-center justify-center bg-emerald-50 rounded-lg shrink-0">
+                    <i className={`${sector.icon} text-emerald-600 text-lg`} aria-hidden="true"></i>
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
@@ -310,19 +310,19 @@ export default function DicasDeVagaPage() {
         <div className="max-w-7xl mx-auto px-4 md:px-6">
           <AnimatedSection variant="fade-up" className="mb-8">
             <span className="text-emerald-600 text-xs font-semibold uppercase tracking-widest">Destaques</span>
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mt-1">Dicas mais acessadas</h2>
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mt-1 text-balance">Dicas mais acessadas</h2>
           </AnimatedSection>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {featured.map((tip, index) => (
               <AnimatedSection key={tip.id} variant="fade-up" delay={index * 80}>
                 <div
-                  className="rounded-xl border p-5 cursor-pointer hover:border-emerald-300 transition-all h-full"
+                  className="rounded-xl border p-5 cursor-pointer hover:border-emerald-300 transition-colors h-full"
                   style={{ borderColor: "#e5e7eb" }}
                   onClick={() => setExpandedTip(expandedTip === tip.id ? null : tip.id)}
                 >
                   <div className="flex items-start gap-3 mb-3">
-                    <div className={`w-10 h-10 flex items-center justify-center rounded-lg shrink-0 border ${tip.color}`}>
-                      <i className={`${tip.icon} text-lg`}></i>
+                    <div className={`size-10 flex items-center justify-center rounded-lg shrink-0 border ${tip.color}`}>
+                      <i className={`${tip.icon} text-lg`} aria-hidden="true"></i>
                     </div>
                     <div>
                       <span className="text-xs font-medium text-emerald-600 uppercase tracking-wide">
@@ -334,7 +334,7 @@ export default function DicasDeVagaPage() {
                   <p className="text-xs text-gray-600 leading-relaxed mb-3">{tip.summary}</p>
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-gray-400 flex items-center gap-1">
-                      <i className="ri-time-line"></i> {tip.readTime} de leitura
+                      <i className="ri-time-line" aria-hidden="true"></i> {tip.readTime} de leitura
                     </span>
                     <span className="text-xs text-emerald-600 font-medium">
                       {expandedTip === tip.id ? "Fechar ▲" : "Ler dica ▼"}
@@ -346,7 +346,7 @@ export default function DicasDeVagaPage() {
                         {tip.content.map((item, i) => (
                           <li key={i} className="flex items-start gap-2 text-xs text-gray-700">
                             <div className="w-4 h-4 flex items-center justify-center shrink-0 mt-0.5">
-                              <i className="ri-checkbox-circle-line text-emerald-500"></i>
+                              <i className="ri-checkbox-circle-line text-emerald-500" aria-hidden="true"></i>
                             </div>
                             {item}
                           </li>
@@ -364,13 +364,14 @@ export default function DicasDeVagaPage() {
       {/* All Tips */}
       <section className="max-w-7xl mx-auto px-4 md:px-6 py-14">
         <AnimatedSection variant="fade-up" className="mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Todas as Dicas</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 text-balance">Todas as Dicas</h2>
           {/* Category Filter */}
           <div className="flex items-center gap-2 flex-wrap">
             {categories.map((cat) => (
               <button
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
+                type="button"
                 className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors cursor-pointer whitespace-nowrap ${
                   activeCategory === cat.id
                     ? "bg-emerald-600 text-white"
@@ -387,12 +388,12 @@ export default function DicasDeVagaPage() {
           {filtered.map((tip, index) => (
             <AnimatedSection key={tip.id} variant="fade-up" delay={index * 60}>
               <div
-                className="bg-white rounded-xl border border-gray-100 p-5 cursor-pointer hover:border-emerald-200 transition-all h-full"
+                className="bg-white rounded-xl border border-gray-100 p-5 cursor-pointer hover:border-emerald-200 transition-colors h-full"
                 onClick={() => setExpandedTip(expandedTip === tip.id ? null : tip.id)}
               >
                 <div className="flex items-start gap-3">
-                  <div className={`w-9 h-9 flex items-center justify-center rounded-lg shrink-0 border ${tip.color}`}>
-                    <i className={`${tip.icon}`}></i>
+                  <div className={`size-9 flex items-center justify-center rounded-lg shrink-0 border ${tip.color}`}>
+                    <i className={`${tip.icon}`} aria-hidden="true"></i>
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2 mb-1">
@@ -400,7 +401,7 @@ export default function DicasDeVagaPage() {
                         {categories.find((c) => c.id === tip.category)?.label}
                       </span>
                       <span className="text-xs text-gray-400 flex items-center gap-1 shrink-0">
-                        <i className="ri-time-line"></i> {tip.readTime}
+                        <i className="ri-time-line" aria-hidden="true"></i> {tip.readTime}
                       </span>
                     </div>
                     <h3 className="text-sm font-semibold text-gray-900 leading-snug mb-1">{tip.title}</h3>
@@ -414,7 +415,7 @@ export default function DicasDeVagaPage() {
                       {tip.content.map((item, i) => (
                         <li key={i} className="flex items-start gap-2 text-xs text-gray-700">
                           <div className="w-4 h-4 flex items-center justify-center shrink-0 mt-0.5">
-                            <i className="ri-checkbox-circle-line text-emerald-500"></i>
+                            <i className="ri-checkbox-circle-line text-emerald-500" aria-hidden="true"></i>
                           </div>
                           {item}
                         </li>
@@ -440,8 +441,8 @@ export default function DicasDeVagaPage() {
           <AnimatedSection variant="fade-up" className="flex items-end justify-between mb-8">
             <div>
               <span className="text-emerald-600 text-xs font-semibold uppercase tracking-widest">Do Blog VagasOeste</span>
-              <h2 className="text-2xl font-bold text-gray-900 mt-1">Artigos relacionados</h2>
-              <p className="text-gray-700 text-sm mt-1">Aprofunde seu conhecimento com nossos artigos completos</p>
+              <h2 className="text-2xl font-bold text-gray-900 mt-1 text-balance">Artigos relacionados</h2>
+              <p className="text-gray-700 text-sm mt-1 text-pretty">Aprofunde seu conhecimento com nossos artigos completos</p>
             </div>
             <Link
               to="/blog"
@@ -459,13 +460,13 @@ export default function DicasDeVagaPage() {
               <AnimatedSection key={post.id} variant="fade-up" delay={index * 80}>
                 <Link
                   to={`/blog/${post.slug}`}
-                  className="group bg-gray-50 rounded-xl border border-gray-100 overflow-hidden hover:border-emerald-200 transition-all cursor-pointer block h-full"
+                  className="group bg-gray-50 rounded-xl border border-gray-100 overflow-hidden hover:border-emerald-200 transition-colors cursor-pointer block h-full"
                 >
                   <div className="w-full h-40 overflow-hidden">
                     <img
                       src={post.coverImage}
                       alt={post.title}
-                      className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
+                      className="w-full h-full object-cover object-top motion-safe:group-hover:scale-105 transition-transform duration-500"
                     />
                   </div>
                   <div className="p-4">
@@ -499,8 +500,8 @@ export default function DicasDeVagaPage() {
         </div>
         <div className="relative z-10 max-w-3xl mx-auto px-4 md:px-6 py-14 text-center">
           <AnimatedSection variant="fade-up">
-            <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">Pronto para se candidatar?</h2>
-            <p className="text-white/80 text-sm mb-6 max-w-xl mx-auto">
+            <h2 className="text-2xl md:text-3xl font-bold text-white mb-3 text-balance">Pronto para se candidatar?</h2>
+            <p className="text-white/80 text-sm mb-6 max-w-xl mx-auto text-pretty">
               Aplique essas dicas e candidate-se às vagas disponíveis em Santarém agora mesmo. Mais de 1.240 oportunidades esperando por você.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -508,14 +509,14 @@ export default function DicasDeVagaPage() {
                 to="/vagas"
                 className="bg-white text-emerald-700 font-semibold px-6 py-2.5 rounded-lg hover:bg-emerald-50 transition-colors cursor-pointer whitespace-nowrap text-sm"
               >
-                <i className="ri-briefcase-line mr-2"></i>
+                <i className="ri-briefcase-line mr-2" aria-hidden="true"></i>
                 Ver Vagas Disponíveis
               </Link>
               <Link
                 to="/crie-seu-curriculo"
                 className="border border-white/40 text-white font-semibold px-6 py-2.5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer whitespace-nowrap text-sm"
               >
-                <i className="ri-file-text-line mr-2"></i>
+                <i className="ri-file-text-line mr-2" aria-hidden="true"></i>
                 Criar meu Currículo
               </Link>
             </div>

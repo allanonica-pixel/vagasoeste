@@ -34,10 +34,10 @@ export default function AffiliateSection() {
           <p className="text-xs font-semibold text-emerald-600 uppercase tracking-wide mb-1">
             Desenvolvimento profissional
           </p>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2 text-balance">
             Aumente suas chances com cursos
           </h2>
-          <p className="text-sm text-gray-500 max-w-md mx-auto">
+          <p className="text-sm text-gray-500 max-w-md mx-auto text-pretty">
             Candidatos com certificações têm até{" "}
             <strong>3x mais chances</strong> de serem selecionados.
           </p>
@@ -58,7 +58,7 @@ export default function AffiliateSection() {
                 <div
                   className={`w-full h-44 bg-gradient-to-br ${course.gradient} flex items-center justify-center transition-opacity duration-300 group-hover:opacity-90`}
                 >
-                  <i className={`${course.icon} text-5xl text-white/70`}></i>
+                  <i className={`${course.icon} text-5xl text-white/70`} aria-hidden="true"></i>
                 </div>
                 <span className="absolute top-3 right-3 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
                   {course.discount}
@@ -71,7 +71,7 @@ export default function AffiliateSection() {
                 </span>
                 <h3 className="font-bold text-gray-900 text-sm leading-snug mb-3">{course.title}</h3>
                 <span className="text-sm font-semibold text-emerald-600 flex items-center gap-1">
-                  Ver curso <i className="ri-external-link-line text-xs"></i>
+                  Ver curso <i className="ri-external-link-line text-xs" aria-hidden="true"></i>
                 </span>
               </div>
             </a>

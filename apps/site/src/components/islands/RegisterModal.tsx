@@ -48,10 +48,10 @@ export default function RegisterModal() {
         <button
           type="button"
           onClick={() => setOpen(false)}
-          className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+          className="absolute top-4 right-4 size-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
           aria-label="Fechar"
         >
-          <i className="ri-close-line text-xl" />
+          <i className="ri-close-line text-xl" aria-hidden="true" />
         </button>
 
         <h2
@@ -70,8 +70,8 @@ export default function RegisterModal() {
             href={candidatoUrl}
             className="flex items-center gap-4 p-4 rounded-xl border-2 border-emerald-200 bg-emerald-50 hover:bg-emerald-100 hover:border-emerald-400 transition-colors group"
           >
-            <div className="w-10 h-10 rounded-full bg-emerald-100 group-hover:bg-emerald-200 flex items-center justify-center shrink-0 transition-colors">
-              <i className="ri-user-search-line text-emerald-600 text-xl" />
+            <div className="size-10 rounded-full bg-emerald-100 group-hover:bg-emerald-200 flex items-center justify-center shrink-0 transition-colors">
+              <i className="ri-user-search-line text-emerald-600 text-xl" aria-hidden="true" />
             </div>
             <div className="flex-1 text-left">
               <p className="font-semibold text-gray-900 text-sm">
@@ -81,7 +81,7 @@ export default function RegisterModal() {
                 Crie seu perfil e candidate-se às vagas
               </p>
             </div>
-            <i className="ri-arrow-right-line text-emerald-500 shrink-0" />
+            <i className="ri-arrow-right-line text-emerald-500 shrink-0" aria-hidden="true" />
           </a>
 
           {/* Empresa */}
@@ -89,8 +89,8 @@ export default function RegisterModal() {
             href="/interesse-empresa"
             className="flex items-center gap-4 p-4 rounded-xl border-2 border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 transition-colors group"
           >
-            <div className="w-10 h-10 rounded-full bg-gray-100 group-hover:bg-gray-200 flex items-center justify-center shrink-0 transition-colors">
-              <i className="ri-building-2-line text-gray-600 text-xl" />
+            <div className="size-10 rounded-full bg-gray-100 group-hover:bg-gray-200 flex items-center justify-center shrink-0 transition-colors">
+              <i className="ri-building-2-line text-gray-600 text-xl" aria-hidden="true" />
             </div>
             <div className="flex-1 text-left">
               <p className="font-semibold text-gray-900 text-sm">
@@ -100,7 +100,7 @@ export default function RegisterModal() {
                 Publique vagas e contrate talentos
               </p>
             </div>
-            <i className="ri-arrow-right-line text-gray-400 shrink-0" />
+            <i className="ri-arrow-right-line text-gray-400 shrink-0" aria-hidden="true" />
           </a>
         </div>
       </div>

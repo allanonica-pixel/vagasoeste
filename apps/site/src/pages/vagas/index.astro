@@ -51,11 +51,11 @@ const itemListSchema = {
       <nav aria-label="breadcrumb" class="mb-4">
         <ol class="flex items-center gap-1.5 text-xs text-emerald-300">
           <li><a href="/" class="hover:text-white transition-colors">Início</a></li>
-          <li><i class="ri-arrow-right-s-line"></i></li>
+          <li><i class="ri-arrow-right-s-line" aria-hidden="true"></i></li>
           <li class="text-white font-medium">Vagas</li>
         </ol>
       </nav>
-      <h1 class="text-2xl md:text-3xl font-bold text-white mb-2">
+      <h1 class="text-2xl md:text-3xl font-bold text-white mb-2 text-balance">
         Vagas de Emprego em Santarém/PA
       </h1>
       <p class="text-emerald-200 text-sm">
@@ -85,12 +85,12 @@ const itemListSchema = {
   <!-- CTA de cadastro -->
   <section class="py-10 bg-emerald-50 border-t border-emerald-100">
     <div class="max-w-xl mx-auto px-4 text-center">
-      <h2 class="text-lg font-bold text-gray-900 mb-2">Não encontrou a vaga ideal?</h2>
+      <h2 class="text-lg font-bold text-gray-900 mb-2 text-balance">Não encontrou a vaga ideal?</h2>
       <p class="text-sm text-gray-600 mb-4">
         Cadastre-se gratuitamente e receba alertas quando novas vagas forem publicadas na sua área.
       </p>
       <button type="button" onclick="window.dispatchEvent(new CustomEvent('openRegisterModal'))" class="btn-primary">
-        <i class="ri-user-add-line"></i>
+        <i class="ri-user-add-line" aria-hidden="true"></i>
         Criar conta e receber alertas
       </button>
     </div>

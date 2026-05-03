@@ -78,7 +78,7 @@ export default function SectorSection() {
             <span className="text-emerald-600 text-xs font-semibold uppercase tracking-widest">
               Áreas de atuação
             </span>
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mt-2">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mt-2 text-balance">
               Explore por Setor ou Função
             </h2>
             <p className="text-gray-700 text-sm mt-2 max-w-md">
@@ -86,11 +86,12 @@ export default function SectorSection() {
             </p>
           </div>
           <button
+            type="button"
             onClick={() => navigate("/vagas")}
             className="text-sm font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-1 cursor-pointer whitespace-nowrap"
           >
             Ver todas as vagas
-            <i className="ri-arrow-right-line text-sm"></i>
+            <i className="ri-arrow-right-line text-sm" aria-hidden="true"></i>
           </button>
         </AnimatedSection>
 
@@ -100,8 +101,9 @@ export default function SectorSection() {
             {(["setor", "funcao"] as Tab[]).map((tab) => (
               <button
                 key={tab}
+                type="button"
                 onClick={() => setActiveTab(tab)}
-                className={`flex items-center gap-2 px-5 py-2 rounded-lg text-base font-semibold transition-all duration-200 cursor-pointer whitespace-nowrap ${
+                className={`flex items-center gap-2 px-5 py-2 rounded-lg text-base font-semibold transition-colors duration-200 cursor-pointer whitespace-nowrap ${
                   activeTab === tab
                     ? "bg-white text-gray-900 shadow-sm"
                     : "text-gray-500 hover:text-gray-700"
@@ -110,6 +112,7 @@ export default function SectorSection() {
                 <i
                   className={`text-sm ${tab === "setor" ? "ri-building-2-line" : "ri-user-star-line"}`}
                   style={activeTab === tab ? { color: "#065f46" } : {}}
+                  aria-hidden="true"
                 ></i>
                 {tab === "setor" ? "Por Setor" : "Por Função/Cargo"}
               </button>
@@ -122,14 +125,15 @@ export default function SectorSection() {
           {cards.map((card, index) => (
             <AnimatedSection key={card.name} variant="fade-up" delay={index * 60}>
               <button
+                type="button"
                 onClick={() => openModal(card.name, activeTab)}
-                className="group flex flex-col items-center justify-center gap-2.5 rounded-xl border border-gray-200 bg-gray-50 hover:border-emerald-300 hover:bg-gray-100 p-4 text-center transition-all duration-200 cursor-pointer w-full"
+                className="group flex flex-col items-center justify-center gap-2.5 rounded-xl border border-gray-200 bg-gray-50 hover:border-emerald-300 hover:bg-gray-100 p-4 text-center transition-colors duration-200 cursor-pointer w-full"
               >
                 <div
-                  className="w-11 h-11 rounded-lg bg-gray-100 flex items-center justify-center transition-transform duration-200 group-hover:scale-110"
+                  className="size-11 rounded-lg bg-gray-100 flex items-center justify-center motion-safe:transition-transform duration-200 group-hover:scale-110"
                   style={{ color: "#065f46" }}
                 >
-                  <i className={`${card.icon} text-xl`}></i>
+                  <i className={`${card.icon} text-xl`} aria-hidden="true"></i>
                 </div>
                 <div className="w-full">
                   <p className="font-semibold text-base sm:text-lg text-gray-900 leading-tight line-clamp-1">
@@ -147,8 +151,8 @@ export default function SectorSection() {
         {/* Anonymous notice */}
         <AnimatedSection variant="fade-up" delay={200}>
           <div className="mt-8 flex items-center gap-3 bg-emerald-50 border border-emerald-100 rounded-xl p-4">
-            <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-emerald-100 shrink-0">
-              <i className="ri-shield-check-line text-emerald-600 text-sm"></i>
+            <div className="size-8 flex items-center justify-center rounded-lg bg-emerald-100 shrink-0">
+              <i className="ri-shield-check-line text-emerald-600 text-sm" aria-hidden="true"></i>
             </div>
             <p className="text-sm text-emerald-800">
               <strong>Processo 100% anônimo:</strong> Informações pessoais como nome, telefone e email
@@ -168,22 +172,28 @@ export default function SectorSection() {
             aria-hidden="true"
           />
 
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
+          <div
+            className="relative bg-white rounded-2xl shadow-xl w-full max-w-sm p-6"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="sector-modal-title"
+          >
             {/* Header */}
             <div className="flex items-start justify-between mb-6">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide mb-0.5" style={{ color: "#065f46" }}>
                   {modal.type === "setor" ? "Setor" : "Função/Cargo"}
                 </p>
-                <h3 className="text-xl font-bold text-gray-900">{modal.name}</h3>
+                <h3 id="sector-modal-title" className="text-xl font-bold text-gray-900">{modal.name}</h3>
                 <p className="text-sm text-gray-500 mt-1">Selecione onde quer buscar vagas</p>
               </div>
               <button
+                type="button"
                 onClick={closeModal}
-                className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 cursor-pointer transition-colors shrink-0"
+                className="size-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 cursor-pointer transition-colors shrink-0"
                 aria-label="Fechar"
               >
-                <i className="ri-close-line text-lg"></i>
+                <i className="ri-close-line text-lg" aria-hidden="true"></i>
               </button>
             </div>
 
@@ -202,7 +212,7 @@ export default function SectorSection() {
                 {estados.map((e) => (
                   <label
                     key={e}
-                    className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                    className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${
                       selectedEstado === e
                         ? "border-emerald-400 bg-emerald-50"
                         : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
@@ -249,14 +259,15 @@ export default function SectorSection() {
                   {cidades.map((c) => (
                     <button
                       key={c}
+                      type="button"
                       onClick={() => handleCidadeSelect(c)}
-                      className="w-full flex items-center gap-3 p-3 rounded-xl border border-gray-200 hover:border-emerald-400 hover:bg-emerald-50 cursor-pointer transition-all text-left group"
+                      className="w-full flex items-center gap-3 p-3 rounded-xl border border-gray-200 hover:border-emerald-400 hover:bg-emerald-50 cursor-pointer transition-colors text-left group"
                     >
                       <span className="w-5 h-5 rounded-full border-2 border-gray-300 group-hover:border-emerald-500 flex items-center justify-center shrink-0 transition-colors">
                         <span className="w-2 h-2 rounded-full bg-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity block"></span>
                       </span>
                       <span className="text-sm font-medium text-gray-800 flex-1">{c}</span>
-                      <i className="ri-arrow-right-line text-emerald-500 text-sm opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                      <i className="ri-arrow-right-line text-emerald-500 text-sm opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden="true"></i>
                     </button>
                   ))}
                 </div>

@@ -334,8 +334,8 @@ export default function LoginPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <i className="ri-loader-4-line animate-spin text-gray-400 text-3xl"></i>
+      <div className="min-h-dvh bg-gray-50 flex items-center justify-center">
+        <i className="ri-loader-4-line motion-safe:animate-spin text-gray-400 text-3xl" role="status" aria-label="Carregando"></i>
       </div>
     );
   }
@@ -347,7 +347,7 @@ export default function LoginPage() {
   // ──────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-dvh bg-gray-50 flex flex-col">
 
       {/* Modal de seleção de tipo de cadastro */}
       {showRegisterModal && (
@@ -361,6 +361,7 @@ export default function LoginPage() {
           <div
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={() => setShowRegisterModal(false)}
+            aria-hidden="true"
           />
 
           {/* Painel */}
@@ -375,7 +376,7 @@ export default function LoginPage() {
               className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
               aria-label="Fechar"
             >
-              <i className="ri-close-line text-xl" />
+              <i className="ri-close-line text-xl" aria-hidden="true" />
             </button>
 
             <h2 id="register-modal-title" className="text-lg font-bold text-gray-900 mb-1">
@@ -390,14 +391,14 @@ export default function LoginPage() {
                 onClick={() => { setShowRegisterModal(false); navigate("/cadastro"); }}
                 className="flex items-center gap-4 p-4 rounded-xl border-2 border-emerald-200 bg-emerald-50 hover:bg-emerald-100 hover:border-emerald-400 transition-colors group text-left w-full cursor-pointer"
               >
-                <div className="w-10 h-10 rounded-full bg-emerald-100 group-hover:bg-emerald-200 flex items-center justify-center shrink-0 transition-colors">
-                  <i className="ri-user-search-line text-emerald-600 text-xl" />
+                <div className="size-10 rounded-full bg-emerald-100 group-hover:bg-emerald-200 flex items-center justify-center shrink-0 transition-colors">
+                  <i className="ri-user-search-line text-emerald-600 text-xl" aria-hidden="true" />
                 </div>
                 <div className="flex-1">
                   <p className="font-semibold text-gray-900 text-sm">Cadastro como Candidato a Vaga</p>
                   <p className="text-xs text-gray-500 mt-0.5">Crie seu perfil e candidate-se às vagas</p>
                 </div>
-                <i className="ri-arrow-right-line text-emerald-500 shrink-0" />
+                <i className="ri-arrow-right-line text-emerald-500 shrink-0" aria-hidden="true" />
               </button>
 
               {/* Empresa → site externo */}
@@ -405,14 +406,14 @@ export default function LoginPage() {
                 href="https://santarem.app/interesse-empresa"
                 className="flex items-center gap-4 p-4 rounded-xl border-2 border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 transition-colors group"
               >
-                <div className="w-10 h-10 rounded-full bg-gray-100 group-hover:bg-gray-200 flex items-center justify-center shrink-0 transition-colors">
-                  <i className="ri-building-2-line text-gray-600 text-xl" />
+                <div className="size-10 rounded-full bg-gray-100 group-hover:bg-gray-200 flex items-center justify-center shrink-0 transition-colors">
+                  <i className="ri-building-2-line text-gray-600 text-xl" aria-hidden="true" />
                 </div>
                 <div className="flex-1 text-left">
                   <p className="font-semibold text-gray-900 text-sm">Cadastro de sua Empresa</p>
                   <p className="text-xs text-gray-500 mt-0.5">Publique vagas e contrate talentos</p>
                 </div>
-                <i className="ri-arrow-right-line text-gray-400 shrink-0" />
+                <i className="ri-arrow-right-line text-gray-400 shrink-0" aria-hidden="true" />
               </a>
             </div>
           </div>
@@ -423,8 +424,8 @@ export default function LoginPage() {
       <header className="bg-white border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 md:px-6 h-14 flex items-center">
           <Link to="/" className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-emerald-600 flex items-center justify-center">
-              <i className="ri-briefcase-line text-white text-xs"></i>
+            <div className="size-7 rounded-lg bg-emerald-600 flex items-center justify-center">
+              <i className="ri-briefcase-line text-white text-xs" aria-hidden="true"></i>
             </div>
             <span className="font-bold text-base text-gray-900">
               Vagas<span className="text-emerald-600">Oeste</span>
@@ -455,8 +456,8 @@ export default function LoginPage() {
             {step === "credentials" && (
               <>
                 <div className="text-center mb-8">
-                  <div className={`w-16 h-16 rounded-2xl ${userType === "candidato" ? "bg-emerald-600" : "bg-sky-600"} flex items-center justify-center mx-auto mb-4 transition-colors duration-300`}>
-                    <i className={`${userType === "candidato" ? "ri-user-line" : "ri-building-line"} text-white text-2xl`}></i>
+                  <div className={`size-16 rounded-2xl ${userType === "candidato" ? "bg-emerald-600" : "bg-sky-600"} flex items-center justify-center mx-auto mb-4 transition-colors duration-300`}>
+                    <i className={`${userType === "candidato" ? "ri-user-line" : "ri-building-line"} text-white text-2xl`} aria-hidden="true"></i>
                   </div>
                   <h1 className="text-2xl font-bold text-gray-900">Bem-vindo de volta</h1>
                   <p className="text-gray-600 text-sm mt-1">Acesse sua conta VagasOeste</p>
@@ -472,18 +473,18 @@ export default function LoginPage() {
                         setEmail(""); setPassword(""); setError("");
                         setAttempts(0); setBlocked(false);
                       }}
-                      className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                      className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
                         userType === type ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
                       }`}
                     >
-                      <i className={`${type === "candidato" ? "ri-user-line" : "ri-building-line"} text-xs`}></i>
+                      <i className={`${type === "candidato" ? "ri-user-line" : "ri-building-line"} text-xs`} aria-hidden="true"></i>
                       {type === "candidato" ? "Candidato" : "Empresa"}
                     </button>
                   ))}
                 </div>
 
                 <div className="flex items-center gap-2 bg-gray-100 rounded-lg px-3 py-2 mb-4">
-                  <i className="ri-arrow-right-circle-line text-gray-400 text-sm shrink-0"></i>
+                  <i className="ri-arrow-right-circle-line text-gray-400 text-sm shrink-0" aria-hidden="true"></i>
                   <p className="text-xs text-gray-500">
                     {userType === "candidato"
                       ? "Você será redirecionado para a plataforma do candidato"
@@ -533,7 +534,7 @@ export default function LoginPage() {
                           onClick={() => setShowPassword(!showPassword)}
                           className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-gray-600"
                         >
-                          <i className={`${showPassword ? "ri-eye-off-line" : "ri-eye-line"} text-sm`}></i>
+                          <i className={`${showPassword ? "ri-eye-off-line" : "ri-eye-line"} text-sm`} aria-hidden="true"></i>
                         </button>
                       </div>
                     </div>
@@ -543,16 +544,16 @@ export default function LoginPage() {
                     <button
                       type="submit"
                       disabled={submitting || blocked}
-                      className={`w-full ${userType === "candidato" ? "bg-emerald-600 hover:bg-emerald-700" : "bg-sky-600 hover:bg-sky-700"} disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl text-sm transition-all cursor-pointer`}
+                      className={`w-full ${userType === "candidato" ? "bg-emerald-600 hover:bg-emerald-700" : "bg-sky-600 hover:bg-sky-700"} disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl text-sm transition-colors cursor-pointer`}
                     >
                       {submitting ? (
                         <span className="flex items-center justify-center gap-2">
-                          <i className="ri-loader-4-line animate-spin text-sm"></i>
+                          <i className="ri-loader-4-line motion-safe:animate-spin text-sm" aria-hidden="true"></i>
                           Verificando...
                         </span>
                       ) : blocked ? "Acesso temporariamente bloqueado" : (
                         <span className="flex items-center justify-center gap-2">
-                          <i className={`${userType === "candidato" ? "ri-user-line" : "ri-building-line"} text-sm`}></i>
+                          <i className={`${userType === "candidato" ? "ri-user-line" : "ri-building-line"} text-sm`} aria-hidden="true"></i>
                           Entrar como {userType === "candidato" ? "Candidato" : "Empresa"}
                         </span>
                       )}
@@ -586,7 +587,7 @@ export default function LoginPage() {
               <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
                 <div className="bg-gradient-to-r from-sky-600 to-sky-500 px-6 py-6 text-center">
                   <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-3">
-                    <i className="ri-lock-password-line text-white text-xl"></i>
+                    <i className="ri-lock-password-line text-white text-xl" aria-hidden="true"></i>
                   </div>
                   <h2 className="text-white font-bold text-lg">Crie sua senha permanente</h2>
                   <p className="text-sky-100 text-xs mt-1">Passo 1 de 2 — Segurança da conta</p>
@@ -615,7 +616,7 @@ export default function LoginPage() {
                         />
                         <button type="button" onClick={() => setShowNewPwd(!showNewPwd)}
                           className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-gray-600">
-                          <i className={`${showNewPwd ? "ri-eye-off-line" : "ri-eye-line"} text-sm`}></i>
+                          <i className={`${showNewPwd ? "ri-eye-off-line" : "ri-eye-line"} text-sm`} aria-hidden="true"></i>
                         </button>
                       </div>
                       {newPassword.length > 0 && (
@@ -645,7 +646,7 @@ export default function LoginPage() {
                         />
                         <button type="button" onClick={() => setShowConfirmPwd(!showConfirmPwd)}
                           className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-gray-600">
-                          <i className={`${showConfirmPwd ? "ri-eye-off-line" : "ri-eye-line"} text-sm`}></i>
+                          <i className={`${showConfirmPwd ? "ri-eye-off-line" : "ri-eye-line"} text-sm`} aria-hidden="true"></i>
                         </button>
                       </div>
                       {confirmPassword.length > 0 && newPassword !== confirmPassword && (
@@ -653,7 +654,7 @@ export default function LoginPage() {
                       )}
                       {confirmPassword.length >= 8 && newPassword === confirmPassword && (
                         <p className="text-xs text-emerald-600 mt-1 flex items-center gap-1">
-                          <i className="ri-check-line"></i> Senhas coincidem
+                          <i className="ri-check-line" aria-hidden="true"></i> Senhas coincidem
                         </p>
                       )}
                     </div>
@@ -663,11 +664,11 @@ export default function LoginPage() {
                     <button
                       type="submit"
                       disabled={submitting}
-                      className="w-full bg-sky-600 hover:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl text-sm transition-all cursor-pointer"
+                      className="w-full bg-sky-600 hover:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl text-sm transition-colors cursor-pointer"
                     >
                       {submitting ? (
                         <span className="flex items-center justify-center gap-2">
-                          <i className="ri-loader-4-line animate-spin text-sm"></i>
+                          <i className="ri-loader-4-line motion-safe:animate-spin text-sm" aria-hidden="true"></i>
                           Salvando...
                         </span>
                       ) : "Salvar senha e continuar →"}
@@ -682,7 +683,7 @@ export default function LoginPage() {
               <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
                 <div className="bg-gradient-to-r from-sky-600 to-sky-500 px-6 py-6 text-center">
                   <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-3">
-                    <i className="ri-smartphone-line text-white text-xl"></i>
+                    <i className="ri-smartphone-line text-white text-xl" aria-hidden="true"></i>
                   </div>
                   <h2 className="text-white font-bold text-lg">Configure o autenticador</h2>
                   <p className="text-sky-100 text-xs mt-1">Passo 2 de 2 — Verificação em 2 etapas</p>
@@ -732,11 +733,11 @@ export default function LoginPage() {
                     <button
                       type="submit"
                       disabled={submitting}
-                      className="w-full bg-sky-600 hover:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl text-sm transition-all cursor-pointer"
+                      className="w-full bg-sky-600 hover:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl text-sm transition-colors cursor-pointer"
                     >
                       {submitting ? (
                         <span className="flex items-center justify-center gap-2">
-                          <i className="ri-loader-4-line animate-spin text-sm"></i>
+                          <i className="ri-loader-4-line motion-safe:animate-spin text-sm" aria-hidden="true"></i>
                           Verificando...
                         </span>
                       ) : "Ativar e acessar o painel →"}
@@ -751,7 +752,7 @@ export default function LoginPage() {
               <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
                 <div className="bg-gradient-to-r from-sky-600 to-sky-500 px-6 py-6 text-center">
                   <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-3">
-                    <i className="ri-shield-check-line text-white text-xl"></i>
+                    <i className="ri-shield-check-line text-white text-xl" aria-hidden="true"></i>
                   </div>
                   <h2 className="text-white font-bold text-lg">Verificação em 2 etapas</h2>
                   <p className="text-sky-100 text-xs mt-1">Autenticação adicional requerida</p>
@@ -789,11 +790,11 @@ export default function LoginPage() {
                     <button
                       type="submit"
                       disabled={submitting}
-                      className="w-full bg-sky-600 hover:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl text-sm transition-all cursor-pointer"
+                      className="w-full bg-sky-600 hover:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl text-sm transition-colors cursor-pointer"
                     >
                       {submitting ? (
                         <span className="flex items-center justify-center gap-2">
-                          <i className="ri-loader-4-line animate-spin text-sm"></i>
+                          <i className="ri-loader-4-line motion-safe:animate-spin text-sm" aria-hidden="true"></i>
                           Verificando...
                         </span>
                       ) : "Verificar e acessar →"}
@@ -801,6 +802,7 @@ export default function LoginPage() {
                   </form>
 
                   <button
+                    type="button"
                     onClick={async () => {
                       await supabase.auth.signOut();
                       setStep("credentials");
@@ -829,7 +831,7 @@ export default function LoginPage() {
 function ErrorBox({ message }: { message: string }) {
   return (
     <div className="bg-red-50 border border-red-100 rounded-lg px-4 py-3 flex items-center gap-2">
-      <i className="ri-error-warning-line text-red-500 text-sm shrink-0"></i>
+      <i className="ri-error-warning-line text-red-500 text-sm shrink-0" aria-hidden="true"></i>
       <p className="text-red-600 text-xs">{message}</p>
     </div>
   );

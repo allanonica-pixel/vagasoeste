@@ -23,8 +23,8 @@ const socialLinks = [
       <!-- Brand -->
       <div>
         <a href="/" class="flex items-center gap-2 mb-4">
-          <div class="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center shrink-0">
-            <i class="ri-briefcase-line text-sm text-white"></i>
+          <div class="size-8 rounded-lg bg-emerald-600 flex items-center justify-center shrink-0">
+            <i class="ri-briefcase-line text-sm text-white" aria-hidden="true"></i>
           </div>
           <span class="font-bold text-xl tracking-tight">
             Vagas<span class="text-emerald-400">Oeste</span>
@@ -58,15 +58,15 @@ const socialLinks = [
         <p class="text-sm font-semibold text-white mb-4">Contato</p>
         <ul class="space-y-3">
           <li class="flex items-center gap-2 text-stone-400 text-sm">
-            <i class="ri-whatsapp-line text-emerald-400 text-base shrink-0"></i>
+            <i class="ri-whatsapp-line text-emerald-400 text-base shrink-0" aria-hidden="true"></i>
             (93) 99999-0000
           </li>
           <li class="flex items-center gap-2 text-stone-400 text-sm">
-            <i class="ri-mail-line text-emerald-400 text-base shrink-0"></i>
+            <i class="ri-mail-line text-emerald-400 text-base shrink-0" aria-hidden="true"></i>
             contato@santarem.app
           </li>
           <li class="flex items-start gap-2 text-stone-400 text-sm">
-            <i class="ri-map-pin-line text-emerald-400 text-base shrink-0 mt-0.5"></i>
+            <i class="ri-map-pin-line text-emerald-400 text-base shrink-0 mt-0.5" aria-hidden="true"></i>
             <span>Santarém, Pará — Brasil</span>
           </li>
         </ul>
@@ -77,9 +77,9 @@ const socialLinks = [
             <a
               href={social.href}
               aria-label={social.label}
-              class="w-8 h-8 flex items-center justify-center rounded-md bg-stone-800 hover:bg-emerald-600 text-stone-400 hover:text-white transition-colors"
+              class="size-8 flex items-center justify-center rounded-md bg-stone-800 hover:bg-emerald-600 text-stone-400 hover:text-white transition-colors"
             >
-              <i class={`${social.icon} text-sm`}></i>
+              <i class={`${social.icon} text-sm`} aria-hidden="true"></i>
             </a>
           ))}
         </div>

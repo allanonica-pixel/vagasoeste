@@ -24,7 +24,7 @@ export default function BlogSearch({ initialPosts, categories }: BlogSearchProps
       {/* Busca e Filtro de Categoria */}
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <div className="flex-1 flex items-center gap-2 bg-white border border-gray-200 rounded-lg px-3 py-2">
-          <i className="ri-search-line text-gray-400 text-sm shrink-0"></i>
+          <i className="ri-search-line text-gray-400 text-sm shrink-0" aria-hidden="true"></i>
           <input
             type="text"
             value={query}
@@ -53,7 +53,7 @@ export default function BlogSearch({ initialPosts, categories }: BlogSearchProps
 
       {filtered.length === 0 ? (
         <div className="text-center py-16">
-          <i className="ri-article-line text-4xl text-gray-300 mb-3 block"></i>
+          <i className="ri-article-line text-4xl text-gray-300 mb-3 block" aria-hidden="true"></i>
           <p className="text-gray-500">Nenhum artigo encontrado para "{query}"</p>
         </div>
       ) : (
@@ -74,22 +74,22 @@ export default function BlogSearch({ initialPosts, categories }: BlogSearchProps
                     {post.category}
                   </span>
                   <span className="text-xs text-gray-400 flex items-center gap-1">
-                    <i className="ri-time-line"></i>
+                    <i className="ri-time-line" aria-hidden="true"></i>
                     {post.readTime} min
                   </span>
                 </div>
-                <h2 className="font-bold text-gray-900 text-base leading-tight mb-2 line-clamp-2">
+                <h2 className="font-bold text-gray-900 text-base leading-tight mb-2 line-clamp-2 text-balance">
                   <a href={`/blog/${post.slug}`} className="hover:text-emerald-600 transition-colors">
                     {post.title}
                   </a>
                 </h2>
-                <p className="text-sm text-gray-500 line-clamp-2 mb-4">{post.excerpt}</p>
+                <p className="text-sm text-gray-500 line-clamp-2 mb-4 text-pretty">{post.excerpt}</p>
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-gray-400">
                     {new Date(post.publishedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}
                   </span>
                   <a href={`/blog/${post.slug}`} className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-1">
-                    Ler artigo <i className="ri-arrow-right-line"></i>
+                    Ler artigo <i className="ri-arrow-right-line" aria-hidden="true"></i>
                   </a>
                 </div>
               </div>

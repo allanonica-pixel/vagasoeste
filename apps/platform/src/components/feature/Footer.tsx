@@ -25,8 +25,8 @@ export default function Footer() {
           {/* Brand */}
           <div>
             <Link to="/" className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center shrink-0">
-                <i className="ri-briefcase-line text-sm text-white"></i>
+              <div className="size-8 rounded-lg bg-emerald-600 flex items-center justify-center shrink-0">
+                <i className="ri-briefcase-line text-sm text-white" aria-hidden="true"></i>
               </div>
               <span className="font-bold text-xl tracking-tight">
                 Vagas<span className="text-emerald-400">Oeste</span>
@@ -60,15 +60,15 @@ export default function Footer() {
             <p className="text-sm font-semibold text-white mb-4">Contato</p>
             <ul className="space-y-3">
               <li className="flex items-center gap-2 text-stone-400 text-sm">
-                <i className="ri-whatsapp-line text-emerald-400 text-base shrink-0"></i>
+                <i className="ri-whatsapp-line text-emerald-400 text-base shrink-0" aria-hidden="true"></i>
                 (93) 99999-0000
               </li>
               <li className="flex items-center gap-2 text-stone-400 text-sm">
-                <i className="ri-mail-line text-emerald-400 text-base shrink-0"></i>
+                <i className="ri-mail-line text-emerald-400 text-base shrink-0" aria-hidden="true"></i>
                 contato@santarem.app
               </li>
               <li className="flex items-start gap-2 text-stone-400 text-sm">
-                <i className="ri-map-pin-line text-emerald-400 text-base shrink-0 mt-0.5"></i>
+                <i className="ri-map-pin-line text-emerald-400 text-base shrink-0 mt-0.5" aria-hidden="true"></i>
                 <span>Santarém, Pará — Brasil</span>
               </li>
             </ul>
@@ -82,7 +82,7 @@ export default function Footer() {
                   aria-label={social.label}
                   className="w-8 h-8 flex items-center justify-center rounded-md bg-stone-800 hover:bg-emerald-600 text-stone-400 hover:text-white transition-colors"
                 >
-                  <i className={`${social.icon} text-sm`}></i>
+                  <i className={`${social.icon} text-sm`} aria-hidden="true"></i>
                 </a>
               ))}
             </div>

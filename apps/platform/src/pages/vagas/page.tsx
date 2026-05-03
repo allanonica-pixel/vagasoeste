@@ -212,7 +212,7 @@ export default function VagasPage() {
   ].filter(Boolean).join(" · ");
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-dvh bg-gray-50">
       <Navbar />
 
       {/* Page Header */}
@@ -220,12 +220,12 @@ export default function VagasPage() {
         <div className="max-w-7xl mx-auto px-4 md:px-6 pt-0 pb-4">
           <nav className="mb-3">
             <ol className="flex items-center gap-1.5 text-xs text-emerald-300">
-              <li><button onClick={() => navigate("/")} className="hover:text-white transition-colors cursor-pointer">Início</button></li>
-              <li><i className="ri-arrow-right-s-line"></i></li>
+              <li><button type="button" onClick={() => navigate("/")} className="hover:text-white transition-colors cursor-pointer">Início</button></li>
+              <li><i className="ri-arrow-right-s-line" aria-hidden="true"></i></li>
               <li className="text-white font-medium">Vagas</li>
             </ol>
           </nav>
-          <h1 className="text-2xl md:text-3xl font-bold text-white mb-1">
+          <h1 className="text-2xl md:text-3xl font-bold text-white mb-1 text-balance">
             Vagas de Emprego em Santarém/PA
           </h1>
           <p className="text-emerald-200 text-sm mb-4">
@@ -235,7 +235,7 @@ export default function VagasPage() {
           {/* Localização */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-2">
             <div className="flex items-center gap-2 bg-white rounded-lg px-3 py-2.5">
-              <i className="ri-map-pin-line text-emerald-600 text-sm shrink-0"></i>
+              <i className="ri-map-pin-line text-emerald-600 text-sm shrink-0" aria-hidden="true"></i>
               <select value={estado} onChange={(e) => { setEstado(e.target.value); setCidade(""); setBairroLocation(""); }}
                 className="flex-1 text-sm text-gray-700 outline-none bg-transparent cursor-pointer">
                 <option value="">Estado</option>
@@ -243,7 +243,7 @@ export default function VagasPage() {
               </select>
             </div>
             <div className="flex items-center gap-2 bg-white rounded-lg px-3 py-2.5">
-              <i className="ri-building-2-line text-emerald-600 text-sm shrink-0"></i>
+              <i className="ri-building-2-line text-emerald-600 text-sm shrink-0" aria-hidden="true"></i>
               <select value={cidade} onChange={(e) => { setCidade(e.target.value); setBairroLocation(""); }}
                 disabled={!estado} className="flex-1 text-sm text-gray-700 outline-none bg-transparent cursor-pointer disabled:opacity-50">
                 <option value="">Cidade</option>
@@ -251,7 +251,7 @@ export default function VagasPage() {
               </select>
             </div>
             <div className="flex items-center gap-2 bg-white rounded-lg px-3 py-2.5">
-              <i className="ri-home-4-line text-emerald-600 text-sm shrink-0"></i>
+              <i className="ri-home-4-line text-emerald-600 text-sm shrink-0" aria-hidden="true"></i>
               <select value={bairroLocation} onChange={(e) => setBairroLocation(e.target.value)}
                 disabled={!cidade} className="flex-1 text-sm text-gray-700 outline-none bg-transparent cursor-pointer disabled:opacity-50">
                 <option value="">Bairro</option>
@@ -266,19 +266,20 @@ export default function VagasPage() {
               <i className="ri-search-line text-gray-400 text-sm shrink-0"></i>
               <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
                 placeholder="Cargo, setor ou bairro..."
+                aria-label="Buscar vagas por cargo, setor ou bairro"
                 className="flex-1 text-sm text-gray-800 placeholder-gray-400 outline-none bg-transparent" />
               {search && (
-                <button onClick={() => setSearch("")} className="cursor-pointer">
-                  <i className="ri-close-line text-gray-400 text-sm"></i>
+                <button type="button" onClick={() => setSearch("")} className="cursor-pointer" aria-label="Limpar busca">
+                  <i className="ri-close-line text-gray-400 text-sm" aria-hidden="true"></i>
                 </button>
               )}
             </div>
-            <button onClick={openFilters}
+            <button type="button" onClick={openFilters}
               className="flex items-center gap-2 bg-white/10 border border-white/20 text-white px-4 py-2 rounded-lg text-sm font-medium cursor-pointer whitespace-nowrap hover:bg-white/20 transition-colors">
-              <i className="ri-filter-3-line text-sm"></i>
+              <i className="ri-filter-3-line text-sm" aria-hidden="true"></i>
               Mais filtros
               {activeFilterCount > 0 && (
-                <span className="bg-emerald-400 text-emerald-900 text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                <span className="bg-emerald-400 text-emerald-900 text-xs font-bold size-5 rounded-full flex items-center justify-center">
                   {activeFilterCount}
                 </span>
               )}
@@ -288,12 +289,12 @@ export default function VagasPage() {
           {hasLocationFilter && (
             <div className="flex flex-wrap items-center justify-between gap-2 pb-3 pt-1 border-t border-white/10">
               <div className="flex items-center gap-2 flex-wrap">
-                <i className="ri-filter-line text-emerald-300 text-xs"></i>
+                <i className="ri-filter-line text-emerald-300 text-xs" aria-hidden="true"></i>
                 <span className="text-white/90 text-xs font-medium">{filterBreadcrumb}</span>
               </div>
-              <button onClick={() => { setEstado(""); setCidade(""); setBairroLocation(""); }}
+              <button type="button" onClick={() => { setEstado(""); setCidade(""); setBairroLocation(""); }}
                 className="flex items-center gap-1.5 text-xs text-emerald-300 hover:text-white transition-colors cursor-pointer whitespace-nowrap">
-                <i className="ri-close-circle-line text-sm"></i>
+                <i className="ri-close-circle-line text-sm" aria-hidden="true"></i>
                 Limpar Filtros
               </button>
             </div>
@@ -308,19 +309,19 @@ export default function VagasPage() {
           <div className="relative bg-white w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl shadow-xl z-10 flex flex-col max-h-[90vh]">
             <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-gray-100">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-emerald-50">
-                  <i className="ri-filter-3-line text-emerald-600 text-sm"></i>
+                <div className="size-8 flex items-center justify-center rounded-lg bg-emerald-50">
+                  <i className="ri-filter-3-line text-emerald-600 text-sm" aria-hidden="true"></i>
                 </div>
                 <h2 className="font-bold text-gray-900 text-base">Filtros de Busca</h2>
               </div>
-              <button onClick={() => setShowFilters(false)} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 cursor-pointer transition-colors">
-                <i className="ri-close-line text-gray-500 text-lg"></i>
+              <button type="button" onClick={() => setShowFilters(false)} className="size-8 flex items-center justify-center rounded-lg hover:bg-gray-100 cursor-pointer transition-colors" aria-label="Fechar filtros">
+                <i className="ri-close-line text-gray-500 text-lg" aria-hidden="true"></i>
               </button>
             </div>
             <div className="flex-1 overflow-y-auto px-5 py-5 space-y-5">
               <div>
                 <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">
-                  <i className="ri-building-line mr-1"></i>Setor
+                  <i className="ri-building-line mr-1" aria-hidden="true"></i>Setor
                 </label>
                 <div className="flex flex-wrap gap-2">
                   {allSectors.map((s) => (
@@ -333,7 +334,7 @@ export default function VagasPage() {
               </div>
               <div>
                 <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">
-                  <i className="ri-file-text-line mr-1"></i>Tipo de Contrato
+                  <i className="ri-file-text-line mr-1" aria-hidden="true"></i>Tipo de Contrato
                 </label>
                 <div className="flex flex-wrap gap-2">
                   {CONTRACT_TYPES.map((c) => (
@@ -346,7 +347,7 @@ export default function VagasPage() {
               </div>
               <div>
                 <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">
-                  <i className="ri-map-pin-line mr-1"></i>Bairro
+                  <i className="ri-map-pin-line mr-1" aria-hidden="true"></i>Bairro
                 </label>
                 <select value={pendingNeighborhood} onChange={(e) => setPendingNeighborhood(e.target.value)}
                   className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-700 outline-none focus:border-emerald-400 cursor-pointer bg-white">
@@ -360,10 +361,10 @@ export default function VagasPage() {
                   {pendingFilterCount} filtro{pendingFilterCount > 1 ? "s" : ""} selecionado{pendingFilterCount > 1 ? "s" : ""}
                 </p>
               )}
-              <button onClick={applyFilters}
-                className="w-full py-3 rounded-xl text-sm font-semibold bg-emerald-600 text-white cursor-pointer hover:bg-emerald-700 transition-all active:scale-95">
+              <button type="button" onClick={applyFilters}
+                className="w-full py-3 rounded-xl text-sm font-semibold bg-emerald-600 text-white cursor-pointer hover:bg-emerald-700 transition-colors motion-safe:active:scale-95">
                 <span className="flex items-center justify-center gap-2">
-                  <i className="ri-search-line"></i>Buscar Vagas
+                  <i className="ri-search-line" aria-hidden="true"></i>Buscar Vagas
                 </span>
               </button>
             </div>
@@ -394,19 +395,19 @@ export default function VagasPage() {
             {selectedSector !== "Todos" && (
               <span className="inline-flex items-center gap-1 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs px-2.5 py-1 rounded-full">
                 {selectedSector}
-                <button onClick={() => setSelectedSector("Todos")} className="cursor-pointer hover:text-red-500 transition-colors"><i className="ri-close-line text-xs"></i></button>
+                <button type="button" onClick={() => setSelectedSector("Todos")} className="cursor-pointer hover:text-red-500 transition-colors" aria-label="Remover filtro de setor"><i className="ri-close-line text-xs" aria-hidden="true"></i></button>
               </span>
             )}
             {selectedContract !== "Todos" && (
               <span className="inline-flex items-center gap-1 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs px-2.5 py-1 rounded-full">
                 {selectedContract}
-                <button onClick={() => setSelectedContract("Todos")} className="cursor-pointer hover:text-red-500 transition-colors"><i className="ri-close-line text-xs"></i></button>
+                <button type="button" onClick={() => setSelectedContract("Todos")} className="cursor-pointer hover:text-red-500 transition-colors" aria-label="Remover filtro de contrato"><i className="ri-close-line text-xs" aria-hidden="true"></i></button>
               </span>
             )}
             {selectedNeighborhood !== "Todos" && (
               <span className="inline-flex items-center gap-1 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs px-2.5 py-1 rounded-full">
                 {selectedNeighborhood}
-                <button onClick={() => setSelectedNeighborhood("Todos")} className="cursor-pointer hover:text-red-500 transition-colors"><i className="ri-close-line text-xs"></i></button>
+                <button type="button" onClick={() => setSelectedNeighborhood("Todos")} className="cursor-pointer hover:text-red-500 transition-colors" aria-label="Remover filtro de bairro"><i className="ri-close-line text-xs" aria-hidden="true"></i></button>
               </span>
             )}
             {activeFilterCount > 0 && (
@@ -448,17 +449,17 @@ export default function VagasPage() {
         {/* Loading */}
         {loading ? (
           <div className="text-center py-20">
-            <div className="w-8 h-8 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <div className="size-8 border-2 border-emerald-600 border-t-transparent rounded-full motion-safe:animate-spin mx-auto mb-4" role="status" aria-label="Carregando vagas"></div>
             <p className="text-gray-400 text-sm">Carregando vagas...</p>
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-20">
-            <div className="w-16 h-16 flex items-center justify-center mx-auto mb-4">
-              <i className="ri-search-line text-gray-300 text-4xl"></i>
+            <div className="size-16 flex items-center justify-center mx-auto mb-4">
+              <i className="ri-search-line text-gray-300 text-4xl" aria-hidden="true"></i>
             </div>
-            <h3 className="text-gray-700 font-semibold text-lg mb-2">Nenhuma vaga encontrada</h3>
-            <p className="text-gray-600 text-sm mb-4">Tente ajustar os filtros ou buscar por outro termo.</p>
-            <button onClick={clearFilters} className="text-sm text-emerald-600 font-medium hover:underline cursor-pointer">
+            <h3 className="text-gray-700 font-semibold text-lg mb-2 text-balance">Nenhuma vaga encontrada</h3>
+            <p className="text-gray-600 text-sm mb-4 text-pretty">Tente ajustar os filtros ou buscar por outro termo.</p>
+            <button type="button" onClick={clearFilters} className="text-sm text-emerald-600 font-medium hover:underline cursor-pointer">
               Limpar filtros
             </button>
           </div>
@@ -467,7 +468,7 @@ export default function VagasPage() {
             {filtered.map((job, index) => (
               <AnimatedSection key={job.id} variant="fade-up" delay={Math.min(index % 6, 5) * 70}>
                 <div
-                  className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 sm:p-5 hover:border-emerald-200 hover:shadow-md transition-all cursor-pointer group h-full flex flex-col hover:-translate-y-0.5"
+                  className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 sm:p-5 hover:border-emerald-200 hover:shadow-md transition-[border-color,box-shadow,transform] cursor-pointer group h-full flex flex-col hover:-translate-y-0.5"
                   onClick={() => navigate(`/vagas/${job.id}`)}
                 >
                   {/* Título + área */}
@@ -491,12 +492,12 @@ export default function VagasPage() {
                   {/* Localização + Salário */}
                   <div className="space-y-1.5 mb-3">
                     <div className="flex items-center gap-2">
-                      <i className="ri-map-pin-line text-emerald-500 text-sm"></i>
+                      <i className="ri-map-pin-line text-emerald-500 text-sm" aria-hidden="true"></i>
                       <span className="text-gray-700 text-sm">{job.neighborhood}, {job.city}</span>
                     </div>
                     {job.salaryRange && (
                       <div className="flex items-center gap-2">
-                        <i className="ri-money-dollar-circle-line text-emerald-500 text-sm"></i>
+                        <i className="ri-money-dollar-circle-line text-emerald-500 text-sm" aria-hidden="true"></i>
                         <span className="font-bold text-gray-900 text-sm">{job.salaryRange}</span>
                       </div>
                     )}
@@ -519,7 +520,7 @@ export default function VagasPage() {
                   {/* Rodapé */}
                   <div className="mt-auto pt-3 border-t border-gray-50 flex items-center justify-between">
                     <span className="text-xs text-gray-400 flex items-center gap-1">
-                      <i className="ri-time-line text-xs"></i>
+                      <i className="ri-time-line text-xs" aria-hidden="true"></i>
                       {timeAgo(job.createdAt)}
                     </span>
                     <span className="text-sm font-semibold text-emerald-600 group-hover:underline whitespace-nowrap">
@@ -541,15 +542,16 @@ export default function VagasPage() {
       {!isLoggedIn && (
         <section className="py-10 bg-emerald-50 border-t border-emerald-100">
           <div className="max-w-xl mx-auto px-4 text-center">
-            <h2 className="text-lg font-bold text-gray-900 mb-2">Não encontrou a vaga ideal?</h2>
+            <h2 className="text-lg font-bold text-gray-900 mb-2 text-balance">Não encontrou a vaga ideal?</h2>
             <p className="text-sm text-gray-600 mb-4">
               Cadastre-se gratuitamente e receba alertas quando novas vagas forem publicadas na sua área.
             </p>
             <button
+              type="button"
               onClick={() => navigate("/cadastro")}
               className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-6 py-3 rounded-lg text-sm transition-colors cursor-pointer"
             >
-              <i className="ri-user-add-line"></i>
+              <i className="ri-user-add-line" aria-hidden="true"></i>
               Criar conta e receber alertas
             </button>
           </div>

@@ -280,9 +280,9 @@ function VagaFAQSection({ job, details }: { job: typeof mockJobs[0]; details: Re
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 p-6">
-      <h2 className="text-base font-bold text-gray-900 mb-1 flex items-center gap-2">
-        <div className="w-5 h-5 flex items-center justify-center">
-          <i className="ri-question-answer-line text-emerald-500 text-sm"></i>
+      <h2 className="text-base font-bold text-gray-900 mb-1 flex items-center gap-2 text-balance">
+        <div className="size-5 flex items-center justify-center">
+          <i className="ri-question-answer-line text-emerald-500 text-sm" aria-hidden="true"></i>
         </div>
         Perguntas Frequentes sobre esta Vaga
       </h2>
@@ -294,12 +294,13 @@ function VagaFAQSection({ job, details }: { job: typeof mockJobs[0]; details: Re
             className="border border-gray-100 rounded-xl overflow-hidden"
           >
             <button
+              type="button"
               onClick={() => setOpenIndex(openIndex === i ? null : i)}
               className="w-full flex items-start justify-between gap-3 px-4 py-3.5 text-left cursor-pointer hover:bg-gray-50 transition-colors"
             >
               <span className="text-sm font-medium text-gray-800 leading-snug">{faq.q}</span>
-              <div className="w-5 h-5 flex items-center justify-center shrink-0 mt-0.5">
-                <i className={`text-gray-400 text-sm transition-transform duration-200 ${openIndex === i ? "ri-subtract-line" : "ri-add-line"}`}></i>
+              <div className="size-5 flex items-center justify-center shrink-0 mt-0.5">
+                <i className={`text-gray-400 text-sm transition-transform duration-200 ${openIndex === i ? "ri-subtract-line" : "ri-add-line"}`} aria-hidden="true"></i>
               </div>
             </button>
             {openIndex === i && (
@@ -381,15 +382,15 @@ export default function VagaDetalhePage() {
 
   if (!job || !details) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-dvh bg-gray-50">
         <Navbar />
         <div className="max-w-3xl mx-auto px-4 py-32 text-center">
-          <div className="w-16 h-16 flex items-center justify-center mx-auto mb-4">
-            <i className="ri-search-line text-gray-300 text-4xl"></i>
+          <div className="size-16 flex items-center justify-center mx-auto mb-4">
+            <i className="ri-search-line text-gray-300 text-4xl" aria-hidden="true"></i>
           </div>
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">Vaga não encontrada</h1>
+          <h1 className="text-2xl font-bold text-gray-800 mb-2 text-balance">Vaga não encontrada</h1>
           <p className="text-gray-500 mb-6">Esta vaga pode ter sido encerrada ou o link está incorreto.</p>
-          <Link to="/vagas" className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-6 py-3 rounded-lg text-sm transition-colors">
+          <Link to="/vagas" className="inline-block bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-6 py-3 rounded-lg text-sm transition-colors">
             Ver todas as vagas
           </Link>
         </div>
@@ -445,7 +446,7 @@ export default function VagaDetalhePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-dvh bg-gray-50">
       <JobPostingSchema job={job} details={details} />
       <Navbar />
 
@@ -453,9 +454,9 @@ export default function VagaDetalhePage() {
       <div className="bg-white border-b border-gray-100 pt-16">
         <div className="max-w-5xl mx-auto px-4 md:px-6 py-3 flex items-center gap-2 text-xs text-gray-500">
           <Link to="/" className="hover:text-emerald-600 transition-colors cursor-pointer">Início</Link>
-          <i className="ri-arrow-right-s-line"></i>
+          <i className="ri-arrow-right-s-line" aria-hidden="true"></i>
           <Link to="/vagas" className="hover:text-emerald-600 transition-colors cursor-pointer">Vagas</Link>
-          <i className="ri-arrow-right-s-line"></i>
+          <i className="ri-arrow-right-s-line" aria-hidden="true"></i>
           <span className="text-gray-800 font-medium truncate">{job.title}</span>
         </div>
       </div>
@@ -482,7 +483,7 @@ export default function VagaDetalhePage() {
                       <span className="text-xs text-emerald-600 font-medium">Vaga ativa</span>
                     </div>
                   </div>
-                  <h1 className="text-2xl font-bold text-gray-900 mb-2">{job.title}</h1>
+                  <h1 className="text-2xl font-bold text-gray-900 mb-2 text-balance">{job.title}</h1>
                   <div className="flex items-center gap-2 flex-wrap">
                     {job.sector && (
                       <span className={`inline-flex items-center gap-1.5 text-sm font-medium px-3 py-1 rounded-full border ${SECTOR_COLORS[job.sector] || "bg-gray-50 text-gray-500 border-gray-100"}`}>
@@ -493,8 +494,8 @@ export default function VagaDetalhePage() {
                     <span className="text-sm text-gray-500">{job.area}</span>
                   </div>
                 </div>
-                <div className="w-14 h-14 rounded-xl bg-emerald-50 flex items-center justify-center shrink-0">
-                  <i className="ri-briefcase-line text-emerald-600 text-2xl"></i>
+                <div className="size-14 rounded-xl bg-emerald-50 flex items-center justify-center shrink-0">
+                  <i className="ri-briefcase-line text-emerald-600 text-2xl" aria-hidden="true"></i>
                 </div>
               </div>
 
@@ -509,7 +510,7 @@ export default function VagaDetalhePage() {
                   <div key={item.label} className="bg-gray-50 rounded-xl p-3">
                     <div className="flex items-center gap-1.5 mb-1">
                       <div className="w-4 h-4 flex items-center justify-center">
-                        <i className={`${item.icon} text-emerald-500 text-xs`}></i>
+                        <i className={`${item.icon} text-emerald-500 text-xs`} aria-hidden="true"></i>
                       </div>
                       <span className="text-xs text-gray-400">{item.label}</span>
                     </div>
@@ -521,9 +522,9 @@ export default function VagaDetalhePage() {
 
             {/* Description */}
             <div className="bg-white rounded-2xl border border-gray-100 p-6">
-              <h2 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <div className="w-5 h-5 flex items-center justify-center">
-                  <i className="ri-file-text-line text-emerald-500 text-sm"></i>
+              <h2 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2 text-balance">
+                <div className="size-5 flex items-center justify-center">
+                  <i className="ri-file-text-line text-emerald-500 text-sm" aria-hidden="true"></i>
                 </div>
                 Sobre a Vaga
               </h2>
@@ -536,17 +537,17 @@ export default function VagaDetalhePage() {
 
             {/* Requirements */}
             <div className="bg-white rounded-2xl border border-gray-100 p-6">
-              <h2 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <div className="w-5 h-5 flex items-center justify-center">
-                  <i className="ri-checkbox-circle-line text-emerald-500 text-sm"></i>
+              <h2 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2 text-balance">
+                <div className="size-5 flex items-center justify-center">
+                  <i className="ri-checkbox-circle-line text-emerald-500 text-sm" aria-hidden="true"></i>
                 </div>
                 Requisitos Obrigatórios
               </h2>
               <ul className="space-y-2.5">
                 {details.requirements.map((req, i) => (
                   <li key={i} className="flex items-start gap-2.5">
-                    <div className="w-5 h-5 flex items-center justify-center mt-0.5 shrink-0">
-                      <i className="ri-check-line text-emerald-500 text-sm"></i>
+                    <div className="size-5 flex items-center justify-center mt-0.5 shrink-0">
+                      <i className="ri-check-line text-emerald-500 text-sm" aria-hidden="true"></i>
                     </div>
                     <span className="text-gray-800 text-sm">{req}</span>
                   </li>
@@ -554,17 +555,17 @@ export default function VagaDetalhePage() {
               </ul>
               {details.desirable.length > 0 && (
                 <div className="mt-5 pt-5 border-t border-gray-50">
-                  <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                    <div className="w-4 h-4 flex items-center justify-center">
-                      <i className="ri-star-line text-amber-400 text-xs"></i>
+                  <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2 text-balance">
+                    <div className="size-4 flex items-center justify-center">
+                      <i className="ri-star-line text-amber-400 text-xs" aria-hidden="true"></i>
                     </div>
                     Diferenciais (desejável)
                   </h3>
                   <ul className="space-y-2">
                     {details.desirable.map((item, i) => (
                       <li key={i} className="flex items-start gap-2.5">
-                        <div className="w-5 h-5 flex items-center justify-center mt-0.5 shrink-0">
-                          <i className="ri-add-circle-line text-amber-400 text-sm"></i>
+                        <div className="size-5 flex items-center justify-center mt-0.5 shrink-0">
+                          <i className="ri-add-circle-line text-amber-400 text-sm" aria-hidden="true"></i>
                         </div>
                         <span className="text-gray-800 text-sm">{item}</span>
                       </li>
@@ -576,16 +577,16 @@ export default function VagaDetalhePage() {
 
             {/* Benefits */}
             <div className="bg-white rounded-2xl border border-gray-100 p-6">
-              <h2 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <div className="w-5 h-5 flex items-center justify-center">
-                  <i className="ri-gift-line text-emerald-500 text-sm"></i>
+              <h2 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2 text-balance">
+                <div className="size-5 flex items-center justify-center">
+                  <i className="ri-gift-line text-emerald-500 text-sm" aria-hidden="true"></i>
                 </div>
                 Benefícios
               </h2>
               <div className="flex flex-wrap gap-2">
                 {details.benefits.map((benefit, i) => (
                   <span key={i} className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-100 text-emerald-700 text-sm px-3 py-1.5 rounded-full">
-                    <i className="ri-check-line text-xs"></i>
+                    <i className="ri-check-line text-xs" aria-hidden="true"></i>
                     {benefit}
                   </span>
                 ))}
@@ -594,8 +595,8 @@ export default function VagaDetalhePage() {
 
             {/* Privacy Notice */}
             <div className="bg-amber-50 border border-amber-100 rounded-2xl p-5 flex items-start gap-3">
-              <div className="w-5 h-5 flex items-center justify-center mt-0.5 shrink-0">
-                <i className="ri-shield-check-line text-amber-600 text-sm"></i>
+              <div className="size-5 flex items-center justify-center mt-0.5 shrink-0">
+                <i className="ri-shield-check-line text-amber-600 text-sm" aria-hidden="true"></i>
               </div>
               <div>
                 <p className="text-amber-900 font-semibold text-sm mb-1">Empresa anônima — sua privacidade protegida</p>
@@ -636,7 +637,7 @@ export default function VagaDetalhePage() {
                   onClick={() => setApplyStep("logged_in_confirm")}
                   className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl text-sm cursor-pointer transition-colors flex items-center justify-center gap-2 whitespace-nowrap"
                 >
-                  <i className="ri-send-plane-line text-sm"></i>
+                  <i className="ri-send-plane-line text-sm" aria-hidden="true"></i>
                   Quero me Candidatar!
                 </button>
               ) : (
@@ -646,19 +647,20 @@ export default function VagaDetalhePage() {
                     onClick={() => navigate(`/login?redirect=/vagas/${job.id}`)}
                     className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl text-sm cursor-pointer transition-colors flex items-center justify-center gap-2 whitespace-nowrap"
                   >
-                    <i className="ri-login-box-line text-sm"></i>
+                    <i className="ri-login-box-line text-sm" aria-hidden="true"></i>
                     Entrar e candidatar-se
                   </button>
                   <button
+                    type="button"
                     onClick={() => navigate("/cadastro")}
                     className="w-full border-2 border-emerald-500 text-emerald-700 hover:bg-emerald-50 font-semibold py-3 rounded-xl text-sm cursor-pointer transition-colors flex items-center justify-center gap-2 whitespace-nowrap"
                   >
-                    <i className="ri-user-add-line text-sm"></i>
+                    <i className="ri-user-add-line text-sm" aria-hidden="true"></i>
                     Criar conta grátis
                   </button>
                   <div className="bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 mt-1">
                     <p className="text-xs text-amber-700 text-center">
-                      <i className="ri-lock-line mr-1"></i>
+                      <i className="ri-lock-line mr-1" aria-hidden="true"></i>
                       Somente usuários cadastrados podem se candidatar
                     </p>
                   </div>
@@ -667,25 +669,26 @@ export default function VagaDetalhePage() {
 
               <div className="mt-3 space-y-2">
                 <div className="flex items-center gap-2 text-xs text-gray-700">
-                  <i className="ri-whatsapp-line text-emerald-500 text-xs"></i>
+                  <i className="ri-whatsapp-line text-emerald-500 text-xs" aria-hidden="true"></i>
                   Atualizações via WhatsApp
                 </div>
                 <div className="flex items-center gap-2 text-xs text-gray-700">
-                  <i className="ri-mail-line text-emerald-500 text-xs"></i>
+                  <i className="ri-mail-line text-emerald-500 text-xs" aria-hidden="true"></i>
                   Notificações por e-mail
                 </div>
                 <div className="flex items-center gap-2 text-xs text-gray-700">
-                  <i className="ri-eye-off-line text-emerald-500 text-xs"></i>
+                  <i className="ri-eye-off-line text-emerald-500 text-xs" aria-hidden="true"></i>
                   Empresa anônima até seleção
                 </div>
               </div>
 
               <div className="mt-4 pt-4 border-t border-gray-50">
                 <button
+                  type="button"
                   onClick={() => navigate("/vagas")}
                   className="w-full text-gray-500 hover:text-gray-700 text-xs font-medium py-2 cursor-pointer transition-colors flex items-center justify-center gap-1"
                 >
-                  <i className="ri-arrow-left-line text-xs"></i>
+                  <i className="ri-arrow-left-line text-xs" aria-hidden="true"></i>
                   Ver outras vagas
                 </button>
               </div>
@@ -718,7 +721,7 @@ export default function VagaDetalhePage() {
                     >
                       <p className="font-semibold text-gray-800 text-sm mb-1">{related.title}</p>
                       <div className="flex items-center gap-2 text-xs text-gray-500">
-                        <i className="ri-map-pin-line text-emerald-500"></i>
+                        <i className="ri-map-pin-line text-emerald-500" aria-hidden="true"></i>
                         {related.neighborhood}
                         <span className="text-gray-300">·</span>
                         <span className={`font-medium px-1.5 py-0.5 rounded-full text-xs ${CONTRACT_COLORS[related.contractType] || "bg-gray-100 text-gray-600"}`}>
@@ -745,10 +748,10 @@ export default function VagaDetalhePage() {
             {applyStep === "choose" && (
               <div className="p-8">
                 <div className="text-center mb-6">
-                  <div className="w-16 h-16 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-4">
-                    <i className="ri-briefcase-line text-emerald-600 text-2xl"></i>
+                  <div className="size-16 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-4">
+                    <i className="ri-briefcase-line text-emerald-600 text-2xl" aria-hidden="true"></i>
                   </div>
-                  <h2 className="text-xl font-bold text-gray-900 mb-1">Candidatar-se à vaga</h2>
+                  <h2 className="text-xl font-bold text-gray-900 mb-1 text-balance">Candidatar-se à vaga</h2>
                   <p className="text-gray-500 text-sm">
                     <strong className="text-gray-700">{job.title}</strong> · {job.neighborhood}
                   </p>
@@ -757,26 +760,27 @@ export default function VagaDetalhePage() {
                 <div className="space-y-3 mb-5">
                   <button
                     onClick={() => setApplyStep("login")}
-                    className="w-full flex items-center gap-4 p-4 border-2 border-gray-100 hover:border-emerald-400 rounded-xl cursor-pointer transition-all group"
+                    className="w-full flex items-center gap-4 p-4 border-2 border-gray-100 hover:border-emerald-400 rounded-xl cursor-pointer transition-colors group"
                   >
-                    <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center shrink-0 group-hover:bg-emerald-100 transition-colors">
-                      <i className="ri-login-box-line text-emerald-600 text-lg"></i>
+                    <div className="size-10 rounded-xl bg-emerald-50 flex items-center justify-center shrink-0 group-hover:bg-emerald-100 transition-colors">
+                      <i className="ri-login-box-line text-emerald-600 text-lg" aria-hidden="true"></i>
                     </div>
                     <div className="text-left">
                       <p className="font-semibold text-gray-900 text-sm">Já tenho cadastro</p>
                       <p className="text-gray-400 text-xs">Entrar com meu email e senha</p>
                     </div>
-                    <div className="w-5 h-5 flex items-center justify-center ml-auto">
-                      <i className="ri-arrow-right-s-line text-gray-300 group-hover:text-emerald-500 transition-colors"></i>
+                    <div className="size-5 flex items-center justify-center ml-auto">
+                      <i className="ri-arrow-right-s-line text-gray-300 group-hover:text-emerald-500 transition-colors" aria-hidden="true"></i>
                     </div>
                   </button>
 
                   <button
+                    type="button"
                     onClick={() => navigate("/cadastro")}
-                    className="w-full flex items-center gap-4 p-4 border-2 border-emerald-500 bg-emerald-50 hover:bg-emerald-100 rounded-xl cursor-pointer transition-all group"
+                    className="w-full flex items-center gap-4 p-4 border-2 border-emerald-500 bg-emerald-50 hover:bg-emerald-100 rounded-xl cursor-pointer transition-colors group"
                   >
-                    <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center shrink-0">
-                      <i className="ri-user-add-line text-emerald-600 text-lg"></i>
+                    <div className="size-10 rounded-xl bg-emerald-100 flex items-center justify-center shrink-0">
+                      <i className="ri-user-add-line text-emerald-600 text-lg" aria-hidden="true"></i>
                     </div>
                     <div className="text-left">
                       <div className="flex items-center gap-2">
@@ -785,15 +789,15 @@ export default function VagaDetalhePage() {
                       </div>
                       <p className="text-emerald-600 text-xs">Leva menos de 2 minutos!</p>
                     </div>
-                    <div className="w-5 h-5 flex items-center justify-center ml-auto">
-                      <i className="ri-arrow-right-s-line text-emerald-400"></i>
+                    <div className="size-5 flex items-center justify-center ml-auto">
+                      <i className="ri-arrow-right-s-line text-emerald-400" aria-hidden="true"></i>
                     </div>
                   </button>
                 </div>
 
                 <div className="bg-gray-50 rounded-xl p-3 mb-4">
                   <p className="text-xs text-gray-500 text-center">
-                    <i className="ri-shield-check-line text-emerald-500 mr-1"></i>
+                    <i className="ri-shield-check-line text-emerald-500 mr-1" aria-hidden="true"></i>
                     Seus dados são protegidos. A empresa não recebe suas informações pessoais.
                   </p>
                 </div>
@@ -807,15 +811,15 @@ export default function VagaDetalhePage() {
             {/* STEP: Login */}
             {applyStep === "login" && (
               <div className="p-8">
-                <button onClick={() => setApplyStep("choose")} className="flex items-center gap-1 text-gray-400 hover:text-gray-600 text-xs cursor-pointer mb-5 transition-colors">
-                  <i className="ri-arrow-left-line text-xs"></i>
+                <button type="button" onClick={() => setApplyStep("choose")} className="flex items-center gap-1 text-gray-400 hover:text-gray-600 text-xs cursor-pointer mb-5 transition-colors">
+                  <i className="ri-arrow-left-line text-xs" aria-hidden="true"></i>
                   Voltar
                 </button>
                 <div className="text-center mb-6">
-                  <div className="w-14 h-14 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-3">
-                    <i className="ri-login-box-line text-emerald-600 text-xl"></i>
+                  <div className="size-14 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-3">
+                    <i className="ri-login-box-line text-emerald-600 text-xl" aria-hidden="true"></i>
                   </div>
-                  <h2 className="text-xl font-bold text-gray-900 mb-1">Entrar na plataforma</h2>
+                  <h2 className="text-xl font-bold text-gray-900 mb-1 text-balance">Entrar na plataforma</h2>
                   <p className="text-gray-500 text-sm">Para se candidatar à vaga de <strong>{job.title}</strong></p>
                 </div>
 
@@ -843,14 +847,14 @@ export default function VagaDetalhePage() {
                         className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm text-gray-800 outline-none focus:border-emerald-400 transition-colors pr-10"
                       />
                       <button type="button" onClick={() => setShowLoginPwd(!showLoginPwd)} className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center cursor-pointer text-gray-400">
-                        <i className={`${showLoginPwd ? "ri-eye-off-line" : "ri-eye-line"} text-sm`}></i>
+                        <i className={`${showLoginPwd ? "ri-eye-off-line" : "ri-eye-line"} text-sm`} aria-hidden="true"></i>
                       </button>
                     </div>
                   </div>
 
                   {loginError && (
                     <div className="bg-red-50 border border-red-100 rounded-lg px-4 py-3 flex items-center gap-2">
-                      <i className="ri-error-warning-line text-red-500 text-sm"></i>
+                      <i className="ri-error-warning-line text-red-500 text-sm" aria-hidden="true"></i>
                       <p className="text-red-600 text-xs">{loginError}</p>
                     </div>
                   )}
@@ -862,7 +866,7 @@ export default function VagaDetalhePage() {
                   >
                     {loginLoading ? (
                       <span className="flex items-center justify-center gap-2">
-                        <i className="ri-loader-4-line animate-spin text-sm"></i>
+                        <i className="ri-loader-4-line motion-safe:animate-spin text-sm" role="status" aria-label="Entrando na plataforma"></i>
                         Entrando...
                       </span>
                     ) : "Entrar e candidatar-se"}
@@ -884,10 +888,10 @@ export default function VagaDetalhePage() {
             {/* STEP: Logged in confirm */}
             {applyStep === "logged_in_confirm" && (
               <div className="p-8 text-center">
-                <div className="w-16 h-16 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-4">
-                  <i className="ri-user-star-line text-emerald-600 text-2xl"></i>
+                <div className="size-16 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-4">
+                  <i className="ri-user-star-line text-emerald-600 text-2xl" aria-hidden="true"></i>
                 </div>
-                <h2 className="text-xl font-bold text-gray-900 mb-2">Confirmar candidatura</h2>
+                <h2 className="text-xl font-bold text-gray-900 mb-2 text-balance">Confirmar candidatura</h2>
                 <p className="text-gray-500 text-sm mb-1">Você está se candidatando à vaga de:</p>
                 <p className="font-bold text-gray-900 text-lg mb-1">{job.title}</p>
                 <p className="text-gray-400 text-sm mb-5">{job.neighborhood}, {job.city} · {job.contractType}</p>
@@ -901,7 +905,7 @@ export default function VagaDetalhePage() {
                   ].map((item) => (
                     <div key={item.text} className="flex items-center gap-2.5">
                       <div className="w-5 h-5 flex items-center justify-center shrink-0">
-                        <i className={`${item.icon} text-emerald-500 text-sm`}></i>
+                        <i className={`${item.icon} text-emerald-500 text-sm`} aria-hidden="true"></i>
                       </div>
                       <span className="text-gray-600 text-xs">{item.text}</span>
                     </div>
@@ -910,7 +914,7 @@ export default function VagaDetalhePage() {
 
                 {applyError && (
                   <div className="bg-red-50 border border-red-100 rounded-lg px-4 py-3 flex items-center gap-2 mb-3">
-                    <i className="ri-error-warning-line text-red-500 text-sm shrink-0"></i>
+                    <i className="ri-error-warning-line text-red-500 text-sm shrink-0" aria-hidden="true"></i>
                     <p className="text-red-600 text-xs">{applyError}</p>
                   </div>
                 )}
@@ -921,7 +925,7 @@ export default function VagaDetalhePage() {
                 >
                   {applyLoading ? (
                     <span className="flex items-center justify-center gap-2">
-                      <i className="ri-loader-4-line animate-spin text-sm"></i>
+                      <i className="ri-loader-4-line motion-safe:animate-spin text-sm" role="status" aria-label="Enviando candidatura"></i>
                       Enviando...
                     </span>
                   ) : "Confirmar candidatura!"}
@@ -935,10 +939,10 @@ export default function VagaDetalhePage() {
             {/* STEP: Success */}
             {applyStep === "success" && (
               <div className="p-8 text-center">
-                <div className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-5">
-                  <i className="ri-checkbox-circle-fill text-emerald-600 text-4xl"></i>
+                <div className="size-20 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-5">
+                  <i className="ri-checkbox-circle-fill text-emerald-600 text-4xl" aria-hidden="true"></i>
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Candidatura enviada!</h2>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2 text-balance">Candidatura enviada!</h2>
                 <p className="text-emerald-600 font-semibold text-lg mb-3">Parabéns! 🎉</p>
                 <p className="text-gray-500 text-sm mb-6 leading-relaxed">
                   Sua candidatura para <strong>{job.title}</strong> foi registrada com sucesso. Nossa equipe já foi notificada e entrará em contato em breve!

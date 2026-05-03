@@ -28,7 +28,7 @@ export default function NewsletterForm() {
   if (status === 'success') {
     return (
       <p className="text-emerald-400 text-sm font-medium flex items-center gap-2">
-        <i className="ri-check-line"></i>
+        <i className="ri-check-line" aria-hidden="true"></i>
         Ótimo! Você receberá as melhores vagas em breve.
       </p>
     );

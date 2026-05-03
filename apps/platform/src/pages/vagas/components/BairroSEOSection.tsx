@@ -90,7 +90,7 @@ export default function BairroSEOSection({ bairro, jobCount }: BairroSEOSectionP
           />
           <div className="absolute inset-0 bg-gradient-to-t from-gray-900/70 to-transparent"></div>
           <div className="absolute bottom-4 left-5">
-            <h2 className="text-white font-bold text-xl">
+            <h2 className="text-white font-bold text-xl text-balance">
               Vagas no {bairro}
             </h2>
             <p className="text-emerald-300 text-sm font-medium">
@@ -102,7 +102,7 @@ export default function BairroSEOSection({ bairro, jobCount }: BairroSEOSectionP
 
       <div className="p-6">
         {/* Description */}
-        <p className="text-gray-600 text-sm leading-relaxed mb-5">{description}</p>
+        <p className="text-gray-600 text-sm leading-relaxed mb-5 text-pretty">{description}</p>
 
         {/* Sectors */}
         {sectors.length > 0 && (
@@ -117,7 +117,7 @@ export default function BairroSEOSection({ bairro, jobCount }: BairroSEOSectionP
                   to={`/vagas?bairro=${encodeURIComponent(bairro)}&setor=${encodeURIComponent(sector)}`}
                   className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-medium px-3 py-1.5 rounded-full hover:bg-emerald-100 transition-colors cursor-pointer"
                 >
-                  <i className="ri-briefcase-line text-xs"></i>
+                  <i className="ri-briefcase-line text-xs" aria-hidden="true"></i>
                   {sector}
                 </Link>
               ))}
@@ -139,7 +139,7 @@ export default function BairroSEOSection({ bairro, jobCount }: BairroSEOSectionP
                   to={`/vagas?bairro=${encodeURIComponent(n.name)}`}
                   className="flex items-center gap-1.5 bg-gray-50 border border-gray-100 text-gray-600 text-xs px-3 py-1.5 rounded-full hover:border-emerald-200 hover:text-emerald-600 transition-colors cursor-pointer"
                 >
-                  <i className="ri-map-pin-line text-xs"></i>
+                  <i className="ri-map-pin-line text-xs" aria-hidden="true"></i>
                   {n.name}
                   <span className="text-gray-400">({n.jobCount})</span>
                 </Link>

@@ -17,13 +17,13 @@ export default function NavbarMobile({ navLinks, appUrl = 'https://app.santarem.
     <>
       {/* Botão hambúrguer */}
       <button
-        className="md:hidden w-9 h-9 flex items-center justify-center rounded-md hover:bg-gray-100 transition-colors"
+        className="md:hidden size-9 flex items-center justify-center rounded-md hover:bg-gray-100 transition-colors"
         style={{ color: '#059669' }}
         onClick={() => setOpen(!open)}
         aria-label={open ? 'Fechar menu' : 'Abrir menu'}
         aria-expanded={open}
       >
-        <i className={`text-xl ${open ? 'ri-close-line' : 'ri-menu-line'}`}></i>
+        <i className={`text-xl ${open ? 'ri-close-line' : 'ri-menu-line'}`} aria-hidden="true"></i>
       </button>
 
       {/* Menu Mobile */}

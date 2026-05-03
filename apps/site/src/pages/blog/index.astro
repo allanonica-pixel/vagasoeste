@@ -46,12 +46,12 @@ const blogSchema = {
       <nav aria-label="breadcrumb" class="mb-4">
         <ol class="flex items-center gap-1.5 text-xs text-emerald-300">
           <li><a href="/" class="hover:text-white transition-colors">Início</a></li>
-          <li><i class="ri-arrow-right-s-line"></i></li>
+          <li><i class="ri-arrow-right-s-line" aria-hidden="true"></i></li>
           <li class="text-white font-medium">Blog</li>
         </ol>
       </nav>
-      <h1 class="text-2xl md:text-3xl font-bold text-white mb-2">Blog VagasOeste</h1>
-      <p class="text-emerald-200 text-sm max-w-lg">
+      <h1 class="text-2xl md:text-3xl font-bold text-white mb-2 text-balance">Blog VagasOeste</h1>
+      <p class="text-emerald-200 text-sm max-w-lg text-pretty">
         Dicas de currículo, entrevistas, mercado de trabalho e carreira para candidatos de Santarém e região.
       </p>
     </div>
@@ -62,8 +62,8 @@ const blogSchema = {
     <!-- Posts em destaque -->
     {featured.length > 0 && (
       <section aria-labelledby="destaques-title" class="mb-12">
-        <h2 id="destaques-title" class="text-lg font-bold text-gray-900 mb-4">
-          <i class="ri-star-line text-amber-500 mr-1"></i>
+        <h2 id="destaques-title" class="text-lg font-bold text-gray-900 mb-4 text-balance">
+          <i class="ri-star-line text-amber-500 mr-1" aria-hidden="true"></i>
           Artigos em Destaque
         </h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -79,12 +79,12 @@ const blogSchema = {
                   </span>
                   <span class="text-xs text-gray-400">{post.readTime} min</span>
                 </div>
-                <h3 class="font-bold text-gray-900 text-lg leading-snug mb-2 flex-1">
+                <h3 class="font-bold text-gray-900 text-lg leading-snug mb-2 flex-1 text-balance">
                   <a href={`/blog/${post.slug}`} class="hover:text-emerald-600 transition-colors">{post.title}</a>
                 </h3>
-                <p class="text-sm text-gray-500 line-clamp-2 mb-4">{post.excerpt}</p>
+                <p class="text-sm text-gray-500 line-clamp-2 mb-4 text-pretty">{post.excerpt}</p>
                 <a href={`/blog/${post.slug}`} class="text-sm font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-1">
-                  Ler artigo completo <i class="ri-arrow-right-line"></i>
+                  Ler artigo completo <i class="ri-arrow-right-line" aria-hidden="true"></i>
                 </a>
               </div>
             </article>
@@ -95,16 +95,16 @@ const blogSchema = {
 
     <!-- Todos os artigos com busca (ilha React) -->
     <section aria-labelledby="todos-artigos-title">
-      <h2 id="todos-artigos-title" class="text-lg font-bold text-gray-900 mb-6">Todos os Artigos</h2>
+      <h2 id="todos-artigos-title" class="text-lg font-bold text-gray-900 mb-6 text-balance">Todos os Artigos</h2>
       <BlogSearch client:load initialPosts={posts} categories={categories} />
     </section>
 
     <!-- CTA -->
     <section class="mt-10 bg-emerald-600 rounded-2xl p-5 md:p-7 text-center" aria-label="Criar conta">
-      <h2 class="text-lg md:text-xl font-bold text-white mb-2">
+      <h2 class="text-lg md:text-xl font-bold text-white mb-2 text-balance">
         Pronto para encontrar seu próximo emprego?
       </h2>
-      <p class="text-white/90 text-xs md:text-sm mb-4 max-w-lg mx-auto leading-relaxed">
+      <p class="text-white/90 text-xs md:text-sm mb-4 max-w-lg mx-auto leading-relaxed text-pretty">
         Cadastre-se gratuitamente na VagasOeste e tenha acesso às melhores vagas de Santarém e região, com processo seletivo transparente e intermediado por profissionais.
       </p>
       <div class="flex flex-col sm:flex-row gap-2 justify-center">

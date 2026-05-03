@@ -25,7 +25,7 @@ export default function Navbar() {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-50 transition-[background-color,border-color] duration-300 ${
         isTransparent
           ? "bg-transparent"
           : "bg-white border-b border-gray-100"
@@ -34,8 +34,8 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 cursor-pointer">
-          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isTransparent ? "bg-white/20" : "bg-emerald-600"}`}>
-            <i className={`ri-briefcase-line text-sm ${isTransparent ? "text-white" : "text-white"}`}></i>
+          <div className={`size-8 rounded-lg flex items-center justify-center ${isTransparent ? "bg-white/20" : "bg-emerald-600"}`}>
+            <i className={`ri-briefcase-line text-sm ${isTransparent ? "text-white" : "text-white"}`} aria-hidden="true"></i>
           </div>
           <span className={`font-bold text-lg tracking-tight ${isTransparent ? "text-white" : "text-gray-900"}`}>
             Vagas<span className={isTransparent ? "text-emerald-300" : "text-emerald-600"}>Oeste</span>
@@ -81,10 +81,13 @@ export default function Navbar() {
 
         {/* Mobile Hamburger */}
         <button
-          className={`md:hidden w-8 h-8 flex items-center justify-center cursor-pointer ${isTransparent ? "text-white" : "text-gray-700"}`}
+          type="button"
+          aria-label={menuOpen ? "Fechar menu" : "Abrir menu"}
+          aria-expanded={menuOpen}
+          className={`md:hidden size-8 flex items-center justify-center cursor-pointer ${isTransparent ? "text-white" : "text-gray-700"}`}
           onClick={() => setMenuOpen(!menuOpen)}
         >
-          <i className={`text-xl ${menuOpen ? "ri-close-line" : "ri-menu-line"}`}></i>
+          <i className={`text-xl ${menuOpen ? "ri-close-line" : "ri-menu-line"}`} aria-hidden="true"></i>
         </button>
       </div>
 

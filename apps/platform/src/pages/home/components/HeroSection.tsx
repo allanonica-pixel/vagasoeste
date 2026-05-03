@@ -63,7 +63,7 @@ export default function HeroSection() {
           <span className="text-emerald-300">Santarém e região</span>, em um só lugar
         </h1>
 
-        <p className="text-white/75 text-sm md:text-base max-w-lg mb-6 leading-relaxed">
+        <p className="text-white/75 text-sm md:text-base max-w-lg mb-6 leading-relaxed text-pretty">
           Vagas reais com informações claras sobre função e área de atuação. Acompanhe cada etapa da
           sua candidatura em tempo real.
         </p>
@@ -73,7 +73,7 @@ export default function HeroSection() {
           {/* Filtros Estado / Cidade / Setor */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-2">
             <div className="flex items-center gap-2 bg-white rounded-lg px-3 py-2">
-              <i className="ri-map-pin-line text-emerald-600 text-sm shrink-0"></i>
+              <i className="ri-map-pin-line text-emerald-600 text-sm shrink-0" aria-hidden="true"></i>
               <select
                 value={estado}
                 onChange={(e) => { setEstado(e.target.value); setCidade(""); }}
@@ -88,7 +88,7 @@ export default function HeroSection() {
             </div>
 
             <div className="flex items-center gap-2 bg-white rounded-lg px-3 py-2">
-              <i className="ri-building-2-line text-emerald-600 text-sm shrink-0"></i>
+              <i className="ri-building-2-line text-emerald-600 text-sm shrink-0" aria-hidden="true"></i>
               <select
                 value={cidade}
                 onChange={(e) => setCidade(e.target.value)}
@@ -104,7 +104,7 @@ export default function HeroSection() {
             </div>
 
             <div className="flex items-center gap-2 bg-white rounded-lg px-3 py-2">
-              <i className="ri-briefcase-line text-emerald-600 text-sm shrink-0"></i>
+              <i className="ri-briefcase-line text-emerald-600 text-sm shrink-0" aria-hidden="true"></i>
               <select
                 value={setor}
                 onChange={(e) => setSetor(e.target.value)}
@@ -122,7 +122,7 @@ export default function HeroSection() {
           {/* Campo de busca + botão */}
           <div className="flex flex-col sm:flex-row gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-1.5">
             <div className="flex-1 flex items-center gap-3 bg-white rounded-lg px-4 py-2">
-              <i className="ri-search-line text-gray-400 text-sm shrink-0"></i>
+              <i className="ri-search-line text-gray-400 text-sm shrink-0" aria-hidden="true"></i>
               <input
                 type="text"
                 value={search}
@@ -149,7 +149,7 @@ export default function HeroSection() {
                 onClick={() => navigate(`/vagas?setor=${encodeURIComponent(s.label)}`)}
                 className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white/90 text-sm px-3 py-1.5 rounded-full transition-colors whitespace-nowrap cursor-pointer"
               >
-                <i className={`${s.icon} text-sm`}></i>
+                <i className={`${s.icon} text-sm`} aria-hidden="true"></i>
                 {s.label}
               </button>
             ))}

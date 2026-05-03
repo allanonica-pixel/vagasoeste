@@ -34,33 +34,33 @@ const serviceSchema = {
   <!-- Hero -->
   <section class="relative pt-24 pb-16 overflow-hidden bg-emerald-950" aria-label="Para Empresas">
     <div class="absolute inset-0 bg-gradient-to-br from-emerald-900 via-emerald-950 to-gray-900">
-      <div class="absolute top-0 left-1/3 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl"></div>
-      <div class="absolute bottom-0 right-1/4 w-80 h-80 bg-emerald-400/5 rounded-full blur-3xl"></div>
+      <div class="absolute top-0 left-1/3 size-96 bg-emerald-500/10 rounded-full blur-3xl"></div>
+      <div class="absolute bottom-0 right-1/4 size-80 bg-emerald-400/5 rounded-full blur-3xl"></div>
     </div>
     <div class="relative z-10 max-w-7xl mx-auto px-4 md:px-6">
       <nav aria-label="breadcrumb" class="mb-6">
         <ol class="flex items-center gap-1.5 text-xs text-emerald-300">
           <li><a href="/" class="hover:text-white transition-colors">Início</a></li>
-          <li><i class="ri-arrow-right-s-line"></i></li>
+          <li><i class="ri-arrow-right-s-line" aria-hidden="true"></i></li>
           <li class="text-white font-medium">Para Empresas</li>
         </ol>
       </nav>
       <div class="max-w-2xl">
         <p class="text-xs font-semibold text-emerald-300 uppercase tracking-wide mb-3">Para Empresas</p>
-        <h1 class="text-3xl md:text-4xl font-bold text-white mb-4 leading-tight">
+        <h1 class="text-3xl md:text-4xl font-bold text-white mb-4 leading-tight text-balance">
           Contrate os melhores profissionais<br class="hidden md:block" />
           <span class="text-emerald-300">de Santarém e região</span>
         </h1>
-        <p class="text-white/80 text-sm md:text-base mb-8 leading-relaxed max-w-lg">
+        <p class="text-white/80 text-sm md:text-base mb-8 leading-relaxed max-w-lg text-pretty">
           Plataforma automatizada para publicar vagas, receber candidatos qualificados e conduzir seu processo seletivo com mais agilidade e controle.
         </p>
         <div class="flex flex-col sm:flex-row gap-3">
           <a href="/interesse-empresa" class="btn-primary">
-            <i class="ri-whatsapp-line"></i>
+            <i class="ri-whatsapp-line" aria-hidden="true"></i>
             Publicar Vaga Agora
           </a>
           <a href="#como-contratar" class="btn-outline-white">
-            <i class="ri-information-line"></i>
+            <i class="ri-information-line" aria-hidden="true"></i>
             Como funciona
           </a>
         </div>
@@ -73,17 +73,17 @@ const serviceSchema = {
     <div class="max-w-7xl mx-auto px-4 md:px-6">
       <div class="text-center mb-10">
         <p class="text-xs font-semibold text-emerald-600 uppercase tracking-wide mb-2">Processo simplificado</p>
-        <h2 id="processo-title" class="text-2xl font-bold text-gray-900">Como contratar pela VagasOeste</h2>
+        <h2 id="processo-title" class="text-2xl font-bold text-gray-900 text-balance">Como contratar pela VagasOeste</h2>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {steps.map((step, i) => (
           <div class="bg-gray-50 rounded-xl p-6 border border-gray-100 relative">
             <span class="absolute top-4 right-4 text-2xl font-bold text-gray-200">0{i+1}</span>
-            <div class="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center mb-4">
-              <i class={`${step.icon} text-emerald-600 text-xl`}></i>
+            <div class="size-10 bg-emerald-100 rounded-lg flex items-center justify-center mb-4">
+              <i class={`${step.icon} text-emerald-600 text-xl`} aria-hidden="true"></i>
             </div>
-            <h3 class="font-semibold text-gray-900 mb-2">{step.title}</h3>
-            <p class="text-sm text-gray-600 leading-relaxed">{step.desc}</p>
+            <h3 class="font-semibold text-gray-900 mb-2 text-balance">{step.title}</h3>
+            <p class="text-sm text-gray-600 leading-relaxed text-pretty">{step.desc}</p>
           </div>
         ))}
       </div>
@@ -95,14 +95,14 @@ const serviceSchema = {
     <div class="max-w-7xl mx-auto px-4 md:px-6">
       <div class="text-center mb-10">
         <p class="text-xs font-semibold text-emerald-600 uppercase tracking-wide mb-2">Tecnologia a favor da sua empresa</p>
-        <h2 id="recursos-title" class="text-2xl font-bold text-gray-900">Recursos do Painel Empresarial</h2>
+        <h2 id="recursos-title" class="text-2xl font-bold text-gray-900 text-balance">Recursos do Painel Empresarial</h2>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {features.map((f) => (
           <div class="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
-            <i class={`${f.icon} text-2xl text-emerald-600 mb-3 block`}></i>
-            <h3 class="font-semibold text-gray-900 mb-2">{f.title}</h3>
-            <p class="text-sm text-gray-600 leading-relaxed">{f.desc}</p>
+            <i class={`${f.icon} text-2xl text-emerald-600 mb-3 block`} aria-hidden="true"></i>
+            <h3 class="font-semibold text-gray-900 mb-2 text-balance">{f.title}</h3>
+            <p class="text-sm text-gray-600 leading-relaxed text-pretty">{f.desc}</p>
           </div>
         ))}
       </div>
@@ -114,7 +114,7 @@ const serviceSchema = {
     <div class="max-w-5xl mx-auto px-4 md:px-6">
       <div class="text-center mb-10">
         <p class="text-xs font-semibold text-emerald-600 uppercase tracking-wide mb-2">Investimento</p>
-        <h2 id="planos-title" class="text-2xl font-bold text-gray-900">Planos para Empresas</h2>
+        <h2 id="planos-title" class="text-2xl font-bold text-gray-900 text-balance">Planos para Empresas</h2>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         {plans.map((plan) => (
@@ -124,13 +124,13 @@ const serviceSchema = {
                 Mais popular
               </span>
             )}
-            <h3 class="font-bold text-gray-900 text-lg mb-1">{plan.name}</h3>
+            <h3 class="font-bold text-gray-900 text-lg mb-1 text-balance">{plan.name}</h3>
             <p class="text-xs text-gray-500 mb-3">{plan.desc}</p>
             <p class="text-2xl font-bold text-emerald-600 mb-5">{plan.price}</p>
             <ul class="space-y-2 mb-6">
               {plan.features.map((f) => (
                 <li class="flex items-center gap-2 text-sm text-gray-700">
-                  <i class="ri-check-line text-emerald-500 shrink-0"></i>
+                  <i class="ri-check-line text-emerald-500 shrink-0" aria-hidden="true"></i>
                   {f}
                 </li>
               ))}
@@ -151,15 +151,15 @@ const serviceSchema = {
   <section class="py-16 bg-gray-50" aria-labelledby="depoimentos-title">
     <div class="max-w-7xl mx-auto px-4 md:px-6">
       <div class="text-center mb-10">
-        <h2 id="depoimentos-title" class="text-2xl font-bold text-gray-900">O que dizem as empresas parceiras</h2>
+        <h2 id="depoimentos-title" class="text-2xl font-bold text-gray-900 text-balance">O que dizem as empresas parceiras</h2>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         {testimonials.map((t) => (
           <div class="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
             <div class="flex items-center gap-1 mb-3">
-              {[...Array(5)].map((_, i) => <i key={i} class="ri-star-fill text-amber-400 text-sm"></i>)}
+              {[...Array(5)].map((_, i) => <i key={i} class="ri-star-fill text-amber-400 text-sm" aria-hidden="true"></i>)}
             </div>
-            <p class="text-gray-600 text-sm italic mb-4">"{t.text}"</p>
+            <p class="text-gray-600 text-sm italic mb-4 text-pretty">"{t.text}"</p>
             <div>
               <p class="font-semibold text-gray-900 text-sm">{t.name}</p>
               <p class="text-xs text-gray-500">{t.role}</p>
@@ -174,7 +174,7 @@ const serviceSchema = {
   <section class="py-16 bg-white" aria-labelledby="faq-empresas-title">
     <div class="max-w-3xl mx-auto px-4 md:px-6">
       <div class="text-center mb-10">
-        <h2 id="faq-empresas-title" class="text-2xl font-bold text-gray-900">Dúvidas Frequentes</h2>
+        <h2 id="faq-empresas-title" class="text-2xl font-bold text-gray-900 text-balance">Dúvidas Frequentes</h2>
       </div>
       <FAQAccordion client:visible items={faqItems} />
     </div>
@@ -183,17 +183,17 @@ const serviceSchema = {
   <!-- CTA Final -->
   <section class="py-16 bg-emerald-900" aria-label="Chamada para ação empresas">
     <div class="max-w-2xl mx-auto px-4 text-center">
-      <h2 class="text-2xl font-bold text-white mb-3">Pronto para contratar?</h2>
-      <p class="text-emerald-200 text-sm mb-8 leading-relaxed">
+      <h2 class="text-2xl font-bold text-white mb-3 text-balance">Pronto para contratar?</h2>
+      <p class="text-emerald-200 text-sm mb-8 leading-relaxed text-pretty">
         Nossa equipe está pronta para criar sua conta e te ajudar a encontrar os melhores profissionais de Santarém.
       </p>
       <div class="flex flex-col sm:flex-row gap-3 justify-center">
         <a href="/interesse-empresa" class="btn-primary bg-white !text-emerald-700 hover:bg-emerald-50">
-          <i class="ri-chat-1-line"></i>
+          <i class="ri-chat-1-line" aria-hidden="true"></i>
           Falar com a equipe
         </a>
         <a href="/como-funciona" class="btn-outline-white">
-          <i class="ri-information-line"></i>
+          <i class="ri-information-line" aria-hidden="true"></i>
           Saber mais
         </a>
       </div>

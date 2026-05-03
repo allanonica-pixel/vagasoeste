@@ -53,16 +53,16 @@ const howToSchema = {
       <nav aria-label="breadcrumb" class="mb-6">
         <ol class="flex items-center gap-1.5 text-xs text-emerald-300">
           <li><a href="/" class="hover:text-white transition-colors">Início</a></li>
-          <li><i class="ri-arrow-right-s-line"></i></li>
+          <li><i class="ri-arrow-right-s-line" aria-hidden="true"></i></li>
           <li class="text-white font-medium">Dicas de Vaga</li>
         </ol>
       </nav>
       <div class="text-center">
-        <h1 class="text-3xl md:text-4xl font-bold text-white mb-4 leading-tight">
+        <h1 class="text-3xl md:text-4xl font-bold text-white mb-4 leading-tight text-balance">
           Dicas para conseguir emprego<br class="hidden md:block" />
           <span class="text-emerald-300">em Santarém e região</span>
         </h1>
-        <p class="text-white/80 text-sm md:text-base max-w-lg mx-auto mb-8">
+        <p class="text-white/80 text-sm md:text-base max-w-lg mx-auto mb-8 text-pretty">
           Guia prático com estratégias testadas para o mercado de trabalho do oeste do Pará.
         </p>
       </div>
@@ -89,22 +89,22 @@ const howToSchema = {
     <div class="max-w-7xl mx-auto px-4 md:px-6">
       <div class="text-center mb-10">
         <p class="text-xs font-semibold text-emerald-600 uppercase tracking-wide mb-2">Onde estão as vagas</p>
-        <h2 id="setores-title" class="text-2xl font-bold text-gray-900">Setores que mais contratam em Santarém</h2>
+        <h2 id="setores-title" class="text-2xl font-bold text-gray-900 text-balance">Setores que mais contratam em Santarém</h2>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {sectors.map((s) => (
           <div class="bg-gray-50 rounded-xl p-6 border border-gray-100 hover:shadow-md transition-shadow">
-            <div class={`w-10 h-10 rounded-lg flex items-center justify-center mb-3 bg-${s.color}-100`}>
-              <i class={`${s.icon} text-${s.color}-600 text-xl`}></i>
+            <div class={`size-10 rounded-lg flex items-center justify-center mb-3 bg-${s.color}-100`}>
+              <i class={`${s.icon} text-${s.color}-600 text-xl`} aria-hidden="true"></i>
             </div>
-            <h3 class="font-bold text-gray-900 mb-1">{s.name}</h3>
+            <h3 class="font-bold text-gray-900 mb-1 text-balance">{s.name}</h3>
             <span class={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-${s.color}-100 text-${s.color}-700 mb-3`}>
               Demanda {s.demand}
             </span>
             <ul class="space-y-1">
               {s.jobs.map((job) => (
                 <li class="text-xs text-gray-600 flex items-center gap-1">
-                  <i class="ri-arrow-right-s-line text-gray-400"></i>
+                  <i class="ri-arrow-right-s-line text-gray-400" aria-hidden="true"></i>
                   {job}
                 </li>
               ))}
@@ -120,21 +120,21 @@ const howToSchema = {
     <div class="max-w-7xl mx-auto px-4 md:px-6">
       <div class="text-center mb-10">
         <p class="text-xs font-semibold text-emerald-600 uppercase tracking-wide mb-2">Estratégias comprovadas</p>
-        <h2 id="dicas-title" class="text-2xl font-bold text-gray-900">Dicas Práticas</h2>
+        <h2 id="dicas-title" class="text-2xl font-bold text-gray-900 text-balance">Dicas Práticas</h2>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {tips.map((tip) => (
           <div class="bg-white rounded-xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
             <div class="flex items-start gap-4">
-              <div class={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 bg-${tip.color}-100`}>
-                <i class={`${tip.icon} text-${tip.color}-600 text-xl`}></i>
+              <div class={`size-10 rounded-lg flex items-center justify-center shrink-0 bg-${tip.color}-100`}>
+                <i class={`${tip.icon} text-${tip.color}-600 text-xl`} aria-hidden="true"></i>
               </div>
               <div>
                 <span class={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-${tip.color}-100 text-${tip.color}-700 mb-2`}>
                   {tip.category}
                 </span>
-                <h3 class="font-semibold text-gray-900 text-sm mb-2">{tip.title}</h3>
-                <p class="text-xs text-gray-600 leading-relaxed">{tip.desc}</p>
+                <h3 class="font-semibold text-gray-900 text-sm mb-2 text-balance">{tip.title}</h3>
+                <p class="text-xs text-gray-600 leading-relaxed text-pretty">{tip.desc}</p>
               </div>
             </div>
           </div>
@@ -150,10 +150,10 @@ const howToSchema = {
         <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
           <div>
             <p class="text-xs font-semibold text-emerald-600 uppercase tracking-wide mb-1">Aprofunde seu conhecimento</p>
-            <h2 id="artigos-title" class="text-2xl font-bold text-gray-900">Artigos Relacionados</h2>
+            <h2 id="artigos-title" class="text-2xl font-bold text-gray-900 text-balance">Artigos Relacionados</h2>
           </div>
           <a href="/blog" class="btn-secondary text-sm">
-            Ver todos os artigos <i class="ri-arrow-right-line"></i>
+            Ver todos os artigos <i class="ri-arrow-right-line" aria-hidden="true"></i>
           </a>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -166,11 +166,11 @@ const howToSchema = {
                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700 mb-2">
                   {post.category}
                 </span>
-                <h3 class="font-bold text-gray-900 text-sm leading-snug mb-2">
+                <h3 class="font-bold text-gray-900 text-sm leading-snug mb-2 text-balance">
                   <a href={`/blog/${post.slug}`} class="hover:text-emerald-600 transition-colors">{post.title}</a>
                 </h3>
                 <a href={`/blog/${post.slug}`} class="text-xs font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-1">
-                  Ler artigo <i class="ri-arrow-right-line"></i>
+                  Ler artigo <i class="ri-arrow-right-line" aria-hidden="true"></i>
                 </a>
               </div>
             </article>
@@ -183,15 +183,15 @@ const howToSchema = {
   <!-- CTA -->
   <section class="py-14 bg-emerald-900" aria-label="Chamada para ação dicas">
     <div class="max-w-2xl mx-auto px-4 text-center">
-      <h2 class="text-2xl font-bold text-white mb-3">Coloque as dicas em prática!</h2>
-      <p class="text-emerald-200 text-sm mb-8">Cadastre-se grátis e candidate-se às vagas disponíveis em Santarém agora mesmo.</p>
+      <h2 class="text-2xl font-bold text-white mb-3 text-balance">Coloque as dicas em prática!</h2>
+      <p class="text-emerald-200 text-sm mb-8 text-pretty">Cadastre-se grátis e candidate-se às vagas disponíveis em Santarém agora mesmo.</p>
       <div class="flex flex-col sm:flex-row gap-3 justify-center">
         <a href="/vagas" class="btn-outline-white">
-          <i class="ri-briefcase-line"></i>
+          <i class="ri-briefcase-line" aria-hidden="true"></i>
           Ver vagas disponíveis
         </a>
         <a href="/crie-seu-curriculo" class="btn-primary bg-white !text-emerald-700 hover:bg-emerald-50">
-          <i class="ri-file-user-line"></i>
+          <i class="ri-file-user-line" aria-hidden="true"></i>
           Criar meu currículo
         </a>
       </div>

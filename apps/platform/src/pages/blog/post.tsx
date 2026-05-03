@@ -60,13 +60,13 @@ export default function BlogPostPage() {
       }
       if (trimmed.startsWith("## ")) {
         elements.push(
-          <h2 key={key++} className="text-xl font-bold text-gray-900 mt-8 mb-3">
+          <h2 key={key++} className="text-xl font-bold text-gray-900 mt-8 mb-3 text-balance">
             {trimmed.replace("## ", "")}
           </h2>
         );
       } else if (trimmed.startsWith("### ")) {
         elements.push(
-          <h3 key={key++} className="text-base font-bold text-gray-800 mt-5 mb-2">
+          <h3 key={key++} className="text-base font-bold text-gray-800 mt-5 mb-2 text-balance">
             {trimmed.replace("### ", "")}
           </h3>
         );
@@ -90,7 +90,7 @@ export default function BlogPostPage() {
         );
       } else {
         elements.push(
-          <p key={key++} className="text-gray-600 text-sm leading-relaxed mb-3">
+          <p key={key++} className="text-gray-600 text-sm leading-relaxed mb-3 text-pretty">
             {trimmed}
           </p>
         );
@@ -107,7 +107,7 @@ export default function BlogPostPage() {
       />
       <Navbar />
 
-      <main className="min-h-screen bg-gray-50 pt-16">
+      <main className="min-h-dvh bg-gray-50 pt-16">
         {/* Cover Image */}
         <div className="w-full h-64 md:h-96 overflow-hidden">
           <img
@@ -121,9 +121,9 @@ export default function BlogPostPage() {
           {/* Breadcrumb */}
           <nav className="flex items-center gap-2 text-xs text-gray-400 mb-6 flex-wrap">
             <Link to="/" className="hover:text-emerald-600 cursor-pointer">Início</Link>
-            <i className="ri-arrow-right-s-line text-gray-300"></i>
+            <i className="ri-arrow-right-s-line text-gray-300" aria-hidden="true"></i>
             <Link to="/blog" className="hover:text-emerald-600 cursor-pointer">Blog</Link>
-            <i className="ri-arrow-right-s-line text-gray-300"></i>
+            <i className="ri-arrow-right-s-line text-gray-300" aria-hidden="true"></i>
             <span className="text-gray-600 line-clamp-1">{post.title}</span>
           </nav>
 
@@ -133,11 +133,11 @@ export default function BlogPostPage() {
               {post.category}
             </span>
             <span className="text-gray-400 text-xs flex items-center gap-1">
-              <i className="ri-time-line text-xs"></i>
+              <i className="ri-time-line text-xs" aria-hidden="true"></i>
               {post.readTime} min de leitura
             </span>
             <span className="text-gray-400 text-xs flex items-center gap-1">
-              <i className="ri-calendar-line text-xs"></i>
+              <i className="ri-calendar-line text-xs" aria-hidden="true"></i>
               {new Date(post.publishedAt).toLocaleDateString("pt-BR", {
                 day: "2-digit",
                 month: "long",
@@ -147,18 +147,18 @@ export default function BlogPostPage() {
           </div>
 
           {/* Title */}
-          <h1 className="text-2xl md:text-4xl font-bold text-gray-900 leading-tight mb-4">
+          <h1 className="text-2xl md:text-4xl font-bold text-gray-900 leading-tight mb-4 text-balance">
             {post.title}
           </h1>
 
           {/* Excerpt */}
-          <p className="text-gray-800 text-base leading-relaxed mb-6 border-l-4 border-emerald-400 pl-4">
+          <p className="text-gray-800 text-base leading-relaxed mb-6 border-l-4 border-emerald-400 pl-4 text-pretty">
             {post.excerpt}
           </p>
 
           {/* Author */}
           <div className="flex items-center gap-3 mb-8 pb-8 border-b border-gray-100">
-            <div className="w-10 h-10 rounded-full overflow-hidden shrink-0">
+            <div className="size-10 rounded-full overflow-hidden shrink-0">
               <img
                 src={post.authorImage}
                 alt={post.author}
@@ -195,27 +195,27 @@ export default function BlogPostPage() {
               href={`https://wa.me/?text=${encodeURIComponent(post.title + " - " + window.location.href)}`}
               target="_blank"
               rel="nofollow noopener noreferrer"
-              className="w-8 h-8 flex items-center justify-center rounded-lg bg-emerald-100 text-emerald-600 hover:bg-emerald-200 transition-colors cursor-pointer"
+              className="size-8 flex items-center justify-center rounded-lg bg-emerald-100 text-emerald-600 hover:bg-emerald-200 transition-colors cursor-pointer"
             >
-              <i className="ri-whatsapp-line text-sm"></i>
+              <i className="ri-whatsapp-line text-sm" aria-hidden="true"></i>
             </a>
             <a
               href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`}
               target="_blank"
               rel="nofollow noopener noreferrer"
-              className="w-8 h-8 flex items-center justify-center rounded-lg bg-sky-100 text-sky-600 hover:bg-sky-200 transition-colors cursor-pointer"
+              className="size-8 flex items-center justify-center rounded-lg bg-sky-100 text-sky-600 hover:bg-sky-200 transition-colors cursor-pointer"
             >
-              <i className="ri-linkedin-line text-sm"></i>
+              <i className="ri-linkedin-line text-sm" aria-hidden="true"></i>
             </a>
           </div>
 
           {/* CTA Box */}
           <div className="mt-10 bg-emerald-50 border border-emerald-100 rounded-2xl p-6 text-center">
-            <div className="w-10 h-10 flex items-center justify-center mx-auto mb-3 bg-emerald-100 rounded-full">
-              <i className="ri-briefcase-line text-emerald-600 text-lg"></i>
+            <div className="size-10 flex items-center justify-center mx-auto mb-3 bg-emerald-100 rounded-full">
+              <i className="ri-briefcase-line text-emerald-600 text-lg" aria-hidden="true"></i>
             </div>
-            <h3 className="font-bold text-gray-900 mb-1">Pronto para encontrar emprego?</h3>
-            <p className="text-gray-500 text-sm mb-4">
+            <h3 className="font-bold text-gray-900 mb-1 text-balance">Pronto para encontrar emprego?</h3>
+            <p className="text-gray-500 text-sm mb-4 text-pretty">
               Cadastre-se gratuitamente e acesse as melhores vagas de Santarém.
             </p>
             <div className="flex flex-col sm:flex-row gap-2 justify-center">
@@ -237,19 +237,19 @@ export default function BlogPostPage() {
 
         {/* Related Posts */}
         <section className="max-w-6xl mx-auto px-4 md:px-6 pb-16">
-          <h2 className="text-lg font-bold text-gray-900 mb-6">Artigos Relacionados</h2>
+          <h2 className="text-lg font-bold text-gray-900 mb-6 text-balance">Artigos Relacionados</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {related.map((rp) => (
               <Link
                 key={rp.id}
                 to={`/blog/${rp.slug}`}
-                className="group bg-white rounded-xl border border-gray-100 overflow-hidden hover:border-emerald-200 transition-all cursor-pointer block"
+                className="group bg-white rounded-xl border border-gray-100 overflow-hidden hover:border-emerald-200 transition-colors cursor-pointer block"
               >
                 <div className="w-full h-40 overflow-hidden">
                   <img
                     src={rp.coverImage}
                     alt={rp.title}
-                    className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
+                    className="w-full h-full object-cover object-top motion-safe:group-hover:scale-105 transition-transform duration-500"
                   />
                 </div>
                 <div className="p-4">

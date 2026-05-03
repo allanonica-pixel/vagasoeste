@@ -80,9 +80,9 @@ const breadcrumbSchema = {
       <nav aria-label="breadcrumb" class="mb-6">
         <ol class="flex flex-wrap items-center gap-1.5 text-xs text-gray-500">
           <li><a href="/" class="hover:text-emerald-600 transition-colors">Início</a></li>
-          <li><i class="ri-arrow-right-s-line"></i></li>
+          <li><i class="ri-arrow-right-s-line" aria-hidden="true"></i></li>
           <li><a href="/blog" class="hover:text-emerald-600 transition-colors">Blog</a></li>
-          <li><i class="ri-arrow-right-s-line"></i></li>
+          <li><i class="ri-arrow-right-s-line" aria-hidden="true"></i></li>
           <li class="text-gray-700 font-medium truncate max-w-xs">{post.title}</li>
         </ol>
       </nav>
@@ -93,11 +93,11 @@ const breadcrumbSchema = {
           {post.category}
         </span>
         <span class="flex items-center gap-1 text-xs text-gray-500">
-          <i class="ri-time-line"></i>
+          <i class="ri-time-line" aria-hidden="true"></i>
           {post.readTime} min de leitura
         </span>
         <span class="flex items-center gap-1 text-xs text-gray-500">
-          <i class="ri-calendar-line"></i>
+          <i class="ri-calendar-line" aria-hidden="true"></i>
           {new Date(post.publishedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
         </span>
       </div>
@@ -112,7 +112,7 @@ const breadcrumbSchema = {
         <img
           src={post.authorImage}
           alt={post.author}
-          class="w-10 h-10 rounded-full object-cover"
+          class="size-10 rounded-full object-cover"
           loading="lazy"
         />
         <div>
@@ -152,7 +152,7 @@ const breadcrumbSchema = {
             rel="noopener noreferrer"
             class="flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm font-medium rounded-lg transition-colors"
           >
-            <i class="ri-whatsapp-line"></i>
+            <i class="ri-whatsapp-line" aria-hidden="true"></i>
             WhatsApp
           </a>
           <a
@@ -161,7 +161,7 @@ const breadcrumbSchema = {
             rel="noopener noreferrer"
             class="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
           >
-            <i class="ri-linkedin-line"></i>
+            <i class="ri-linkedin-line" aria-hidden="true"></i>
             LinkedIn
           </a>
         </div>
@@ -170,17 +170,17 @@ const breadcrumbSchema = {
 
     <!-- CTA de Cadastro -->
     <div class="mt-8 bg-emerald-50 border border-emerald-200 rounded-2xl p-6 text-center">
-      <h2 class="text-lg font-bold text-gray-900 mb-2">Pronto para dar o próximo passo?</h2>
-      <p class="text-sm text-gray-600 mb-4">
+      <h2 class="text-lg font-bold text-gray-900 mb-2 text-balance">Pronto para dar o próximo passo?</h2>
+      <p class="text-sm text-gray-600 mb-4 text-pretty">
         Cadastre-se gratuitamente e candidate-se às vagas em Santarém com segurança e anonimato.
       </p>
       <div class="flex flex-col sm:flex-row gap-3 justify-center">
         <a href="/vagas" class="btn-secondary">
-          <i class="ri-briefcase-line"></i>
+          <i class="ri-briefcase-line" aria-hidden="true"></i>
           Ver Vagas
         </a>
         <button type="button" onclick="window.dispatchEvent(new CustomEvent('openRegisterModal'))" class="btn-primary">
-          <i class="ri-user-add-line"></i>
+          <i class="ri-user-add-line" aria-hidden="true"></i>
           Criar conta grátis
         </button>
       </div>

@@ -21,28 +21,28 @@ export const prerender = true;
       <nav aria-label="breadcrumb" class="mb-6 flex justify-center">
         <ol class="flex items-center gap-1.5 text-xs text-emerald-300">
           <li><a href="/" class="hover:text-white transition-colors">Início</a></li>
-          <li><i class="ri-arrow-right-s-line"></i></li>
+          <li><i class="ri-arrow-right-s-line" aria-hidden="true"></i></li>
           <li class="text-white font-medium">Crie seu Currículo</li>
         </ol>
       </nav>
       <div class="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-3 py-1 mb-4">
-        <i class="ri-star-fill text-amber-400 text-xs"></i>
+        <i class="ri-star-fill text-amber-400 text-xs" aria-hidden="true"></i>
         <span class="text-white/90 text-xs font-medium">100% gratuito, sem cadastro obrigatório</span>
       </div>
-      <h1 class="text-3xl md:text-4xl font-bold text-white mb-4 leading-tight">
+      <h1 class="text-3xl md:text-4xl font-bold text-white mb-4 leading-tight text-balance">
         Crie seu currículo profissional<br class="hidden md:block" />
         <span class="text-emerald-300">em menos de 10 minutos</span>
       </h1>
-      <p class="text-white/80 text-sm md:text-base max-w-lg mx-auto mb-8 leading-relaxed">
+      <p class="text-white/80 text-sm md:text-base max-w-lg mx-auto mb-8 leading-relaxed text-pretty">
         Templates modernos, prévia em tempo real e download em PDF gratuito. Pronto para se candidatar às vagas de Santarém.
       </p>
       <div class="flex flex-col sm:flex-row gap-3 justify-center">
         <a href="https://app.santarem.app/curriculo-avulso" class="btn-primary bg-white !text-emerald-700 hover:bg-emerald-50 text-base px-8 py-3">
-          <i class="ri-file-user-line"></i>
+          <i class="ri-file-user-line" aria-hidden="true"></i>
           Criar meu currículo grátis
         </a>
         <button type="button" onclick="window.dispatchEvent(new CustomEvent('openRegisterModal'))" class="btn-outline-white">
-          <i class="ri-user-add-line"></i>
+          <i class="ri-user-add-line" aria-hidden="true"></i>
           Criar conta + currículo
         </button>
       </div>
@@ -53,17 +53,17 @@ export const prerender = true;
   <section class="py-16 bg-white" aria-labelledby="etapas-curriculo-title">
     <div class="max-w-5xl mx-auto px-4 md:px-6">
       <div class="text-center mb-10">
-        <h2 id="etapas-curriculo-title" class="text-2xl font-bold text-gray-900">Como funciona o construtor</h2>
-        <p class="text-sm text-gray-500 mt-2">6 etapas simples, em qualquer dispositivo</p>
+        <h2 id="etapas-curriculo-title" class="text-2xl font-bold text-gray-900 text-balance">Como funciona o construtor</h2>
+        <p class="text-sm text-gray-500 mt-2 text-pretty">6 etapas simples, em qualquer dispositivo</p>
       </div>
       <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         {steps.map((step) => (
           <div class="text-center">
-            <div class="w-12 h-12 bg-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3">
-              <span class="text-white font-bold text-sm">{step.num}</span>
+            <div class="size-12 bg-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3">
+              <span class="text-white font-bold text-sm" aria-hidden="true">{step.num}</span>
             </div>
-            <h3 class="font-semibold text-gray-900 text-xs mb-1">{step.title}</h3>
-            <p class="text-xs text-gray-500 leading-snug">{step.desc}</p>
+            <h3 class="font-semibold text-gray-900 text-xs mb-1 text-balance">{step.title}</h3>
+            <p class="text-xs text-gray-500 leading-snug text-pretty">{step.desc}</p>
           </div>
         ))}
       </div>
@@ -74,17 +74,17 @@ export const prerender = true;
   <section class="py-16 bg-gray-50" aria-labelledby="recursos-curriculo-title">
     <div class="max-w-7xl mx-auto px-4 md:px-6">
       <div class="text-center mb-10">
-        <h2 id="recursos-curriculo-title" class="text-2xl font-bold text-gray-900">Por que usar o VagasOeste?</h2>
+        <h2 id="recursos-curriculo-title" class="text-2xl font-bold text-gray-900 text-balance">Por que usar o VagasOeste?</h2>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {features.map((f) => (
           <div class="bg-white rounded-xl p-6 border border-gray-100 shadow-sm flex items-start gap-4">
-            <div class="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center shrink-0">
-              <i class={`${f.icon} text-emerald-600 text-xl`}></i>
+            <div class="size-10 bg-emerald-100 rounded-lg flex items-center justify-center shrink-0">
+              <i class={`${f.icon} text-emerald-600 text-xl`} aria-hidden="true"></i>
             </div>
             <div>
-              <h3 class="font-semibold text-gray-900 mb-1">{f.title}</h3>
-              <p class="text-sm text-gray-600">{f.desc}</p>
+              <h3 class="font-semibold text-gray-900 mb-1 text-balance">{f.title}</h3>
+              <p class="text-sm text-gray-600 text-pretty">{f.desc}</p>
             </div>
           </div>
         ))}
@@ -95,23 +95,23 @@ export const prerender = true;
   <!-- CTA duplo -->
   <section class="py-16 bg-emerald-900" aria-label="Chamada para ação currículo">
     <div class="max-w-3xl mx-auto px-4 text-center">
-      <h2 class="text-2xl font-bold text-white mb-3">Escolha como quer criar seu currículo</h2>
-      <p class="text-emerald-200 text-sm mb-8">Com ou sem cadastro, seu currículo vai ficar profissional.</p>
+      <h2 class="text-2xl font-bold text-white mb-3 text-balance">Escolha como quer criar seu currículo</h2>
+      <p class="text-emerald-200 text-sm mb-8 text-pretty">Com ou sem cadastro, seu currículo vai ficar profissional.</p>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <div class="bg-white/10 border border-white/20 rounded-xl p-6 text-left">
           <p class="text-xs font-bold text-emerald-300 uppercase tracking-wide mb-2">Sem cadastro</p>
-          <h3 class="font-bold text-white mb-2">Currículo Avulso</h3>
-          <p class="text-sm text-white/70 mb-4 leading-relaxed">Crie, visualize e baixe em PDF sem precisar criar uma conta. Ideal para quem precisa rápido.</p>
+          <h3 class="font-bold text-white mb-2 text-balance">Currículo Avulso</h3>
+          <p class="text-sm text-white/70 mb-4 leading-relaxed text-pretty">Crie, visualize e baixe em PDF sem precisar criar uma conta. Ideal para quem precisa rápido.</p>
           <a href="https://app.santarem.app/curriculo-avulso" class="btn-outline-white text-sm">
-            Criar sem cadastro <i class="ri-arrow-right-line"></i>
+            Criar sem cadastro <i class="ri-arrow-right-line" aria-hidden="true"></i>
           </a>
         </div>
         <div class="bg-white rounded-xl p-6 text-left">
           <p class="text-xs font-bold text-emerald-600 uppercase tracking-wide mb-2">Com conta grátis</p>
-          <h3 class="font-bold text-gray-900 mb-2">Currículo + Candidaturas</h3>
-          <p class="text-sm text-gray-600 mb-4 leading-relaxed">Crie o currículo e candidate-se às vagas diretamente. Acompanhe tudo pelo painel.</p>
+          <h3 class="font-bold text-gray-900 mb-2 text-balance">Currículo + Candidaturas</h3>
+          <p class="text-sm text-gray-600 mb-4 leading-relaxed text-pretty">Crie o currículo e candidate-se às vagas diretamente. Acompanhe tudo pelo painel.</p>
           <button type="button" onclick="window.dispatchEvent(new CustomEvent('openRegisterModal'))" class="btn-primary text-sm">
-            Criar conta grátis <i class="ri-arrow-right-line"></i>
+            Criar conta grátis <i class="ri-arrow-right-line" aria-hidden="true"></i>
           </button>
         </div>
       </div>
