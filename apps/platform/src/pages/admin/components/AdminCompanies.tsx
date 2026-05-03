@@ -62,12 +62,13 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; dot: string 
 const SECTORS = ["Todos", "Saúde", "Comércio", "Tecnologia", "Construção Civil", "Alimentação", "Logística", "Serviços", "Indústria", "Agronegócio"];
 
 const TABS = [
-  { id: "todos",     label: "Todas"                   },
-  { id: "pendente",  label: "Pré-cadastros Pendentes"  },
-  { id: "ativo",     label: "Ativas"                   },
-  { id: "rejeitado", label: "Rejeitadas"               },
-  { id: "inativo",   label: "Inativas"                 },
-  { id: "excluido",  label: "Excluídas"                },
+  { id: "todos",                label: "Todas"                   },
+  { id: "aguardando-ativacao",  label: "Aguardando Ativação"     },
+  { id: "pendente",             label: "Pré-cadastros Pendentes" },
+  { id: "ativo",                label: "Ativas"                  },
+  { id: "rejeitado",            label: "Rejeitadas"              },
+  { id: "inativo",              label: "Inativas"                },
+  { id: "excluido",             label: "Excluídas"               },
 ];
 
 export default function AdminCompanies() {
@@ -100,10 +101,27 @@ export default function AdminCompanies() {
     fetchCompanies();
   }, []);
 
-  const pendingCount = companies.filter((c) => c.status === "pendente").length;
+  // Pré-cadastros têm 2 estados internos quando status === "pendente":
+  //   - "aguardando-ativacao" → empresa preencheu mas NÃO clicou no link de ativação (ativadoEm vazio)
+  //   - "pendente"            → empresa ATIVOU e aguarda aprovação do admin (ativadoEm preenchido)
+  // Distinguir os dois desambigua a visão do admin e habilita suporte a empresas que erraram o e-mail.
+  const isAwaitingActivation = (c: AdminCompany) => c.status === "pendente" && !c.ativadoEm;
+  const isReadyForApproval   = (c: AdminCompany) => c.status === "pendente" && !!c.ativadoEm;
+
+  const pendingCount    = companies.filter(isReadyForApproval).length;
+  const awaitingCount   = companies.filter(isAwaitingActivation).length;
 
   const filtered = companies.filter((c) => {
-    const matchTab    = activeTab === "todos" || c.status === activeTab;
+    let matchTab: boolean;
+    if (activeTab === "todos") {
+      matchTab = true;
+    } else if (activeTab === "aguardando-ativacao") {
+      matchTab = isAwaitingActivation(c);
+    } else if (activeTab === "pendente") {
+      matchTab = isReadyForApproval(c);
+    } else {
+      matchTab = c.status === activeTab;
+    }
     const matchSector = filterSector === "Todos" || c.sector === filterSector;
     const matchSearch = !search ||
       c.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -292,6 +310,9 @@ export default function AdminCompanies() {
           <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Empresas</h2>
           <p className="text-gray-500 dark:text-gray-400 text-sm mt-0.5">
             {companies.length} empresas
+            {awaitingCount > 0 && (
+              <> · <span className="text-blue-600 font-semibold">{awaitingCount} aguardando ativação</span></>
+            )}
             {pendingCount > 0 && (
               <> · <span className="text-amber-600 font-semibold">{pendingCount} pré-cadastro{pendingCount !== 1 ? "s" : ""} aguardando validação</span></>
             )}
@@ -307,7 +328,30 @@ export default function AdminCompanies() {
         </div>
       )}
 
-      {/* Pending Alert */}
+      {/* Awaiting Activation Alert (azul) — empresas que preencheram mas não clicaram no link */}
+      {awaitingCount > 0 && (
+        <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-xl p-4 mb-3 flex items-start gap-3">
+          <div className="size-9 rounded-xl bg-blue-100 dark:bg-blue-900 flex items-center justify-center shrink-0">
+            <i className="ri-mail-send-line text-blue-600 text-base" aria-hidden="true"></i>
+          </div>
+          <div className="flex-1">
+            <p className="font-semibold text-blue-900 dark:text-blue-300 text-sm mb-0.5">
+              {awaitingCount} empresa{awaitingCount !== 1 ? "s" : ""} aguardando ativação
+            </p>
+            <p className="text-blue-700 dark:text-blue-400 text-xs leading-relaxed">
+              Pré-cadastro foi enviado mas a empresa ainda não clicou no link de ativação. Caso a empresa entre em contato relatando dificuldade, use "Reenviar e-mail de ativação".
+            </p>
+          </div>
+          <button
+            onClick={() => setActiveTab("aguardando-ativacao")}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-3 py-1.5 rounded-lg text-xs cursor-pointer transition-colors whitespace-nowrap"
+          >
+            Ver lista
+          </button>
+        </div>
+      )}
+
+      {/* Pending Alert (amarelo) — empresas ativadas aguardando aprovação */}
       {pendingCount > 0 && (
         <div className="bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-xl p-4 mb-5 flex items-start gap-3">
           <div className="size-9 rounded-xl bg-amber-100 dark:bg-amber-900 flex items-center justify-center shrink-0">
@@ -318,7 +362,7 @@ export default function AdminCompanies() {
               {pendingCount} pré-cadastro{pendingCount !== 1 ? "s" : ""} aguardando validação
             </p>
             <p className="text-amber-700 dark:text-amber-400 text-xs leading-relaxed">
-              Empresas que realizaram o pré-cadastro estão aguardando aprovação.
+              Empresas que ativaram o pré-cadastro estão aguardando aprovação para publicar vagas.
             </p>
           </div>
           <button
@@ -333,7 +377,16 @@ export default function AdminCompanies() {
       {/* Tabs */}
       <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-xl mb-5 w-fit overflow-x-auto">
         {TABS.map((tab) => {
-          const count = tab.id === "todos" ? companies.length : companies.filter((c) => c.status === tab.id).length;
+          let count: number;
+          if (tab.id === "todos") {
+            count = companies.length;
+          } else if (tab.id === "aguardando-ativacao") {
+            count = awaitingCount;
+          } else if (tab.id === "pendente") {
+            count = pendingCount;
+          } else {
+            count = companies.filter((c) => c.status === tab.id).length;
+          }
           return (
             <button
               key={tab.id}
@@ -347,7 +400,9 @@ export default function AdminCompanies() {
               {tab.label}
               {count > 0 && (
                 <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${
-                  tab.id === "pendente" && count > 0
+                  tab.id === "aguardando-ativacao" && count > 0
+                    ? "bg-blue-500 text-white"
+                    : tab.id === "pendente" && count > 0
                     ? "bg-amber-500 text-white"
                     : tab.id === "inativo" && count > 0
                     ? "bg-gray-400 dark:bg-gray-600 text-white"
@@ -443,9 +498,17 @@ export default function AdminCompanies() {
                       <p className="text-gray-500 dark:text-gray-400 text-xs">{company.cnpj} · {company.sector} · {company.neighborhood}</p>
                     </div>
                   </div>
-                  <span className={`text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1.5 shrink-0 ${STATUS_CONFIG[company.status]?.color}`}>
-                    <span className={`size-1.5 rounded-full ${STATUS_CONFIG[company.status]?.dot}`}></span>
-                    {STATUS_CONFIG[company.status]?.label}
+                  <span className={`text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1.5 shrink-0 ${
+                    isAwaitingActivation(company)
+                      ? "bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-400"
+                      : STATUS_CONFIG[company.status]?.color
+                  }`}>
+                    <span className={`size-1.5 rounded-full ${
+                      isAwaitingActivation(company)
+                        ? "bg-blue-500"
+                        : STATUS_CONFIG[company.status]?.dot
+                    }`}></span>
+                    {isAwaitingActivation(company) ? "Aguardando Ativação" : STATUS_CONFIG[company.status]?.label}
                   </span>
                 </div>
 
@@ -468,7 +531,34 @@ export default function AdminCompanies() {
 
                 {/* Botões por status */}
                 <div className="flex gap-2 pt-3 border-t border-gray-50 dark:border-gray-800 flex-wrap">
-                  {company.status === "pendente" && (
+                  {/* Pendente AGUARDANDO ATIVAÇÃO — empresa não clicou no link.
+                      Mostra apenas reenviar (e rejeitar se admin quiser descartar). */}
+                  {isAwaitingActivation(company) && (
+                    <>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleReenviarEmail(company); }}
+                        disabled={reenvioLoading === company.id}
+                        className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-2 rounded-lg text-xs cursor-pointer transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap"
+                        aria-label={`Reenviar e-mail de ativação para ${company.name}`}
+                      >
+                        {reenvioLoading === company.id ? (
+                          <i className="ri-loader-4-line text-sm motion-safe:animate-spin" aria-hidden="true"></i>
+                        ) : (
+                          <i className="ri-mail-send-line text-sm" aria-hidden="true"></i>
+                        )}
+                        {reenvioLoading === company.id ? "Enviando…" : "Reenviar e-mail de ativação"}
+                      </button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleReject(company); }}
+                        className="flex-1 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950 font-semibold py-2 rounded-lg text-xs cursor-pointer transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap"
+                      >
+                        <i className="ri-close-circle-line text-sm" aria-hidden="true"></i> Descartar
+                      </button>
+                    </>
+                  )}
+
+                  {/* Pendente PRONTO PARA APROVAÇÃO — empresa já ativou e aguarda validação */}
+                  {isReadyForApproval(company) && (
                     <>
                       <button
                         onClick={(e) => { e.stopPropagation(); handleApprove(company); }}
@@ -482,21 +572,6 @@ export default function AdminCompanies() {
                       >
                         <i className="ri-close-circle-line text-sm" aria-hidden="true"></i> Rejeitar
                       </button>
-                      {!company.ativadoEm && (
-                        <button
-                          onClick={(e) => { e.stopPropagation(); handleReenviarEmail(company); }}
-                          disabled={reenvioLoading === company.id}
-                          className="w-full border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950 disabled:opacity-50 disabled:cursor-not-allowed font-semibold py-2 rounded-lg text-xs cursor-pointer transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap"
-                          aria-label={`Reenviar e-mail de ativação para ${company.name}`}
-                        >
-                          {reenvioLoading === company.id ? (
-                            <i className="ri-loader-4-line text-sm motion-safe:animate-spin" aria-hidden="true"></i>
-                          ) : (
-                            <i className="ri-mail-send-line text-sm" aria-hidden="true"></i>
-                          )}
-                          {reenvioLoading === company.id ? "Enviando…" : "Reenviar e-mail de ativação"}
-                        </button>
-                      )}
                     </>
                   )}
 
