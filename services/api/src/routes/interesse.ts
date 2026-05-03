@@ -445,13 +445,17 @@ interesseRouter.get('/ativar', async (c) => {
     }
   }
 
-  // ── 3. Atualiza app_metadata do usuário Supabase (injeta company_id no JWT) ──
+  // ── 3. Atualiza app_metadata + CONFIRMA o e-mail no auth.users ──────────────
+  // O clique no link de ativação prova que a empresa controla o e-mail.
+  // Sem email_confirm:true aqui, login subsequente falha em "Email ou senha incorretos"
+  // (Supabase bloqueia silenciosamente users com email_confirmed_at = NULL).
   if (authUserId && companyId) {
     await supabaseAdmin.auth.admin
       .updateUserById(authUserId, {
-        app_metadata: { role: 'empresa', company_id: companyId },
+        email_confirm: true,
+        app_metadata:  { role: 'empresa', company_id: companyId },
       })
-      .catch((e) => logger.warn({ e }, '[interesse/ativar] Falha ao atualizar app_metadata'));
+      .catch((e) => logger.warn({ e }, '[interesse/ativar] Falha ao confirmar e-mail / atualizar app_metadata'));
 
     // Garante que authUserId está na tabela companies
     await db.update(companies).set({ authUserId }).where(eq(companies.id, companyId)).catch(() => {});
