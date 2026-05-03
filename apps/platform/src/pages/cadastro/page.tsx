@@ -23,6 +23,7 @@ interface ExperienceEntry {
   startDate: string;
   endDate: string;
   current: boolean;
+  description: string;
 }
 
 interface FormData {
@@ -34,6 +35,8 @@ interface FormData {
   isPCD: string;
   hasCNH: string;
   cnhCategory: string;
+  /** Opt-in para Jovem Aprendiz — exibido apenas para candidatos com 18-23 anos */
+  jovemAprendizOpt: boolean;
   city: string;
   neighborhood: string;
   educationLevel: string;
@@ -86,6 +89,7 @@ const INITIAL_FORM: FormData = {
   isPCD: "nao",
   hasCNH: "nao",
   cnhCategory: "",
+  jovemAprendizOpt: false,
   city: "Santarém",
   neighborhood: "",
   educationLevel: "",
@@ -241,6 +245,42 @@ function formatCurrency(raw: string): string {
   return parseInt(digits, 10).toLocaleString("pt-BR");
 }
 
+// ─── Classificação Aprendiz ───────────────────────────────────────────────────
+
+/**
+ * Calcula a classificação de aprendiz a partir da data de nascimento (YYYY-MM-DD).
+ *
+ * Regras:
+ *   Menor Aprendiz  → 14 anos completos até 17 anos incompletos (14 ≤ age < 17)
+ *   Jovem Aprendiz  → 17 anos completos até 24 anos incompletos (17 ≤ age < 24)
+ *     - 17 anos: classificado automaticamente
+ *     - 18–23 anos: opt-in pelo próprio candidato
+ */
+function calcAprendizInfo(birthDate: string): {
+  isMenorAprendiz: boolean;
+  isJovemAuto: boolean;    // age === 17 → automático
+  canOptJovem: boolean;    // 18 ≤ age < 24 → toggle opcional
+  age: number;
+} {
+  if (!birthDate) return { isMenorAprendiz: false, isJovemAuto: false, canOptJovem: false, age: 0 };
+
+  const today = new Date();
+  const birth = new Date(birthDate + "T00:00:00"); // evita fuso horário
+
+  let age = today.getFullYear() - birth.getFullYear();
+  const monthDiff = today.getMonth() - birth.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    age--;
+  }
+
+  return {
+    isMenorAprendiz: age >= 14 && age < 17,
+    isJovemAuto:     age === 17,
+    canOptJovem:     age >= 18 && age < 24,
+    age,
+  };
+}
+
 // ─── SearchableSelect ─────────────────────────────────────────────────────────
 
 interface SearchableSelectProps {
@@ -366,6 +406,7 @@ export default function CadastroPage() {
     startDate: "",
     endDate: "",
     current: false,
+    description: "",
   });
   const [expError, setExpError] = useState("");
   const [expWarning, setExpWarning] = useState("");
@@ -388,11 +429,47 @@ export default function CadastroPage() {
 
   const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
+  /** Data máxima permitida no campo de nascimento: hoje − 14 anos completos */
+  const maxBirthDate = (() => {
+    const d = new Date();
+    d.setFullYear(d.getFullYear() - 14);
+    return d.toISOString().split("T")[0]; // YYYY-MM-DD
+  })();
+
+  // Verificação de email duplicado (onBlur)
+  type EmailCheckStatus = "idle" | "checking" | "exists" | "free";
+  const [emailCheckStatus, setEmailCheckStatus] = useState<EmailCheckStatus>("idle");
+
   // ─── Helpers ──────────────────────────────────────────────────────────────
 
   const update = (field: keyof FormData, value: string | boolean | string[]) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
+    setForm((prev) => {
+      const next = { ...prev, [field]: value };
+      // Ao mudar a data de nascimento, reseta o opt-in de Jovem Aprendiz
+      if (field === "birthDate") next.jovemAprendizOpt = false;
+      return next;
+    });
     setErrors((prev) => ({ ...prev, [field]: "" }));
+    // Ao mudar o email, reseta a verificação de duplicidade
+    if (field === "email") setEmailCheckStatus("idle");
+  };
+
+  /** Dispara verificação de e-mail duplicado ao sair do campo */
+  const handleEmailBlur = async () => {
+    const email = form.email.trim();
+    if (!email || !/\S+@\S+\.\S+/.test(email)) return; // formato inválido — a validação do step já trata
+    if (emailCheckStatus === "exists") return; // já verificado
+    setEmailCheckStatus("checking");
+    try {
+      const res = await fetch(
+        `${API_URL}/v1/auth/check-email?email=${encodeURIComponent(email)}`
+      );
+      if (!res.ok) { setEmailCheckStatus("idle"); return; }
+      const data = await res.json() as { exists: boolean };
+      setEmailCheckStatus(data.exists ? "exists" : "free");
+    } catch {
+      setEmailCheckStatus("idle"); // falha silenciosa — o submit fará a detecção final
+    }
   };
 
   const updatePhone = (value: string) => update("phone", formatBrazilPhone(value));
@@ -441,10 +518,21 @@ export default function CadastroPage() {
     }
     if (!form.email.trim() || !/\S+@\S+\.\S+/.test(form.email))
       e.email = "Email inválido";
+    else if (emailCheckStatus === "exists")
+      e.email = "Este e-mail já possui cadastro.";
     if (!form.phone.trim()) e.phone = "WhatsApp obrigatório";
     else if (!isValidBrazilPhone(form.phone))
       e.phone = "Número inválido. Use o formato (XX) XXXXX-XXXX";
-    if (!form.birthDate) e.birthDate = "Data de nascimento obrigatória";
+    if (!form.birthDate) {
+      e.birthDate = "Data de nascimento obrigatória";
+    } else {
+      const birth = new Date(form.birthDate + "T00:00:00");
+      const today = new Date();
+      let age = today.getFullYear() - birth.getFullYear();
+      const m = today.getMonth() - birth.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+      if (age < 14) e.birthDate = "É necessário ter pelo menos 14 anos completos para se cadastrar.";
+    }
     if (!form.gender) e.gender = "Selecione o sexo";
     if (form.hasCNH === "sim" && !form.cnhCategory)
       e.cnhCategory = "Selecione a categoria da CNH";
@@ -564,19 +652,32 @@ export default function CadastroPage() {
       ? `A partir de R$ ${formatCurrency(form.salaryMin)}`
       : "";
 
+    // Calcula flags de aprendiz no momento do submit
+    const ap = calcAprendizInfo(form.birthDate);
+    const isMenorAprendiz = ap.isMenorAprendiz;
+    const isJovemAprendiz = ap.isJovemAuto || (ap.canOptJovem && form.jovemAprendizOpt);
+
+    // Extrai o primeiro nome para personalização do e-mail de recuperação de senha
+    const firstName = form.fullName.trim().split(/\s+/)[0] ?? form.fullName.trim();
+
     const { error } = await supabase.auth.signUp({
       email: form.email,
       password: form.password,
       options: {
+        // Após verificar o e-mail, Supabase redireciona para esta rota
+        emailRedirectTo: `${window.location.origin}/confirmacao-email`,
         data: {
           role: "candidato",
           full_name: form.fullName,
+          first_name: firstName,
           phone: form.phone,
           birth_date: form.birthDate,
           gender: form.gender,
           is_pcd: form.isPCD === "sim",
           has_cnh: form.hasCNH === "sim",
           cnh_category: form.hasCNH === "sim" ? form.cnhCategory : null,
+          is_menor_aprendiz: isMenorAprendiz,
+          is_jovem_aprendiz: isJovemAprendiz,
           neighborhood: form.neighborhood,
           city: form.city,
           education_level: form.educationLevel,
@@ -648,6 +749,10 @@ export default function CadastroPage() {
       setCourseError("Data de conclusão obrigatória");
       return;
     }
+    if (courseForm.startDate && courseForm.endDate && courseForm.endDate < courseForm.startDate) {
+      setCourseError("A data de conclusão não pode ser anterior à data de início");
+      return;
+    }
     // Re-valida texto livre como camada de segurança final
     const titleCheck = validateFreeText(courseForm.title);
     if (!titleCheck.ok && titleCheck.severity === "block") {
@@ -687,6 +792,19 @@ export default function CadastroPage() {
     }
   };
 
+  const handleExpDescChange = (raw: string) => {
+    const sanitized = sanitizeText(raw).slice(0, 500);
+    setExpForm((prev) => ({ ...prev, description: sanitized }));
+    setExpError("");
+
+    const result = validateFreeText(sanitized);
+    if (result.ok) {
+      setExpWarning("");
+    } else {
+      setExpWarning(freeTextMessage(result));
+    }
+  };
+
   const addExperience = () => {
     if (!expForm.title.trim()) {
       setExpError("Título/Cargo obrigatório");
@@ -698,6 +816,10 @@ export default function CadastroPage() {
     }
     if (!expForm.current && !expForm.endDate) {
       setExpError('Data de conclusão obrigatória (ou marque "Emprego atual")');
+      return;
+    }
+    if (!expForm.current && expForm.startDate && expForm.endDate && expForm.endDate < expForm.startDate) {
+      setExpError("A data de conclusão não pode ser anterior à data de início");
       return;
     }
     // Re-valida texto livre como camada de segurança final
@@ -715,7 +837,7 @@ export default function CadastroPage() {
       ...prev,
       { ...expForm, id: Date.now().toString() },
     ]);
-    setExpForm({ title: "", company: "", startDate: "", endDate: "", current: false });
+    setExpForm({ title: "", company: "", startDate: "", endDate: "", current: false, description: "" });
     setExpWarning("");
     setExpError("");
   };
@@ -835,15 +957,77 @@ export default function CadastroPage() {
                       <label className="text-xs font-semibold text-gray-600 mb-1.5 block">
                         Email *
                       </label>
-                      <input
-                        type="email"
-                        value={form.email}
-                        onChange={(e) => update("email", e.target.value)}
-                        placeholder="seu@email.com"
-                        className={inputClass("email")}
-                      />
-                      {errors.email && (
+                      <div className="relative">
+                        <input
+                          type="email"
+                          value={form.email}
+                          onChange={(e) => update("email", e.target.value)}
+                          onBlur={handleEmailBlur}
+                          placeholder="seu@email.com"
+                          className={`w-full border rounded-lg px-3 py-2.5 text-sm text-gray-800 outline-none transition-colors pr-8 ${
+                            errors.email || emailCheckStatus === "exists"
+                              ? "border-red-300 focus:border-red-400"
+                              : emailCheckStatus === "free"
+                              ? "border-emerald-400 focus:border-emerald-500"
+                              : "border-gray-200 focus:border-emerald-400"
+                          }`}
+                        />
+                        {/* Ícone de estado à direita */}
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                          {emailCheckStatus === "checking" && (
+                            <i className="ri-loader-4-line animate-spin text-gray-400 text-sm"></i>
+                          )}
+                          {emailCheckStatus === "exists" && (
+                            <i className="ri-error-warning-line text-red-500 text-sm"></i>
+                          )}
+                          {emailCheckStatus === "free" && !errors.email && (
+                            <i className="ri-checkbox-circle-line text-emerald-500 text-sm"></i>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Erro simples de formato */}
+                      {errors.email && emailCheckStatus !== "exists" && (
                         <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+                      )}
+
+                      {/* Banner de e-mail já cadastrado */}
+                      {emailCheckStatus === "exists" && (
+                        <div className="mt-2 bg-red-50 border border-red-200 rounded-xl px-3 py-3">
+                          <div className="flex items-start gap-2 mb-2">
+                            <i className="ri-error-warning-line text-red-500 text-sm mt-0.5 shrink-0"></i>
+                            <p className="text-red-700 text-xs font-semibold leading-snug">
+                              Este e-mail já possui um cadastro na plataforma.
+                            </p>
+                          </div>
+                          <p className="text-red-600 text-xs mb-3 leading-relaxed pl-5">
+                            Use outro e-mail para criar uma nova conta, ou acesse com o e-mail existente.
+                          </p>
+                          <div className="flex flex-col gap-1.5 pl-5">
+                            <Link
+                              to="/login"
+                              className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded-lg transition-colors w-fit"
+                            >
+                              <i className="ri-login-box-line text-xs"></i>
+                              Entrar na plataforma
+                            </Link>
+                            <Link
+                              to="/esqueci-senha"
+                              className="inline-flex items-center gap-1 text-xs text-red-600 hover:text-red-800 hover:underline w-fit"
+                            >
+                              <i className="ri-lock-unlock-line text-xs"></i>
+                              Esqueci minha senha
+                            </Link>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Confirmação de e-mail disponível */}
+                      {emailCheckStatus === "free" && !errors.email && (
+                        <p className="text-emerald-600 text-xs mt-1 flex items-center gap-1">
+                          <i className="ri-checkbox-circle-line"></i>
+                          E-mail disponível
+                        </p>
                       )}
                     </div>
                     <div>
@@ -891,6 +1075,7 @@ export default function CadastroPage() {
                         type="date"
                         value={form.birthDate}
                         onChange={(e) => update("birthDate", e.target.value)}
+                        max={maxBirthDate}
                         className={inputClass("birthDate")}
                       />
                       {errors.birthDate && (
@@ -917,6 +1102,93 @@ export default function CadastroPage() {
                       )}
                     </div>
                   </div>
+
+                  {/* Classificação Aprendiz (calculada a partir da data de nascimento) */}
+                  {(() => {
+                    const ap = calcAprendizInfo(form.birthDate);
+                    if (!ap.isMenorAprendiz && !ap.isJovemAuto && !ap.canOptJovem) return null;
+                    return (
+                      <div>
+                        {/* Menor Aprendiz — automático */}
+                        {ap.isMenorAprendiz && (
+                          <div className="flex items-start gap-3 bg-blue-50 border border-blue-200 rounded-xl px-4 py-3">
+                            <i className="ri-shield-star-line text-blue-600 text-lg mt-0.5 shrink-0"></i>
+                            <div>
+                              <p className="text-blue-800 text-sm font-semibold leading-tight">
+                                Menor Aprendiz identificado
+                              </p>
+                              <p className="text-blue-600 text-xs mt-0.5 leading-relaxed">
+                                Com {ap.age} anos, você se enquadra como <strong>Menor Aprendiz</strong> (14–16 anos).
+                                Seu perfil ficará disponível para vagas de aprendizagem e você poderá filtrar essas oportunidades.
+                              </p>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Jovem Aprendiz — automático (17 anos) */}
+                        {ap.isJovemAuto && (
+                          <div className="flex items-start gap-3 bg-indigo-50 border border-indigo-200 rounded-xl px-4 py-3">
+                            <i className="ri-shield-star-line text-indigo-600 text-lg mt-0.5 shrink-0"></i>
+                            <div>
+                              <p className="text-indigo-800 text-sm font-semibold leading-tight">
+                                Jovem Aprendiz identificado
+                              </p>
+                              <p className="text-indigo-600 text-xs mt-0.5 leading-relaxed">
+                                Com 17 anos, você se enquadra como <strong>Jovem Aprendiz</strong>.
+                                Seu perfil ficará disponível para vagas exclusivas de jovem aprendizagem.
+                              </p>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Jovem Aprendiz — opt-in (18–23 anos) */}
+                        {ap.canOptJovem && (
+                          <div className={`border rounded-xl px-4 py-3 transition-colors ${
+                            form.jovemAprendizOpt
+                              ? "bg-indigo-50 border-indigo-300"
+                              : "bg-gray-50 border-gray-200"
+                          }`}>
+                            <div className="flex items-start gap-3">
+                              <i className={`ri-shield-star-line text-lg mt-0.5 shrink-0 ${
+                                form.jovemAprendizOpt ? "text-indigo-600" : "text-gray-400"
+                              }`}></i>
+                              <div className="flex-1">
+                                <div className="flex items-center justify-between gap-2">
+                                  <p className={`text-sm font-semibold leading-tight ${
+                                    form.jovemAprendizOpt ? "text-indigo-800" : "text-gray-700"
+                                  }`}>
+                                    Participar de vagas como Jovem Aprendiz
+                                  </p>
+                                  {/* Toggle switch */}
+                                  <button
+                                    type="button"
+                                    onClick={() => update("jovemAprendizOpt", !form.jovemAprendizOpt)}
+                                    className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none ${
+                                      form.jovemAprendizOpt ? "bg-indigo-500" : "bg-gray-300"
+                                    }`}
+                                    role="switch"
+                                    aria-checked={form.jovemAprendizOpt}
+                                  >
+                                    <span
+                                      className={`pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow transform transition-transform ${
+                                        form.jovemAprendizOpt ? "translate-x-4" : "translate-x-0"
+                                      }`}
+                                    />
+                                  </button>
+                                </div>
+                                <p className={`text-xs mt-0.5 leading-relaxed ${
+                                  form.jovemAprendizOpt ? "text-indigo-600" : "text-gray-500"
+                                }`}>
+                                  Com {ap.age} anos, você pode optar por participar do programa de <strong>Jovem Aprendiz</strong> ({ap.age >= 18 ? "18–23 anos" : "17–24 anos"}).
+                                  Ativando, seu perfil aparecerá também nas vagas de jovem aprendizagem.
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
 
                   {/* PCD */}
                   <div>
@@ -1388,12 +1660,20 @@ export default function CadastroPage() {
                               endDate: e.target.value,
                             }))
                           }
-                          className={`w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 outline-none focus:border-emerald-400 ${
+                          className={`w-full border rounded-lg px-3 py-2.5 text-sm text-gray-800 outline-none transition-colors ${
                             expForm.current
-                              ? "bg-gray-100 cursor-not-allowed text-gray-400"
-                              : ""
+                              ? "bg-gray-100 border-gray-200 cursor-not-allowed text-gray-400"
+                              : !expForm.current && expForm.startDate && expForm.endDate && expForm.endDate < expForm.startDate
+                              ? "border-red-300 focus:border-red-400"
+                              : "border-gray-200 focus:border-emerald-400"
                           }`}
                         />
+                        {!expForm.current && expForm.startDate && expForm.endDate && expForm.endDate < expForm.startDate && (
+                          <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                            <i className="ri-error-warning-line"></i>
+                            Deve ser igual ou posterior à data de início
+                          </p>
+                        )}
                       </div>
                     </div>
 
@@ -1423,6 +1703,24 @@ export default function CadastroPage() {
                         Emprego atual
                       </span>
                     </label>
+
+                    {/* Descrição das atividades */}
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1 block">
+                        Descrição das atividades
+                      </label>
+                      <textarea
+                        rows={3}
+                        maxLength={500}
+                        value={expForm.description}
+                        onChange={(e) => handleExpDescChange(e.target.value)}
+                        placeholder="Um breve resumo de suas principais atividades na função/cargo"
+                        className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 outline-none focus:border-emerald-400 resize-none"
+                      />
+                      <p className="text-right text-xs text-gray-400 mt-0.5">
+                        {expForm.description.length}/500
+                      </p>
+                    </div>
 
                     {/* Aviso de dado sensível */}
                     {expWarning && (
@@ -1472,6 +1770,11 @@ export default function CadastroPage() {
                             {formatMonthYear(exp.startDate)} →{" "}
                             {exp.current ? "Atual" : formatMonthYear(exp.endDate)}
                           </p>
+                          {exp.description && (
+                            <p className="text-gray-500 text-xs mt-1 leading-relaxed line-clamp-2">
+                              {exp.description}
+                            </p>
+                          )}
                         </div>
                         <button
                           type="button"
@@ -1575,8 +1878,18 @@ export default function CadastroPage() {
                               endDate: e.target.value,
                             }))
                           }
-                          className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 outline-none focus:border-emerald-400"
+                          className={`w-full border rounded-lg px-3 py-2.5 text-sm text-gray-800 outline-none transition-colors ${
+                            courseForm.startDate && courseForm.endDate && courseForm.endDate < courseForm.startDate
+                              ? "border-red-300 focus:border-red-400"
+                              : "border-gray-200 focus:border-emerald-400"
+                          }`}
                         />
+                        {courseForm.startDate && courseForm.endDate && courseForm.endDate < courseForm.startDate && (
+                          <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                            <i className="ri-error-warning-line"></i>
+                            Deve ser igual ou posterior à data de início
+                          </p>
+                        )}
                       </div>
                     </div>
                     {courseWarning && (
