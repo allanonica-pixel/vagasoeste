@@ -41,14 +41,14 @@ function ColorRow({
   onChange: (v: string) => void;
 }) {
   return (
-    <div className="flex items-center justify-between gap-4 py-3 border-b border-gray-50 last:border-0">
+    <div className="flex items-center justify-between gap-4 py-3 border-b border-gray-50 dark:border-gray-800 last:border-0">
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-gray-800">{label}</p>
-        <p className="text-xs text-gray-500 mt-0.5">{desc}</p>
+        <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{label}</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{desc}</p>
       </div>
       <div className="flex items-center gap-2 shrink-0">
         <div
-          className="w-8 h-8 rounded-lg border border-gray-200 cursor-pointer"
+          className="w-8 h-8 rounded-lg border border-gray-200 dark:border-gray-700 cursor-pointer"
           style={{ backgroundColor: value }}
         ></div>
         <input
@@ -63,7 +63,7 @@ function ColorRow({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           maxLength={7}
-          className="w-24 border border-gray-200 rounded-lg px-2 py-1.5 text-xs text-gray-700 outline-none focus:border-emerald-400 font-mono"
+          className="w-24 border border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-700 rounded-lg px-2 py-1.5 text-xs text-gray-700 outline-none focus:border-emerald-400 font-mono"
         />
       </div>
     </div>
@@ -85,11 +85,11 @@ function ImageUrlRow({
   const [preview, setPreview] = useState(false);
 
   return (
-    <div className="py-4 border-b border-gray-50 last:border-0">
+    <div className="py-4 border-b border-gray-50 dark:border-gray-800 last:border-0">
       <div className="flex items-start justify-between gap-3 mb-2">
         <div>
-          <p className="text-sm font-medium text-gray-800">{label}</p>
-          <p className="text-xs text-gray-500 mt-0.5">{desc}</p>
+          <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{label}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{desc}</p>
         </div>
         <button
           onClick={() => setPreview(!preview)}
@@ -108,21 +108,21 @@ function ImageUrlRow({
             value={value}
             onChange={(e) => onChange(e.target.value)}
             placeholder="https://..."
-            className="w-full border border-gray-200 rounded-lg pl-8 pr-3 py-2 text-xs text-gray-700 outline-none focus:border-emerald-400"
+            className="w-full border border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded-lg pl-8 pr-3 py-2 text-xs text-gray-700 outline-none focus:border-emerald-400"
           />
         </div>
         {value && (
           <button
             onClick={() => onChange("")}
-            className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 hover:bg-red-50 hover:border-red-200 cursor-pointer transition-colors shrink-0"
+            className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-red-50 hover:border-red-200 cursor-pointer transition-colors shrink-0"
             title="Limpar URL"
           >
-            <i className="ri-close-line text-gray-400 text-sm"></i>
+            <i className="ri-close-line text-gray-400 dark:text-gray-500 text-sm"></i>
           </button>
         )}
       </div>
       {preview && value && (
-        <div className="mt-3 rounded-xl overflow-hidden border border-gray-100 h-32">
+        <div className="mt-3 rounded-xl overflow-hidden border border-gray-100 dark:border-gray-800 h-32">
           <img
             src={value}
             alt={label}
@@ -134,8 +134,8 @@ function ImageUrlRow({
         </div>
       )}
       {preview && !value && (
-        <div className="mt-3 rounded-xl border-2 border-dashed border-gray-200 h-20 flex items-center justify-center">
-          <p className="text-xs text-gray-400">Nenhuma URL inserida</p>
+        <div className="mt-3 rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-700 h-20 flex items-center justify-center">
+          <p className="text-xs text-gray-400 dark:text-gray-500">Nenhuma URL inserida</p>
         </div>
       )}
     </div>
@@ -181,8 +181,8 @@ export default function AdminSettings() {
   return (
     <div>
       <div className="mb-6">
-        <h2 className="text-xl font-bold text-gray-900">Configurações da Plataforma</h2>
-        <p className="text-gray-700 text-sm mt-0.5">Gerencie as configurações gerais do ecossistema VagasOeste</p>
+        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Configurações da Plataforma</h2>
+        <p className="text-gray-700 dark:text-gray-300 text-sm mt-0.5">Gerencie as configurações gerais do ecossistema VagasOeste</p>
       </div>
 
       {saved && (
@@ -204,15 +204,15 @@ export default function AdminSettings() {
       )}
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-6 w-fit flex-wrap">
+      <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 rounded-xl p-1 mb-6 w-fit flex-wrap">
         {TAB_CONFIG.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer whitespace-nowrap ${
               activeTab === tab.id
-                ? "bg-white text-gray-900"
-                : "text-gray-600 hover:text-gray-800"
+                ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                : "text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
             }`}
           >
             <div className="w-4 h-4 flex items-center justify-center">
@@ -226,8 +226,8 @@ export default function AdminSettings() {
       {/* ── TAB: GERAL ── */}
       {activeTab === "geral" && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white rounded-xl border border-gray-100 p-5">
-            <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-5">
+            <h3 className="font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
               <div className="w-5 h-5 flex items-center justify-center">
                 <i className="ri-settings-line text-emerald-600 text-sm"></i>
               </div>
@@ -241,20 +241,20 @@ export default function AdminSettings() {
                 { label: "Preço do Currículo (R$)", value: curriculoPrice, setter: setCurriculoPrice, type: "text" },
               ].map((field) => (
                 <div key={field.label}>
-                  <label className="text-xs font-semibold text-gray-700 mb-1.5 block">{field.label}</label>
+                  <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5 block">{field.label}</label>
                   <input
                     type={field.type}
                     value={field.value}
                     onChange={(e) => field.setter(e.target.value)}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 outline-none focus:border-emerald-400"
+                    className="w-full border border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded-lg px-3 py-2 text-sm text-gray-800 outline-none focus:border-emerald-400"
                   />
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="bg-white rounded-xl border border-gray-100 p-5">
-            <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-5">
+            <h3 className="font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
               <div className="w-5 h-5 flex items-center justify-center">
                 <i className="ri-shield-check-line text-emerald-600 text-sm"></i>
               </div>
@@ -271,8 +271,8 @@ export default function AdminSettings() {
                     <i className="ri-checkbox-circle-fill text-emerald-500 text-sm"></i>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-800">{item.label}</p>
-                    <p className="text-xs text-gray-600 mt-0.5">{item.desc}</p>
+                    <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{item.label}</p>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">{item.desc}</p>
                   </div>
                 </div>
               ))}
@@ -283,8 +283,8 @@ export default function AdminSettings() {
 
       {/* ── TAB: NOTIFICAÇÕES ── */}
       {activeTab === "notificacoes" && (
-        <div className="bg-white rounded-xl border border-gray-100 p-5 max-w-xl">
-          <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
+        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-5 max-w-xl">
+          <h3 className="font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
             <div className="w-5 h-5 flex items-center justify-center">
               <i className="ri-notification-line text-emerald-600 text-sm"></i>
             </div>
@@ -298,12 +298,12 @@ export default function AdminSettings() {
             ].map((item) => (
               <div key={item.label} className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-sm font-medium text-gray-800">{item.label}</p>
-                  <p className="text-xs text-gray-600 mt-0.5">{item.desc}</p>
+                  <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{item.label}</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">{item.desc}</p>
                 </div>
                 <button
                   onClick={() => item.setter(!item.value)}
-                  className={`relative w-11 h-6 rounded-full transition-colors cursor-pointer shrink-0 ${item.value ? "bg-emerald-500" : "bg-gray-200"}`}
+                  className={`relative w-11 h-6 rounded-full transition-colors cursor-pointer shrink-0 ${item.value ? "bg-emerald-500" : "bg-gray-200 dark:bg-gray-700"}`}
                 >
                   <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${item.value ? "translate-x-5" : "translate-x-0.5"}`}></div>
                 </button>
@@ -315,8 +315,8 @@ export default function AdminSettings() {
 
       {/* ── TAB: ACESSOS ── */}
       {activeTab === "acessos" && (
-        <div className="bg-white rounded-xl border border-gray-100 p-5 max-w-xl">
-          <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
+        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-5 max-w-xl">
+          <h3 className="font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
             <div className="w-5 h-5 flex items-center justify-center">
               <i className="ri-lock-line text-emerald-600 text-sm"></i>
             </div>
@@ -328,16 +328,16 @@ export default function AdminSettings() {
               { role: "Empresa (demo)", email: "empresa@email.com", access: "Painel da empresa" },
               { role: "Candidato (demo)", email: "candidato@email.com", access: "Plataforma do candidato" },
             ].map((user) => (
-              <div key={user.role} className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+              <div key={user.role} className="flex items-center justify-between bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
                 <div>
-                  <p className="text-sm font-semibold text-gray-800">{user.role}</p>
-                  <p className="text-xs text-gray-600">{user.email}</p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">{user.role}</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">{user.email}</p>
                 </div>
-                <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-medium">{user.access}</span>
+                <span className="text-xs bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400 px-2 py-0.5 rounded-full font-medium">{user.access}</span>
               </div>
             ))}
           </div>
-          <p className="text-xs text-gray-600 mt-3">Senha padrão de demonstração: <strong>vagasoeste</strong></p>
+          <p className="text-xs text-gray-600 dark:text-gray-400 mt-3">Senha padrão de demonstração: <strong>vagasoeste</strong></p>
         </div>
       )}
 
@@ -347,12 +347,12 @@ export default function AdminSettings() {
           {/* Header with restore button */}
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-semibold text-gray-800">Personalização Visual</p>
-              <p className="text-xs text-gray-500 mt-0.5">Ajuste cores, fontes e imagens do site e da plataforma</p>
+              <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">Personalização Visual</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Ajuste cores, fontes e imagens do site e da plataforma</p>
             </div>
             <button
               onClick={handleRestoreDesign}
-              className="flex items-center gap-2 border border-gray-200 text-gray-600 hover:border-red-300 hover:text-red-600 px-4 py-2 rounded-lg text-sm font-medium cursor-pointer transition-colors whitespace-nowrap"
+              className="flex items-center gap-2 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-red-300 hover:text-red-600 px-4 py-2 rounded-lg text-sm font-medium cursor-pointer transition-colors whitespace-nowrap"
             >
               <div className="w-4 h-4 flex items-center justify-center">
                 <i className="ri-refresh-line text-sm"></i>
@@ -363,14 +363,14 @@ export default function AdminSettings() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Colors — Primary */}
-            <div className="bg-white rounded-xl border border-gray-100 p-5">
-              <h3 className="font-bold text-gray-900 mb-1 flex items-center gap-2 text-sm">
+            <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-5">
+              <h3 className="font-bold text-gray-900 dark:text-gray-100 mb-1 flex items-center gap-2 text-sm">
                 <div className="w-5 h-5 flex items-center justify-center">
                   <i className="ri-palette-line text-emerald-600 text-sm"></i>
                 </div>
                 Cores Primárias
               </h3>
-              <p className="text-xs text-gray-500 mb-4">Cores principais usadas em botões, links e destaques</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">Cores principais usadas em botões, links e destaques</p>
               <div>
                 <ColorRow
                   label="Cor Principal"
@@ -406,14 +406,14 @@ export default function AdminSettings() {
             </div>
 
             {/* Colors — Buttons & Bars */}
-            <div className="bg-white rounded-xl border border-gray-100 p-5">
-              <h3 className="font-bold text-gray-900 mb-1 flex items-center gap-2 text-sm">
+            <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-5">
+              <h3 className="font-bold text-gray-900 dark:text-gray-100 mb-1 flex items-center gap-2 text-sm">
                 <div className="w-5 h-5 flex items-center justify-center">
                   <i className="ri-layout-line text-emerald-600 text-sm"></i>
                 </div>
                 Botões, Barras e Fontes
               </h3>
-              <p className="text-xs text-gray-500 mb-4">Cores de botões, navbar, footer e texto geral</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">Cores de botões, navbar, footer e texto geral</p>
               <div>
                 <ColorRow
                   label="Cor dos Botões"
@@ -450,8 +450,8 @@ export default function AdminSettings() {
           </div>
 
           {/* Preview */}
-          <div className="bg-white rounded-xl border border-gray-100 p-5">
-            <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2 text-sm">
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-5">
+            <h3 className="font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2 text-sm">
               <div className="w-5 h-5 flex items-center justify-center">
                 <i className="ri-eye-line text-emerald-600 text-sm"></i>
               </div>
@@ -498,14 +498,14 @@ export default function AdminSettings() {
           </div>
 
           {/* Hero Images */}
-          <div className="bg-white rounded-xl border border-gray-100 p-5">
-            <h3 className="font-bold text-gray-900 mb-1 flex items-center gap-2 text-sm">
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-5">
+            <h3 className="font-bold text-gray-900 dark:text-gray-100 mb-1 flex items-center gap-2 text-sm">
               <div className="w-5 h-5 flex items-center justify-center">
                 <i className="ri-image-line text-emerald-600 text-sm"></i>
               </div>
               Imagens das Seções Hero
             </h3>
-            <p className="text-xs text-gray-500 mb-5">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-5">
               Insira a URL da imagem para cada seção hero. Use imagens com proporção 16:9 ou panorâmica (mínimo 1920×700px) para melhor resultado.
             </p>
             <div>
@@ -528,8 +528,8 @@ export default function AdminSettings() {
                 onChange={(v) => updateDesign("heroEmpresasUrl", v)}
               />
             </div>
-            <div className="mt-4 bg-amber-50 border border-amber-100 rounded-lg p-3">
-              <p className="text-xs text-amber-700 flex items-start gap-1.5">
+            <div className="mt-4 bg-amber-50 dark:bg-amber-950 border border-amber-100 dark:border-amber-900 rounded-lg p-3">
+              <p className="text-xs text-amber-700 dark:text-amber-400 flex items-start gap-1.5">
                 <i className="ri-information-line text-amber-500 mt-0.5 shrink-0"></i>
                 <span>
                   <strong>Dica:</strong> Para ativar as imagens personalizadas no site, conecte o Supabase e salve as configurações. As URLs serão lidas dinamicamente pelas páginas. Enquanto isso, as imagens padrão continuam sendo usadas.

@@ -1,24 +1,76 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import AnimatedSection from "@/components/base/AnimatedSection";
-import { mockAdminJobs, AdminJob } from "@/mocks/adminData";
+import { AdminJob } from "@/mocks/adminData";
 import { sendEmailNotification } from "@/hooks/useEmailNotification";
+import { supabase } from "@/lib/supabase";
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; dot: string }> = {
-  ativa: { label: "Ativa", color: "bg-emerald-100 text-emerald-700", dot: "bg-emerald-500" },
-  pausada: { label: "Pausada", color: "bg-amber-100 text-amber-700", dot: "bg-amber-500" },
-  encerrada: { label: "Encerrada", color: "bg-gray-100 text-gray-600", dot: "bg-gray-400" },
-  pendente: { label: "Pendente", color: "bg-orange-100 text-orange-700", dot: "bg-orange-500" },
+  ativa:    { label: "Ativa",     color: "bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400", dot: "bg-emerald-500" },
+  pausada:  { label: "Pausada",   color: "bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-400",         dot: "bg-amber-500"   },
+  encerrada:{ label: "Encerrada", color: "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400",             dot: "bg-gray-400 dark:bg-gray-500" },
+  pendente: { label: "Pendente",  color: "bg-orange-100 dark:bg-orange-950 text-orange-700 dark:text-orange-400",     dot: "bg-orange-500"  },
 };
 
-const SECTORS = ["Todos", "Saúde", "Comércio", "Tecnologia", "Construção Civil", "Alimentação", "Logística", "Serviços", "Indústria", "Agronegócio"];
+const SECTORS        = ["Todos", "Saúde", "Comércio", "Tecnologia", "Construção Civil", "Alimentação", "Logística", "Serviços", "Indústria", "Agronegócio"];
 const CONTRACT_TYPES = ["Todos", "CLT", "PJ", "Freelance", "Temporário"];
 const TABS = [
-  { id: "todos", label: "Todas" },
-  { id: "pendente", label: "Pendentes" },
-  { id: "ativa", label: "Ativas" },
-  { id: "pausada", label: "Pausadas" },
+  { id: "todos",     label: "Todas"      },
+  { id: "pendente",  label: "Pendentes"  },
+  { id: "ativa",     label: "Ativas"     },
+  { id: "pausada",   label: "Pausadas"   },
   { id: "encerrada", label: "Encerradas" },
 ];
+
+// DB status → UI status
+function dbToUiStatus(dbStatus: string): AdminJob["status"] {
+  const map: Record<string, AdminJob["status"]> = {
+    ativo:    "ativa",
+    pausado:  "pausada",
+    encerrado:"encerrada",
+    pendente: "pendente",
+  };
+  return map[dbStatus] ?? "pendente";
+}
+
+// UI status → DB status
+function uiToDbStatus(uiStatus: string): string {
+  const map: Record<string, string> = {
+    ativa:     "ativo",
+    pausada:   "pausado",
+    encerrada: "encerrado",
+    pendente:  "pendente",
+  };
+  return map[uiStatus] ?? uiStatus;
+}
+
+// Mapeia linha do JOIN jobs+companies → AdminJob
+function mapJob(row: Record<string, unknown>): AdminJob {
+  const company = (row.companies as Record<string, unknown>) ?? {};
+  const companyName =
+    String(company.nome_fantasia ?? company.razao_social ?? "—");
+  const publishedAt =
+    typeof row.published_at === "string" ? row.published_at.split("T")[0] : "—";
+
+  return {
+    id:               String(row.id),
+    title:            String(row.title ?? "—"),
+    sector:           String(row.sector ?? "—"),
+    company:          companyName,
+    companyId:        String(row.company_id ?? ""),
+    companyEmail:     String(company.email ?? "—"),
+    companyWhatsapp:  String(company.whatsapp ?? "—"),
+    city:             String(row.city ?? "Santarém"),
+    neighborhood:     String(row.neighborhood ?? "—"),
+    contractType:     String(row.contract_type ?? "—"),
+    salaryRange:      String(row.salary_range ?? ""),
+    description:      String(row.description ?? ""),
+    requirements:     String(row.requirements ?? ""),
+    benefits:         String(row.benefits ?? ""),
+    publishedAt,
+    status:           dbToUiStatus(String(row.status ?? "pendente")),
+    candidates:       Number(row.applicants_count) || 0,
+  };
+}
 
 interface JobApprovalModalProps {
   job: AdminJob;
@@ -41,55 +93,57 @@ function JobApprovalModal({ job, action, onConfirm, onClose }: JobApprovalModalP
     setTimeout(() => {
       setLoading(false);
       onConfirm(action, isApprove ? undefined : motivo);
-    }, 1000);
+    }, 800);
   };
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-        <div className={`p-5 border-b ${isApprove ? "bg-emerald-50 border-emerald-100" : "bg-red-50 border-red-100"}`}>
+      <div className="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        <div className={`p-5 border-b ${isApprove ? "bg-emerald-50 dark:bg-emerald-950 border-emerald-100 dark:border-emerald-900" : "bg-red-50 dark:bg-red-950 border-red-100 dark:border-red-900"}`}>
           <div className="flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isApprove ? "bg-emerald-100" : "bg-red-100"}`}>
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isApprove ? "bg-emerald-100 dark:bg-emerald-900" : "bg-red-100 dark:bg-red-900"}`}>
               <i className={`text-lg ${isApprove ? "ri-checkbox-circle-line text-emerald-600" : "ri-close-circle-line text-red-600"}`}></i>
             </div>
             <div>
-              <h3 className={`font-bold text-sm ${isApprove ? "text-emerald-900" : "text-red-900"}`}>
+              <h3 className={`font-bold text-sm ${isApprove ? "text-emerald-900 dark:text-emerald-300" : "text-red-900 dark:text-red-300"}`}>
                 {isApprove ? "Aprovar vaga" : "Reprovar vaga"}
               </h3>
-              <p className={`text-xs ${isApprove ? "text-emerald-700" : "text-red-700"}`}>{job.title} · {job.company}</p>
+              <p className={`text-xs ${isApprove ? "text-emerald-700 dark:text-emerald-400" : "text-red-700 dark:text-red-400"}`}>{job.title} · {job.company}</p>
             </div>
           </div>
         </div>
 
         <div className="p-5 space-y-4">
           {/* Job summary */}
-          <div className="bg-gray-50 rounded-xl p-4 space-y-2">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Resumo da vaga</p>
+          <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 space-y-2">
+            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Resumo da vaga</p>
             {[
-              { label: "Título", value: job.title },
-              { label: "Empresa", value: job.company },
-              { label: "Setor", value: job.sector },
-              { label: "Localização", value: `${job.neighborhood}, ${job.city}` },
-              { label: "Contrato", value: job.contractType },
-              { label: "Salário", value: job.salaryRange || "A combinar" },
+              { label: "Título",       value: job.title },
+              { label: "Empresa",      value: job.company },
+              { label: "Setor",        value: job.sector },
+              { label: "Localização",  value: `${job.neighborhood}, ${job.city}` },
+              { label: "Contrato",     value: job.contractType },
+              { label: "Salário",      value: job.salaryRange || "A combinar" },
             ].map((item) => (
               <div key={item.label} className="flex gap-2 text-xs">
-                <span className="text-gray-400 w-20 shrink-0">{item.label}:</span>
-                <span className="text-gray-800 font-medium">{item.value}</span>
+                <span className="text-gray-400 dark:text-gray-500 w-20 shrink-0">{item.label}:</span>
+                <span className="text-gray-800 dark:text-gray-200 font-medium">{item.value}</span>
               </div>
             ))}
           </div>
 
           {/* Description preview */}
-          <div>
-            <p className="text-xs font-semibold text-gray-500 mb-1">Descrição</p>
-            <p className="text-xs text-gray-600 leading-relaxed bg-gray-50 rounded-lg p-3">{job.description}</p>
-          </div>
+          {job.description && (
+            <div>
+              <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Descrição</p>
+              <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed bg-gray-50 dark:bg-gray-800 rounded-lg p-3">{job.description}</p>
+            </div>
+          )}
 
           {/* Rejection reason */}
           {!isApprove && (
             <div>
-              <label className="text-sm font-semibold text-gray-700 mb-1.5 block">
+              <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 block">
                 Motivo da reprovação <span className="text-red-400">*</span>
               </label>
               <textarea
@@ -98,20 +152,24 @@ function JobApprovalModal({ job, action, onConfirm, onClose }: JobApprovalModalP
                 placeholder="Descreva o motivo para a empresa corrigir e reenviar..."
                 rows={3}
                 maxLength={300}
-                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-800 outline-none focus:border-red-400 resize-none"
+                className="w-full border border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:placeholder:text-gray-500 rounded-xl px-4 py-2.5 text-sm text-gray-800 outline-none focus:border-red-400 resize-none"
               />
             </div>
           )}
 
           {/* Email preview */}
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Email automático para {job.companyEmail}</p>
-            <pre className="text-xs text-gray-600 bg-gray-50 rounded-xl p-4 whitespace-pre-wrap font-sans leading-relaxed">{emailPreview}</pre>
+            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
+              Email automático para {job.companyEmail}
+            </p>
+            <pre className="text-xs text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-xl p-4 whitespace-pre-wrap font-sans leading-relaxed">
+              {emailPreview}
+            </pre>
           </div>
 
           {isApprove && (
-            <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3">
-              <p className="text-xs text-emerald-800 font-medium flex items-center gap-1.5">
+            <div className="bg-emerald-50 dark:bg-emerald-950 border border-emerald-100 dark:border-emerald-900 rounded-xl p-3">
+              <p className="text-xs text-emerald-800 dark:text-emerald-400 font-medium flex items-center gap-1.5">
                 <i className="ri-information-line text-emerald-600"></i>
                 A vaga será publicada imediatamente no site público e a empresa receberá email de confirmação.
               </p>
@@ -119,8 +177,11 @@ function JobApprovalModal({ job, action, onConfirm, onClose }: JobApprovalModalP
           )}
         </div>
 
-        <div className="p-5 border-t border-gray-100 flex gap-3">
-          <button onClick={onClose} className="flex-1 border border-gray-200 text-gray-600 font-medium py-2.5 rounded-xl text-sm cursor-pointer hover:bg-gray-50 whitespace-nowrap">
+        <div className="p-5 border-t border-gray-100 dark:border-gray-800 flex gap-3">
+          <button
+            onClick={onClose}
+            className="flex-1 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 font-medium py-2.5 rounded-xl text-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 whitespace-nowrap"
+          >
             Cancelar
           </button>
           <button
@@ -143,22 +204,50 @@ function JobApprovalModal({ job, action, onConfirm, onClose }: JobApprovalModalP
 }
 
 export default function AdminJobs() {
-  const [jobs, setJobs] = useState<AdminJob[]>(mockAdminJobs);
-  const [filterSector, setFilterSector] = useState("Todos");
+  const [jobs, setJobs] = useState<AdminJob[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [filterSector, setFilterSector]     = useState("Todos");
   const [filterContract, setFilterContract] = useState("Todos");
-  const [search, setSearch] = useState("");
-  const [activeTab, setActiveTab] = useState("todos");
-  const [selected, setSelected] = useState<string | null>(null);
-  const [approvalModal, setApprovalModal] = useState<{ job: AdminJob; action: "approve" | "reject" } | null>(null);
-  const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
+  const [search, setSearch]                 = useState("");
+  const [activeTab, setActiveTab]           = useState("todos");
+  const [selected, setSelected]             = useState<string | null>(null);
+  const [approvalModal, setApprovalModal]   = useState<{ job: AdminJob; action: "approve" | "reject" } | null>(null);
+  const [toast, setToast]                   = useState<{ msg: string; type: "success" | "error" } | null>(null);
+
+  const fetchJobs = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    const { data, error: err } = await supabase
+      .from("jobs")
+      .select(`
+        id, title, sector, area, contract_type, neighborhood, city,
+        salary_range, description, requirements, benefits,
+        status, applicants_count, published_at, company_id,
+        companies (nome_fantasia, razao_social, email, whatsapp)
+      `)
+      .order("created_at", { ascending: false });
+
+    if (err) {
+      setError("Erro ao carregar vagas: " + err.message);
+      setLoading(false);
+      return;
+    }
+
+    setJobs((data ?? []).map((row) => mapJob(row as Record<string, unknown>)));
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { fetchJobs(); }, [fetchJobs]);
 
   const pendingCount = jobs.filter((j) => j.status === "pendente").length;
 
   const filtered = jobs.filter((j) => {
-    const matchTab = activeTab === "todos" || j.status === activeTab;
-    const matchSector = filterSector === "Todos" || j.sector === filterSector;
+    const matchTab      = activeTab === "todos" || j.status === activeTab;
+    const matchSector   = filterSector === "Todos" || j.sector === filterSector;
     const matchContract = filterContract === "Todos" || j.contractType === filterContract;
-    const matchSearch = !search || j.title.toLowerCase().includes(search.toLowerCase()) || j.company.toLowerCase().includes(search.toLowerCase());
+    const matchSearch   = !search || j.title.toLowerCase().includes(search.toLowerCase()) || j.company.toLowerCase().includes(search.toLowerCase());
     return matchTab && matchSector && matchContract && matchSearch;
   });
 
@@ -173,7 +262,25 @@ export default function AdminJobs() {
     if (!approvalModal) return;
     const { job } = approvalModal;
 
-    // Send email notification
+    const newDbStatus = action === "approve" ? "ativo" : "encerrado";
+    const now = new Date().toISOString();
+
+    // 1) Persiste no Supabase
+    const updatePayload: Record<string, unknown> = { status: newDbStatus };
+    if (action === "approve") updatePayload.published_at = now;
+
+    const { error: updateErr } = await supabase
+      .from("jobs")
+      .update(updatePayload)
+      .eq("id", job.id);
+
+    if (updateErr) {
+      showToast(`Erro ao atualizar vaga: ${updateErr.message}`, "error");
+      setApprovalModal(null);
+      return;
+    }
+
+    // 2) Envia email de notificação
     await sendEmailNotification({
       type: action === "approve" ? "job_approved" : "job_rejected",
       to: job.companyEmail,
@@ -183,20 +290,47 @@ export default function AdminJobs() {
       loginUrl: "https://santarem.app/empresa/dashboard",
     });
 
+    // 3) Atualiza estado local
     setJobs((prev) =>
       prev.map((j) =>
         j.id === job.id
-          ? { ...j, status: action === "approve" ? "ativa" : "encerrada", publishedAt: new Date().toISOString().split("T")[0] }
+          ? { ...j, status: action === "approve" ? "ativa" : "encerrada", publishedAt: now.split("T")[0] }
           : j
       )
     );
+
     setApprovalModal(null);
     setSelected(null);
+
     if (action === "approve") {
       showToast(`Vaga "${job.title}" aprovada e publicada! Email enviado para ${job.companyEmail}.`, "success");
     } else {
-      showToast(`Vaga "${job.title}" reprovada. Email com motivo enviado para ${job.companyEmail}.`, "error");
+      showToast(`Vaga "${job.title}" reprovada. Email enviado para ${job.companyEmail}.`, "error");
     }
+  };
+
+  // Pausar / reativar vaga
+  const handleTogglePause = async (job: AdminJob) => {
+    const newUiStatus = job.status === "pausada" ? "ativa" : "pausada";
+    const newDbStatus = uiToDbStatus(newUiStatus);
+
+    const { error: err } = await supabase
+      .from("jobs")
+      .update({ status: newDbStatus })
+      .eq("id", job.id);
+
+    if (err) {
+      showToast(`Erro ao atualizar status: ${err.message}`, "error");
+      return;
+    }
+
+    setJobs((prev) =>
+      prev.map((j) => (j.id === job.id ? { ...j, status: newUiStatus } : j))
+    );
+    showToast(
+      newUiStatus === "pausada" ? `Vaga "${job.title}" pausada.` : `Vaga "${job.title}" reativada.`,
+      "success"
+    );
   };
 
   return (
@@ -213,35 +347,51 @@ export default function AdminJobs() {
         </div>
       )}
 
+      {/* Error banner */}
+      {error && (
+        <div className="bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-900 rounded-xl px-4 py-3 mb-4 flex items-center gap-2">
+          <i className="ri-error-warning-line text-red-500 dark:text-red-400 text-sm"></i>
+          <p className="text-red-700 dark:text-red-400 text-sm">{error}</p>
+          <button onClick={fetchJobs} className="ml-auto text-xs text-red-600 dark:text-red-400 underline cursor-pointer">Tentar novamente</button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h2 className="text-xl font-bold text-gray-900">Vagas</h2>
-          <p className="text-gray-500 text-sm mt-0.5">
-            {jobs.length} vagas · {pendingCount > 0 && (
-              <span className="text-orange-600 font-semibold">{pendingCount} pendente{pendingCount !== 1 ? "s" : ""} de aprovação</span>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Vagas</h2>
+          <p className="text-gray-500 dark:text-gray-400 text-sm mt-0.5">
+            {loading ? "Carregando..." : (
+              <>
+                {jobs.length} vagas
+                {pendingCount > 0 && (
+                  <> · <span className="text-orange-600 font-semibold">{pendingCount} pendente{pendingCount !== 1 ? "s" : ""} de aprovação</span></>
+                )}
+              </>
             )}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-emerald-700 font-semibold bg-emerald-50 px-3 py-1.5 rounded-lg">
-            {jobs.filter((j) => j.status === "ativa").length} ativas
-          </span>
-        </div>
+        {!loading && (
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-emerald-700 dark:text-emerald-400 font-semibold bg-emerald-50 dark:bg-emerald-950 px-3 py-1.5 rounded-lg">
+              {jobs.filter((j) => j.status === "ativa").length} ativas
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Pending Alert */}
-      {pendingCount > 0 && (
-        <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 mb-5 flex items-start gap-3">
-          <div className="w-9 h-9 rounded-xl bg-orange-100 flex items-center justify-center shrink-0">
+      {!loading && pendingCount > 0 && (
+        <div className="bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-900 rounded-xl p-4 mb-5 flex items-start gap-3">
+          <div className="w-9 h-9 rounded-xl bg-orange-100 dark:bg-orange-900 flex items-center justify-center shrink-0">
             <i className="ri-time-line text-orange-600 text-base"></i>
           </div>
           <div className="flex-1">
-            <p className="font-semibold text-orange-900 text-sm mb-0.5">
+            <p className="font-semibold text-orange-900 dark:text-orange-300 text-sm mb-0.5">
               {pendingCount} vaga{pendingCount !== 1 ? "s" : ""} aguardando aprovação
             </p>
-            <p className="text-orange-700 text-xs leading-relaxed">
-              Vagas cadastradas por empresas em pré-cadastro. Após aprovação, ficam disponíveis no site público e a empresa recebe email de confirmação.
+            <p className="text-orange-700 dark:text-orange-400 text-xs leading-relaxed">
+              Vagas cadastradas por empresas. Após aprovação, ficam disponíveis no site público e a empresa recebe email de confirmação.
             </p>
           </div>
           <button
@@ -254,22 +404,24 @@ export default function AdminJobs() {
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-        {[
-          { label: "Total", value: jobs.length, color: "text-gray-700", bg: "bg-gray-50" },
-          { label: "Ativas", value: jobs.filter((j) => j.status === "ativa").length, color: "text-emerald-600", bg: "bg-emerald-50" },
-          { label: "Pendentes", value: pendingCount, color: "text-orange-600", bg: "bg-orange-50" },
-          { label: "Candidatos", value: jobs.reduce((acc, j) => acc + j.candidates, 0), color: "text-sky-600", bg: "bg-sky-50" },
-        ].map((stat) => (
-          <div key={stat.label} className={`${stat.bg} rounded-xl p-4 text-center`}>
-            <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
-            <p className="text-xs text-gray-500 mt-0.5">{stat.label}</p>
-          </div>
-        ))}
-      </div>
+      {!loading && (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+          {[
+            { label: "Total",       value: jobs.length,                                       color: "text-gray-700 dark:text-gray-300",    bg: "bg-gray-50 dark:bg-gray-800"    },
+            { label: "Ativas",      value: jobs.filter((j) => j.status === "ativa").length,   color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-50 dark:bg-emerald-950" },
+            { label: "Pendentes",   value: pendingCount,                                       color: "text-orange-600 dark:text-orange-400",  bg: "bg-orange-50 dark:bg-orange-950"  },
+            { label: "Candidatos",  value: jobs.reduce((acc, j) => acc + j.candidates, 0),    color: "text-sky-600 dark:text-sky-400",         bg: "bg-sky-50 dark:bg-sky-950"         },
+          ].map((stat) => (
+            <div key={stat.label} className={`${stat.bg} rounded-xl p-4 text-center`}>
+              <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{stat.label}</p>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-gray-100 p-1 rounded-xl mb-5 w-fit flex-wrap">
+      <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-xl mb-5 w-fit flex-wrap">
         {TABS.map((tab) => {
           const count = tab.id === "todos" ? jobs.length : jobs.filter((j) => j.status === tab.id).length;
           return (
@@ -277,7 +429,7 @@ export default function AdminJobs() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-all whitespace-nowrap ${
-                activeTab === tab.id ? "bg-white text-gray-900" : "text-gray-500 hover:text-gray-700"
+                activeTab === tab.id ? "bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
               }`}
             >
               {tab.label}
@@ -286,8 +438,8 @@ export default function AdminJobs() {
                   tab.id === "pendente" && count > 0
                     ? "bg-orange-500 text-white"
                     : activeTab === tab.id
-                    ? "bg-gray-100 text-gray-600"
-                    : "bg-gray-200 text-gray-500"
+                    ? "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
+                    : "bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
                 }`}>
                   {count}
                 </span>
@@ -298,180 +450,213 @@ export default function AdminJobs() {
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-xl border border-gray-100 p-4 mb-5">
+      <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-4 mb-5">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
             <div className="relative">
               <div className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 flex items-center justify-center">
-                <i className="ri-search-line text-gray-400 text-xs"></i>
+                <i className="ri-search-line text-gray-400 dark:text-gray-500 text-xs"></i>
               </div>
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Título ou empresa..."
-                className="w-full border border-gray-200 rounded-lg pl-8 pr-3 py-2 text-sm text-gray-700 outline-none focus:border-emerald-400"
+                className="w-full border border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:placeholder:text-gray-500 rounded-lg pl-8 pr-3 py-2 text-sm text-gray-700 outline-none focus:border-emerald-400"
               />
             </div>
           </div>
           <div>
-            <select value={filterSector} onChange={(e) => setFilterSector(e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 outline-none focus:border-emerald-400 cursor-pointer">
+            <select value={filterSector} onChange={(e) => setFilterSector(e.target.value)} className="w-full border border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded-lg px-3 py-2 text-sm text-gray-700 outline-none focus:border-emerald-400 cursor-pointer">
               {SECTORS.map((s) => <option key={s} value={s}>{s}</option>)}
             </select>
           </div>
           <div>
-            <select value={filterContract} onChange={(e) => setFilterContract(e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 outline-none focus:border-emerald-400 cursor-pointer">
+            <select value={filterContract} onChange={(e) => setFilterContract(e.target.value)} className="w-full border border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 rounded-lg px-3 py-2 text-sm text-gray-700 outline-none focus:border-emerald-400 cursor-pointer">
               {CONTRACT_TYPES.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* List */}
-        <div className="lg:col-span-2 space-y-3">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-            {filtered.length} vaga{filtered.length !== 1 ? "s" : ""}
-          </p>
-
-          {filtered.length === 0 && (
-            <div className="bg-white rounded-xl border border-gray-100 p-10 text-center">
-              <div className="w-12 h-12 flex items-center justify-center mx-auto mb-3">
-                <i className="ri-briefcase-line text-gray-300 text-3xl"></i>
-              </div>
-              <p className="text-gray-400 text-sm">Nenhuma vaga encontrada</p>
-            </div>
-          )}
-
-          {filtered.map((job, idx) => (
-            <AnimatedSection key={job.id} variant="fade-up" delay={(idx % 6) * 60}>
-            <div
-              onClick={() => setSelected(job.id === selected ? null : job.id)}
-              className={`bg-white rounded-xl border-2 p-4 cursor-pointer transition-all ${
-                selected === job.id ? "border-emerald-500" : "border-gray-100 hover:border-emerald-200"
-              }`}
-            >
+      {/* Loading skeleton */}
+      {loading && (
+        <div className="space-y-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-4 animate-pulse">
               <div className="flex items-start justify-between gap-3 mb-2">
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-gray-900 text-sm">{job.title}</p>
-                  <p className="text-gray-500 text-xs mt-0.5">{job.company} · Setor {job.sector}</p>
+                <div className="flex-1 space-y-2">
+                  <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                  <div className="h-2 bg-gray-100 dark:bg-gray-800 rounded w-1/3"></div>
                 </div>
-                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1.5 shrink-0 ${STATUS_CONFIG[job.status].color}`}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${STATUS_CONFIG[job.status].dot}`}></span>
-                  {STATUS_CONFIG[job.status].label}
-                </span>
+                <div className="w-16 h-5 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
               </div>
-
-              <div className="flex items-center gap-3 flex-wrap text-xs text-gray-500 mb-3">
-                <span><i className="ri-map-pin-line mr-1 text-emerald-500"></i>{job.neighborhood}</span>
-                <span><i className="ri-file-text-line mr-1 text-emerald-500"></i>{job.contractType}</span>
-                <span><i className="ri-user-line mr-1 text-emerald-500"></i>{job.candidates} candidatos</span>
-                {job.salaryRange && <span className="font-medium text-gray-700">{job.salaryRange}</span>}
+              <div className="flex gap-3">
+                <div className="h-2 bg-gray-100 dark:bg-gray-800 rounded w-20"></div>
+                <div className="h-2 bg-gray-100 dark:bg-gray-800 rounded w-16"></div>
               </div>
-
-              {/* Pending actions */}
-              {job.status === "pendente" && (
-                <div className="flex gap-2 pt-3 border-t border-gray-50">
-                  <button
-                    onClick={(e) => { e.stopPropagation(); setApprovalModal({ job, action: "approve" }); }}
-                    className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 rounded-lg text-xs cursor-pointer transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap"
-                  >
-                    <i className="ri-checkbox-circle-line text-sm"></i>
-                    Aprovar e publicar
-                  </button>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); setApprovalModal({ job, action: "reject" }); }}
-                    className="flex-1 border border-red-200 text-red-600 hover:bg-red-50 font-semibold py-2 rounded-lg text-xs cursor-pointer transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap"
-                  >
-                    <i className="ri-close-circle-line text-sm"></i>
-                    Reprovar
-                  </button>
-                </div>
-              )}
             </div>
-            </AnimatedSection>
           ))}
         </div>
+      )}
 
-        {/* Detail */}
-        <div>
-          {selectedJob ? (
-            <div className="bg-white rounded-xl border border-gray-100 p-5 sticky top-20">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-bold text-gray-900 text-sm">{selectedJob.title}</h3>
-                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${STATUS_CONFIG[selectedJob.status].color}`}>
-                  {STATUS_CONFIG[selectedJob.status].label}
-                </span>
+      {!loading && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* List */}
+          <div className="lg:col-span-2 space-y-3">
+            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+              {filtered.length} vaga{filtered.length !== 1 ? "s" : ""}
+            </p>
+
+            {filtered.length === 0 && (
+              <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-10 text-center">
+                <div className="w-12 h-12 flex items-center justify-center mx-auto mb-3">
+                  <i className="ri-briefcase-line text-gray-300 dark:text-gray-600 text-3xl"></i>
+                </div>
+                <p className="text-gray-400 dark:text-gray-500 text-sm">
+                  {jobs.length === 0 ? "Nenhuma vaga cadastrada ainda" : "Nenhuma vaga encontrada"}
+                </p>
               </div>
+            )}
 
-              <div className="space-y-2.5 mb-4">
-                {[
-                  { label: "Empresa", value: selectedJob.company, icon: "ri-building-line" },
-                  { label: "Setor", value: selectedJob.sector, icon: "ri-building-2-line" },
-                  { label: "Localização", value: `${selectedJob.neighborhood}, ${selectedJob.city}`, icon: "ri-map-pin-line" },
-                  { label: "Contrato", value: selectedJob.contractType, icon: "ri-file-text-line" },
-                  { label: "Salário", value: selectedJob.salaryRange || "A combinar", icon: "ri-money-dollar-circle-line" },
-                  { label: "Publicada em", value: selectedJob.publishedAt, icon: "ri-calendar-line" },
-                  { label: "Candidatos", value: `${selectedJob.candidates} inscritos`, icon: "ri-user-line" },
-                  { label: "Email empresa", value: selectedJob.companyEmail, icon: "ri-mail-line" },
-                ].map((item) => (
-                  <div key={item.label} className="flex items-start gap-2">
-                    <div className="w-5 h-5 flex items-center justify-center mt-0.5 shrink-0">
-                      <i className={`${item.icon} text-emerald-500 text-xs`}></i>
+            {filtered.map((job, idx) => (
+              <AnimatedSection key={job.id} variant="fade-up" delay={(idx % 6) * 60}>
+                <div
+                  onClick={() => setSelected(job.id === selected ? null : job.id)}
+                  className={`bg-white dark:bg-gray-900 rounded-xl border-2 p-4 cursor-pointer transition-all ${
+                    selected === job.id ? "border-emerald-500" : "border-gray-100 dark:border-gray-800 hover:border-emerald-200"
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-gray-900 dark:text-gray-100 text-sm">{job.title}</p>
+                      <p className="text-gray-500 dark:text-gray-400 text-xs mt-0.5">{job.company} · {job.sector}</p>
                     </div>
-                    <div className="min-w-0">
-                      <p className="text-xs text-gray-400">{item.label}</p>
-                      <p className="text-sm text-gray-800 font-medium break-words">{item.value}</p>
-                    </div>
+                    <span className={`text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1.5 shrink-0 ${STATUS_CONFIG[job.status].color}`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${STATUS_CONFIG[job.status].dot}`}></span>
+                      {STATUS_CONFIG[job.status].label}
+                    </span>
                   </div>
-                ))}
-              </div>
 
-              {selectedJob.description && (
-                <div className="mb-4">
-                  <p className="text-xs font-semibold text-gray-400 mb-1">Descrição</p>
-                  <p className="text-xs text-gray-600 leading-relaxed bg-gray-50 rounded-lg p-3">{selectedJob.description}</p>
-                </div>
-              )}
+                  <div className="flex items-center gap-3 flex-wrap text-xs text-gray-500 dark:text-gray-400 mb-3">
+                    <span><i className="ri-map-pin-line mr-1 text-emerald-500"></i>{job.neighborhood}</span>
+                    <span><i className="ri-file-text-line mr-1 text-emerald-500"></i>{job.contractType}</span>
+                    <span><i className="ri-user-line mr-1 text-emerald-500"></i>{job.candidates} candidatos</span>
+                    {job.salaryRange && <span className="font-medium text-gray-700 dark:text-gray-300">{job.salaryRange}</span>}
+                  </div>
 
-              {selectedJob.status === "pendente" ? (
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setApprovalModal({ job: selectedJob, action: "approve" })}
-                    className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs cursor-pointer transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap"
-                  >
-                    <i className="ri-checkbox-circle-line text-sm"></i>
-                    Aprovar
-                  </button>
-                  <button
-                    onClick={() => setApprovalModal({ job: selectedJob, action: "reject" })}
-                    className="flex-1 border border-red-200 text-red-600 hover:bg-red-50 font-bold py-2.5 rounded-xl text-xs cursor-pointer transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap"
-                  >
-                    <i className="ri-close-circle-line text-sm"></i>
-                    Reprovar
-                  </button>
+                  {/* Pending actions */}
+                  {job.status === "pendente" && (
+                    <div className="flex gap-2 pt-3 border-t border-gray-50 dark:border-gray-800">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setApprovalModal({ job, action: "approve" }); }}
+                        className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 rounded-lg text-xs cursor-pointer transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap"
+                      >
+                        <i className="ri-checkbox-circle-line text-sm"></i>
+                        Aprovar e publicar
+                      </button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setApprovalModal({ job, action: "reject" }); }}
+                        className="flex-1 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950 font-semibold py-2 rounded-lg text-xs cursor-pointer transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap"
+                      >
+                        <i className="ri-close-circle-line text-sm"></i>
+                        Reprovar
+                      </button>
+                    </div>
+                  )}
                 </div>
-              ) : (
-                <div className="flex gap-2">
-                  <button className="flex-1 border border-gray-200 text-gray-600 font-medium py-2 rounded-lg text-xs cursor-pointer hover:bg-gray-50 whitespace-nowrap">
-                    <i className="ri-pause-line mr-1"></i>Pausar
-                  </button>
-                  <button className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 rounded-lg text-xs cursor-pointer whitespace-nowrap">
-                    <i className="ri-eye-line mr-1"></i>Candidatos
-                  </button>
+              </AnimatedSection>
+            ))}
+          </div>
+
+          {/* Detail panel */}
+          <div>
+            {selectedJob ? (
+              <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-5 sticky top-20">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-bold text-gray-900 dark:text-gray-100 text-sm">{selectedJob.title}</h3>
+                  <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${STATUS_CONFIG[selectedJob.status].color}`}>
+                    {STATUS_CONFIG[selectedJob.status].label}
+                  </span>
                 </div>
-              )}
-            </div>
-          ) : (
-            <div className="bg-white rounded-xl border border-gray-100 p-8 text-center sticky top-20">
-              <div className="w-12 h-12 flex items-center justify-center mx-auto mb-3">
-                <i className="ri-briefcase-line text-gray-300 text-3xl"></i>
+
+                <div className="space-y-2.5 mb-4">
+                  {[
+                    { label: "Empresa",     value: selectedJob.company,                              icon: "ri-building-line" },
+                    { label: "Setor",       value: selectedJob.sector,                               icon: "ri-building-2-line" },
+                    { label: "Localização", value: `${selectedJob.neighborhood}, ${selectedJob.city}`,icon: "ri-map-pin-line" },
+                    { label: "Contrato",    value: selectedJob.contractType,                         icon: "ri-file-text-line" },
+                    { label: "Salário",     value: selectedJob.salaryRange || "A combinar",          icon: "ri-money-dollar-circle-line" },
+                    { label: "Publicada em",value: selectedJob.publishedAt,                          icon: "ri-calendar-line" },
+                    { label: "Candidatos",  value: `${selectedJob.candidates} inscritos`,            icon: "ri-user-line" },
+                    { label: "Email empresa",value: selectedJob.companyEmail,                        icon: "ri-mail-line" },
+                  ].map((item) => (
+                    <div key={item.label} className="flex items-start gap-2">
+                      <div className="w-5 h-5 flex items-center justify-center mt-0.5 shrink-0">
+                        <i className={`${item.icon} text-emerald-500 text-xs`}></i>
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs text-gray-400 dark:text-gray-500">{item.label}</p>
+                        <p className="text-sm text-gray-800 dark:text-gray-200 font-medium break-words">{item.value}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {selectedJob.description && (
+                  <div className="mb-4">
+                    <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 mb-1">Descrição</p>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed bg-gray-50 dark:bg-gray-800 rounded-lg p-3">{selectedJob.description}</p>
+                  </div>
+                )}
+
+                {selectedJob.status === "pendente" ? (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setApprovalModal({ job: selectedJob, action: "approve" })}
+                      className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs cursor-pointer transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap"
+                    >
+                      <i className="ri-checkbox-circle-line text-sm"></i>
+                      Aprovar
+                    </button>
+                    <button
+                      onClick={() => setApprovalModal({ job: selectedJob, action: "reject" })}
+                      className="flex-1 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950 font-bold py-2.5 rounded-xl text-xs cursor-pointer transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap"
+                    >
+                      <i className="ri-close-circle-line text-sm"></i>
+                      Reprovar
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleTogglePause(selectedJob)}
+                      className="flex-1 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 font-medium py-2 rounded-lg text-xs cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 whitespace-nowrap"
+                    >
+                      <i className={`${selectedJob.status === "pausada" ? "ri-play-line" : "ri-pause-line"} mr-1`}></i>
+                      {selectedJob.status === "pausada" ? "Reativar" : "Pausar"}
+                    </button>
+                    <button
+                      onClick={() => setApprovalModal({ job: selectedJob, action: "reject" })}
+                      className="flex-1 border border-red-100 dark:border-red-900 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950 font-medium py-2 rounded-lg text-xs cursor-pointer whitespace-nowrap"
+                    >
+                      <i className="ri-close-circle-line mr-1"></i>
+                      Encerrar
+                    </button>
+                  </div>
+                )}
               </div>
-              <p className="text-gray-400 text-sm">Selecione uma vaga para ver os detalhes</p>
-            </div>
-          )}
+            ) : (
+              <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-8 text-center sticky top-20">
+                <div className="w-12 h-12 flex items-center justify-center mx-auto mb-3">
+                  <i className="ri-briefcase-line text-gray-300 dark:text-gray-600 text-3xl"></i>
+                </div>
+                <p className="text-gray-400 dark:text-gray-500 text-sm">Selecione uma vaga para ver os detalhes</p>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Approval Modal */}
       {approvalModal && (

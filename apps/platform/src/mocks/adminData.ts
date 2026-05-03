@@ -16,11 +16,17 @@ export interface AdminCompany {
   pendingJobs: number;
   totalCandidates: number;
   registeredAt: string;
-  status: "ativo" | "inativo" | "pendente" | "rejeitado";
+  status: "ativo" | "inativo" | "excluido" | "pendente" | "rejeitado";
   motivoRejeicao?: string;
   validadoEm?: string;
+  ativadoEm?: string;
+  inativadoEm?: string;
+  inativadoPor?: string;
+  excluidoEm?: string;
+  excluidoPor?: string;
   plano: "basico" | "profissional" | "enterprise";
   senhaProvisoria: boolean;
+  contactPassword?: string;
 }
 
 export interface AdminCandidate {
@@ -63,7 +69,7 @@ export interface AdminJob {
 
 export interface AdminNotification {
   id: string;
-  type: "new_candidate" | "pre_interview" | "contact_request" | "company_approved" | "company_rejected" | "job_approved" | "job_rejected";
+  type: "new_candidate" | "pre_interview" | "contact_request" | "company_approved" | "company_rejected" | "job_approved" | "job_rejected" | "status_update";
   recipientType: "empresa" | "candidato";
   recipientEmail: string;
   recipientWhatsapp?: string;
