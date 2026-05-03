@@ -14,7 +14,7 @@
 | Site Público | `apps/site` | https://santarem.app | Astro SSG/hybrid |
 | Plataforma (candidato/empresa/admin) | `apps/platform` | https://app.santarem.app | React 18 + Vite + TypeScript |
 | API | `services/api` | https://api.santarem.app | Hono + Node 22 + Drizzle |
-| Banco / Auth | — | jfyeheapyimdlickjozw.supabase.co | Supabase Pro |
+| Banco / Auth | — | <PROJECT_REF_PROD>.supabase.co | Supabase Pro |
 
 **Portas em desenvolvimento local:**
 - API: `localhost:3000` (PORT=3000 em services/api/.env)

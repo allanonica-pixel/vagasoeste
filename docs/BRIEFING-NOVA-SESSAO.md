@@ -10,7 +10,7 @@ Você está iniciando uma sessão para o projeto **VagasOeste** em `C:\Users\all
 
 **Stack**: monorepo npm workspaces — `apps/site` (Astro), `apps/platform` (Vite+React), `services/api` (Hono+Drizzle). **Não é Next.js**, ignore qualquer instrução que sugira o contrário.
 
-**Ambiente**: tudo roda em localhost, sem usuários reais. Banco DEV no Supabase Pro `snwqnoljfbppxnofkkyd`. Não existe produção em uso.
+**Ambiente**: tudo roda em localhost, sem usuários reais. Banco DEV no Supabase Pro `<PROJECT_REF_DEV>`. Não existe produção em uso.
 
 **Idioma**: responda sempre em português do Brasil.
 

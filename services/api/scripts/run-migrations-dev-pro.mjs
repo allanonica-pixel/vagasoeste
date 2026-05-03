@@ -1,8 +1,8 @@
 /**
- * Script de migração para o novo projeto DEV Pro (vagasoeste-dev)
- * OnicaSistemasPro | snwqnoljfbppxnofkkyd
+ * Script de migração para o projeto DEV Pro do Supabase.
  *
- * Uso: node run-migrations-dev-pro.mjs
+ * Pré-requisito: services/api/.env definindo DATABASE_URL apontando pro DEV.
+ * Uso: cd services/api && node --env-file=.env scripts/run-migrations-dev-pro.mjs
  */
 
 import postgres from 'postgres';
@@ -12,7 +12,11 @@ import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-const DB_URL = 'postgresql://postgres:d8XDdQ8Nx03Y6Fdz@db.snwqnoljfbppxnofkkyd.supabase.co:5432/postgres';
+const DB_URL = process.env.DATABASE_URL;
+if (!DB_URL) {
+  console.error('❌ DATABASE_URL ausente. Rode com: node --env-file=.env scripts/run-migrations-dev-pro.mjs');
+  process.exit(1);
+}
 
 const sql = postgres(DB_URL, {
   ssl: 'require',
@@ -54,8 +58,7 @@ async function runBlock(label, query) {
 async function main() {
   console.log('═══════════════════════════════════════════════════════════');
   console.log('  VagasOeste — Migration DEV Pro');
-  console.log('  Projeto: vagasoeste-dev (OnicaSistemasPro)');
-  console.log('  Ref: snwqnoljfbppxnofkkyd');
+  console.log('  Projeto: definido por DATABASE_URL no .env');
   console.log('═══════════════════════════════════════════════════════════');
 
   // ── Teste de conexão ─────────────────────────────────────────────

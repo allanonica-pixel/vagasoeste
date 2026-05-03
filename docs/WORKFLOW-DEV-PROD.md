@@ -8,7 +8,7 @@
 
 | | DEV / Teste | PRODUÇÃO |
 |---|---|---|
-| **Supabase** | `nlqdjoxawzoegfxihief.supabase.co` | `jfyeheapyimdlickjozw.supabase.co` |
+| **Supabase** | `<PROJECT_REF_DEV_OLD>.supabase.co` | `<PROJECT_REF_PROD>.supabase.co` |
 | **API** | `vagasoeste-api-staging.fly.dev` | `api.santarem.app` |
 | **Platform** | `localhost:3001` ou Preview Vercel | `app.santarem.app` |
 | **Site** | `localhost:4321` ou Preview Vercel | `santarem.app` |
@@ -27,7 +27,7 @@ Verifique que os `.env` locais apontam para DEV:
 NODE_ENV=development
 PORT=3000
 LOG_LABEL=api-dev
-SUPABASE_URL=https://nlqdjoxawzoegfxihief.supabase.co
+SUPABASE_URL=https://<PROJECT_REF_DEV_OLD>.supabase.co
 APP_URL=http://localhost:5173
 ALLOWED_ORIGINS=http://localhost:4321,http://localhost:5173
 API_SECRET=dev-secret-local-nao-usar-em-prod
@@ -35,7 +35,7 @@ API_SECRET=dev-secret-local-nao-usar-em-prod
 
 **`apps/platform/.env`**
 ```
-VITE_SUPABASE_URL=https://nlqdjoxawzoegfxihief.supabase.co
+VITE_SUPABASE_URL=https://<PROJECT_REF_DEV_OLD>.supabase.co
 VITE_API_URL=http://localhost:3000
 VITE_PUBLIC_SITE_URL=http://localhost:4321
 VITE_PUBLIC_APP_URL=http://localhost:5173
@@ -43,7 +43,7 @@ VITE_PUBLIC_APP_URL=http://localhost:5173
 
 **`apps/site/.env`**
 ```
-PUBLIC_SUPABASE_URL=https://nlqdjoxawzoegfxihief.supabase.co
+PUBLIC_SUPABASE_URL=https://<PROJECT_REF_DEV_OLD>.supabase.co
 PUBLIC_SITE_URL=http://localhost:4321
 PUBLIC_APP_URL=http://localhost:5173
 PUBLIC_API_URL=http://localhost:3000
@@ -86,10 +86,10 @@ Acesso: http://localhost:4321
 | Site público local | http://localhost:4321 |
 | API local | http://localhost:3000 |
 | Health da API local | http://localhost:3000/health |
-| Supabase DEV — Dashboard | https://supabase.com/dashboard/project/nlqdjoxawzoegfxihief |
-| Supabase DEV — SQL Editor | https://supabase.com/dashboard/project/nlqdjoxawzoegfxihief/sql/new |
-| Supabase DEV — Auth Users | https://supabase.com/dashboard/project/nlqdjoxawzoegfxihief/auth/users |
-| Supabase DEV — Tabelas | https://supabase.com/dashboard/project/nlqdjoxawzoegfxihief/editor |
+| Supabase DEV — Dashboard | https://supabase.com/dashboard/project/<PROJECT_REF_DEV_OLD> |
+| Supabase DEV — SQL Editor | https://supabase.com/dashboard/project/<PROJECT_REF_DEV_OLD>/sql/new |
+| Supabase DEV — Auth Users | https://supabase.com/dashboard/project/<PROJECT_REF_DEV_OLD>/auth/users |
+| Supabase DEV — Tabelas | https://supabase.com/dashboard/project/<PROJECT_REF_DEV_OLD>/editor |
 | API Staging (Fly.io) | https://vagasoeste-api-staging.fly.dev |
 | Health da API Staging | https://vagasoeste-api-staging.fly.dev/health |
 | Fly.io Dashboard Staging | https://fly.io/apps/vagasoeste-api-staging |
@@ -137,7 +137,7 @@ curl https://vagasoeste-api-staging.fly.dev/health
 # services/api/migrations/0007_nome_da_migration.sql
 
 # 2. Execute no Supabase DEV (SQL Editor):
-# https://supabase.com/dashboard/project/nlqdjoxawzoegfxihief/sql/new
+# https://supabase.com/dashboard/project/<PROJECT_REF_DEV_OLD>/sql/new
 
 # 3. Teste tudo localmente
 
@@ -179,7 +179,7 @@ git commit -m "migration: descrição"
 Acesse o SQL Editor do Supabase PROD e execute as mesmas migrations que rodou no DEV:
 
 **Supabase PROD — SQL Editor:**
-https://supabase.com/dashboard/project/jfyeheapyimdlickjozw/sql/new
+https://supabase.com/dashboard/project/<PROJECT_REF_PROD>/sql/new
 
 ```
 Execute na ordem:
@@ -259,8 +259,8 @@ curl https://api.santarem.app/health
 | Site público | https://santarem.app |
 | Painel (login empresa) | https://app.santarem.app |
 | Health da API | https://api.santarem.app/health |
-| Supabase PROD — Auth Users | https://supabase.com/dashboard/project/jfyeheapyimdlickjozw/auth/users |
-| Supabase PROD — Tabelas | https://supabase.com/dashboard/project/jfyeheapyimdlickjozw/editor |
+| Supabase PROD — Auth Users | https://supabase.com/dashboard/project/<PROJECT_REF_PROD>/auth/users |
+| Supabase PROD — Tabelas | https://supabase.com/dashboard/project/<PROJECT_REF_PROD>/editor |
 | Fly.io — API PROD | https://fly.io/apps/vagasoeste-api |
 
 ---
@@ -304,7 +304,7 @@ santarem.app
 
 | | DEV | PROD |
 |---|---|---|
-| Supabase Project ID | `nlqdjoxawzoegfxihief` | `jfyeheapyimdlickjozw` |
+| Supabase Project ID | `<PROJECT_REF_DEV_OLD>` | `<PROJECT_REF_PROD>` |
 | Fly.io app | `vagasoeste-api-staging` | `vagasoeste-api` |
 | Vercel platform | Preview automático | `app.santarem.app` |
 | Vercel site | Preview automático | `santarem.app` |

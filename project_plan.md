@@ -13,7 +13,7 @@
 | Site público | Astro SSG/hybrid | https://santarem.app |
 | Plataforma | React 18 + Vite + TypeScript | https://app.santarem.app |
 | API | Hono + Node 22 + Drizzle | https://api.santarem.app |
-| Banco | Supabase Pro (Postgres) | jfyeheapyimdlickjozw.supabase.co |
+| Banco | Supabase Pro (Postgres) | <PROJECT_REF_PROD>.supabase.co |
 | Auth + MFA | Supabase Auth (TOTP nativo) | — |
 | Deploy | Vercel (site + platform) + Fly.io GRU (api) | — |
 | DNS/CDN | Cloudflare Free | santarem.app |

@@ -29,16 +29,16 @@
 |---|---|---|
 | **Projeto** | `vagasoeste-dev` | `vagasoeste` |
 | **Organização** | `OnicaSistemasPro` (Pro) | `OnicaSistemasPro` (Pro) |
-| **Project ID** | `snwqnoljfbppxnofkkyd` | `jfyeheapyimdlickjozw` |
-| **URL** | `https://snwqnoljfbppxnofkkyd.supabase.co` | `https://jfyeheapyimdlickjozw.supabase.co` |
-| **Dashboard** | https://supabase.com/dashboard/project/snwqnoljfbppxnofkkyd | https://supabase.com/dashboard/project/jfyeheapyimdlickjozw |
-| **SQL Editor** | https://supabase.com/dashboard/project/snwqnoljfbppxnofkkyd/sql/new | https://supabase.com/dashboard/project/jfyeheapyimdlickjozw/sql/new |
-| **Auth Users** | https://supabase.com/dashboard/project/snwqnoljfbppxnofkkyd/auth/users | https://supabase.com/dashboard/project/jfyeheapyimdlickjozw/auth/users |
-| **Tabelas** | https://supabase.com/dashboard/project/snwqnoljfbppxnofkkyd/editor | https://supabase.com/dashboard/project/jfyeheapyimdlickjozw/editor |
-| **Extensions** | https://supabase.com/dashboard/project/snwqnoljfbppxnofkkyd/database/extensions | https://supabase.com/dashboard/project/jfyeheapyimdlickjozw/database/extensions |
-| **SMTP Settings** | https://supabase.com/dashboard/project/snwqnoljfbppxnofkkyd/settings/auth | https://supabase.com/dashboard/project/jfyeheapyimdlickjozw/settings/auth |
+| **Project ID** | `<PROJECT_REF_DEV>` | `<PROJECT_REF_PROD>` |
+| **URL** | `https://<PROJECT_REF_DEV>.supabase.co` | `https://<PROJECT_REF_PROD>.supabase.co` |
+| **Dashboard** | https://supabase.com/dashboard/project/<PROJECT_REF_DEV> | https://supabase.com/dashboard/project/<PROJECT_REF_PROD> |
+| **SQL Editor** | https://supabase.com/dashboard/project/<PROJECT_REF_DEV>/sql/new | https://supabase.com/dashboard/project/<PROJECT_REF_PROD>/sql/new |
+| **Auth Users** | https://supabase.com/dashboard/project/<PROJECT_REF_DEV>/auth/users | https://supabase.com/dashboard/project/<PROJECT_REF_PROD>/auth/users |
+| **Tabelas** | https://supabase.com/dashboard/project/<PROJECT_REF_DEV>/editor | https://supabase.com/dashboard/project/<PROJECT_REF_PROD>/editor |
+| **Extensions** | https://supabase.com/dashboard/project/<PROJECT_REF_DEV>/database/extensions | https://supabase.com/dashboard/project/<PROJECT_REF_PROD>/database/extensions |
+| **SMTP Settings** | https://supabase.com/dashboard/project/<PROJECT_REF_DEV>/settings/auth | https://supabase.com/dashboard/project/<PROJECT_REF_PROD>/settings/auth |
 
-> ⚠️ **PROJETO DEV ANTERIOR DESATIVADO:** O projeto `nlqdjoxawzoegfxihief` (Free tier, conta pessoal) foi **substituído** pelo `snwqnoljfbppxnofkkyd` (Pro, OnicaSistemasPro). Todas as variáveis de ambiente locais já foram atualizadas. Não usar mais o projeto antigo para DEV.
+> ⚠️ **PROJETO DEV ANTERIOR DESATIVADO:** O projeto `<PROJECT_REF_DEV_OLD>` (Free tier, conta pessoal) foi **substituído** pelo `<PROJECT_REF_DEV>` (Pro, OnicaSistemasPro). Todas as variáveis de ambiente locais já foram atualizadas. Não usar mais o projeto antigo para DEV.
 
 ### Vercel
 
@@ -231,7 +231,7 @@ curl https://vagasoeste-api-staging.fly.dev/health
 # services/api/migrations/000X_descricao.sql
 
 # 2. Executar no Supabase DEV:
-# https://supabase.com/dashboard/project/nlqdjoxawzoegfxihief/sql/new
+# https://supabase.com/dashboard/project/<PROJECT_REF_DEV_OLD>/sql/new
 # Cole o conteúdo do .sql e execute
 
 # 3. Testar localmente
@@ -267,7 +267,7 @@ git commit -m "migration: descrição"
 
 Acesse o SQL Editor do Supabase PROD e execute o conteúdo do arquivo SQL novo:
 
-**URL:** https://supabase.com/dashboard/project/jfyeheapyimdlickjozw/sql/new
+**URL:** https://supabase.com/dashboard/project/<PROJECT_REF_PROD>/sql/new
 
 Execute as migrations na ordem sequencial. Verificar se a execução foi bem-sucedida antes de continuar.
 
@@ -415,8 +415,8 @@ curl https://api.santarem.app/health
 
 ### Supabase PROD
 
-- Verificar tabelas: https://supabase.com/dashboard/project/jfyeheapyimdlickjozw/editor
-- Verificar logs de Auth: https://supabase.com/dashboard/project/jfyeheapyimdlickjozw/auth/users
+- Verificar tabelas: https://supabase.com/dashboard/project/<PROJECT_REF_PROD>/editor
+- Verificar logs de Auth: https://supabase.com/dashboard/project/<PROJECT_REF_PROD>/auth/users
 
 ---
 
@@ -529,21 +529,25 @@ vercel --prod --yes
 
 ## Variáveis de ambiente por app
 
+> ⚠️ **Os exemplos abaixo usam placeholders.** Os valores reais estão **somente** nos `.env` locais (gitignored) e nos Dashboards (Supabase / Vercel / Fly.io). Nunca commitar valores reais. Pegue cada chave em:
+> - `https://supabase.com/dashboard/project/<PROJECT_REF_DEV>/settings/api-keys` → aba "Publishable and secret API keys"
+> - `https://supabase.com/dashboard/project/<PROJECT_REF_DEV>/settings/database` → "Connection string"
+
 ### apps/platform — DEV local (`.env`)
 
 ```env
-VITE_SUPABASE_URL=https://snwqnoljfbppxnofkkyd.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNud3Fub2xqZmJwcHhub2Zra3lkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyNTQ3MDksImV4cCI6MjA5MjgzMDcwOX0.6QEqenRIB3l8wRC7XxEUnRX_Ljf9jMT1XfjFPYVqiXw
+VITE_SUPABASE_URL=https://<PROJECT_REF_DEV>.supabase.co
+VITE_SUPABASE_ANON_KEY=<sb_publishable_key>
 VITE_API_URL=http://localhost:3000
 VITE_PUBLIC_SITE_URL=http://localhost:4321
-VITE_PUBLIC_APP_URL=http://localhost:5173
+VITE_PUBLIC_APP_URL=http://localhost:3001
 ```
 
 ### apps/site — DEV local (`.env`)
 
 ```env
-PUBLIC_SUPABASE_URL=https://snwqnoljfbppxnofkkyd.supabase.co
-PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNud3Fub2xqZmJwcHhub2Zra3lkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyNTQ3MDksImV4cCI6MjA5MjgzMDcwOX0.6QEqenRIB3l8wRC7XxEUnRX_Ljf9jMT1XfjFPYVqiXw
+PUBLIC_SUPABASE_URL=https://<PROJECT_REF_DEV>.supabase.co
+PUBLIC_SUPABASE_ANON_KEY=<sb_publishable_key>
 PUBLIC_SITE_URL=http://localhost:4321
 PUBLIC_APP_URL=http://localhost:3001
 PUBLIC_API_URL=http://localhost:3000
@@ -554,13 +558,13 @@ PUBLIC_API_URL=http://localhost:3000
 ```env
 NODE_ENV=development
 PORT=3000
-SUPABASE_URL=https://snwqnoljfbppxnofkkyd.supabase.co
-SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNud3Fub2xqZmJwcHhub2Zra3lkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyNTQ3MDksImV4cCI6MjA5MjgzMDcwOX0.6QEqenRIB3l8wRC7XxEUnRX_Ljf9jMT1XfjFPYVqiXw
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNud3Fub2xqZmJwcHhub2Zra3lkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NzI1NDcwOSwiZXhwIjoyMDkyODMwNzA5fQ._MCdKNGlTBo-ov92It9uEB-Bk4cEv5d9_95-tcfBYT4
-DATABASE_URL=postgresql://postgres.snwqnoljfbppxnofkkyd:d8XDdQ8Nx03Y6Fdz@aws-0-sa-east-1.pooler.supabase.com:6543/postgres
+SUPABASE_URL=https://<PROJECT_REF_DEV>.supabase.co
+SUPABASE_ANON_KEY=<sb_publishable_key>
+SUPABASE_SERVICE_ROLE_KEY=<sb_secret_key>
+DATABASE_URL=postgresql://postgres:<DB_PASSWORD>@db.<PROJECT_REF_DEV>.supabase.co:5432/postgres
 ALLOWED_ORIGINS=http://localhost:4321,http://localhost:5173,http://localhost:3001
 APP_URL=http://localhost:3001
-API_SECRET=dev-secret-local-nao-usar-em-prod
+API_SECRET=<api_secret_min_32_chars>
 LOG_LABEL=api-dev
 ```
 
@@ -601,7 +605,7 @@ LOG_LABEL=api-dev
   Terminal 2: cd apps/platform && npm run dev      → :3001
   Terminal 3: cd apps/site && npm run dev --host   → :4321
          │
-         │  Supabase DEV: nlqdjoxawzoegfxihief
+         │  Supabase DEV: <PROJECT_REF_DEV_OLD>
          │
          ▼
   COMMIT + PUSH

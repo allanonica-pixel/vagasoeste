@@ -952,7 +952,7 @@ Sitemap: https://vagasoeste.com.br/sitemap-index.xml
 
 ```env
 PUBLIC_SUPABASE_URL=https://xxxx.supabase.co
-PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+PUBLIC_SUPABASE_ANON_KEY=<sb_publishable_key>
 PUBLIC_APP_URL=https://app.vagasoeste.com.br
 PUBLIC_SITE_URL=https://vagasoeste.com.br
 ```
@@ -961,7 +961,7 @@ PUBLIC_SITE_URL=https://vagasoeste.com.br
 
 ```env
 VITE_SUPABASE_URL=https://xxxx.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+VITE_SUPABASE_ANON_KEY=<sb_publishable_key>
 VITE_PUBLIC_SITE_URL=https://vagasoeste.com.br
 ```
 

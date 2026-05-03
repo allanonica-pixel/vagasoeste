@@ -32,9 +32,9 @@ npm run dev
 ### Links do ambiente DEV online
 | O que | URL |
 |---|---|
-| Supabase DEV — Dashboard | https://supabase.com/dashboard/project/nlqdjoxawzoegfxihief |
-| Supabase DEV — SQL Editor | https://supabase.com/dashboard/project/nlqdjoxawzoegfxihief/sql/new |
-| Supabase DEV — Usuários | https://supabase.com/dashboard/project/nlqdjoxawzoegfxihief/auth/users |
+| Supabase DEV — Dashboard | https://supabase.com/dashboard/project/<PROJECT_REF_DEV_OLD> |
+| Supabase DEV — SQL Editor | https://supabase.com/dashboard/project/<PROJECT_REF_DEV_OLD>/sql/new |
+| Supabase DEV — Usuários | https://supabase.com/dashboard/project/<PROJECT_REF_DEV_OLD>/auth/users |
 | API Staging | https://vagasoeste-api-staging.fly.dev/health |
 | Fly.io Staging | https://fly.io/apps/vagasoeste-api-staging |
 | Vercel (deploys/previews) | https://vercel.com/dashboard |
@@ -66,7 +66,7 @@ curl https://vagasoeste-api-staging.fly.dev/health
 
 ### Passo 1 — Migration (só se tiver arquivo novo)
 Acesse e execute no SQL Editor do **Supabase PROD**:
-👉 https://supabase.com/dashboard/project/jfyeheapyimdlickjozw/sql/new
+👉 https://supabase.com/dashboard/project/<PROJECT_REF_PROD>/sql/new
 
 ### Passo 2 — Push para master (dispara Vercel PROD automaticamente)
 ```bash
@@ -89,5 +89,5 @@ curl https://api.santarem.app/health
 | Site | https://santarem.app |
 | Painel | https://app.santarem.app |
 | API health | https://api.santarem.app/health |
-| Supabase PROD — Usuários | https://supabase.com/dashboard/project/jfyeheapyimdlickjozw/auth/users |
+| Supabase PROD — Usuários | https://supabase.com/dashboard/project/<PROJECT_REF_PROD>/auth/users |
 | Fly.io PROD | https://fly.io/apps/vagasoeste-api |
