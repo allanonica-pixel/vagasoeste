@@ -24,63 +24,9 @@ const TYPE_CONFIG: Record<string, { icon: string; color: string; bg: string; lab
   hired: { icon: "ri-trophy-line", color: "text-teal-600", bg: "bg-teal-50", label: "Contratado" },
 };
 
-const mockNotifications: Notification[] = [
-  {
-    id: "n1",
-    type: "pre_interview",
-    title: "Pré-entrevista agendada!",
-    message: "Parabéns! Você foi selecionado para uma pré-entrevista para a vaga de Auxiliar Administrativo. Nossa equipe entrará em contato pelo WhatsApp para agendar o melhor horário.",
-    jobTitle: "Auxiliar Administrativo",
-    date: "2026-04-16",
-    time: "14:30",
-    channel: "both",
-    status: "unread",
-  },
-  {
-    id: "n2",
-    type: "status_change",
-    title: "Status atualizado: Em Análise",
-    message: "Sua candidatura para a vaga de Auxiliar Administrativo foi recebida e está sendo analisada pela nossa equipe. Fique atento às próximas atualizações!",
-    jobTitle: "Auxiliar Administrativo",
-    date: "2026-04-15",
-    time: "09:15",
-    channel: "email",
-    status: "read",
-  },
-  {
-    id: "n3",
-    type: "contact",
-    title: "Uma empresa quer falar com você!",
-    message: "Uma empresa parceira demonstrou interesse no seu perfil para a vaga de Vendedor Externo. Nossa equipe intermediará o contato e entrará em contato em breve.",
-    jobTitle: "Vendedor Externo",
-    date: "2026-04-14",
-    time: "16:45",
-    channel: "both",
-    status: "read",
-  },
-  {
-    id: "n4",
-    type: "approved",
-    title: "Você foi aprovado!",
-    message: "Excelente notícia! Você foi aprovado para a próxima etapa do processo seletivo para a vaga de Técnico de Informática. Nossa equipe entrará em contato para os próximos passos.",
-    jobTitle: "Técnico de Informática",
-    date: "2026-04-13",
-    time: "11:00",
-    channel: "both",
-    status: "read",
-  },
-  {
-    id: "n5",
-    type: "status_change",
-    title: "Candidatura recebida",
-    message: "Sua candidatura para a vaga de Recepcionista foi registrada com sucesso. Nossa equipe já foi notificada e iniciará a análise do seu perfil em breve.",
-    jobTitle: "Recepcionista",
-    date: "2026-04-12",
-    time: "08:30",
-    channel: "email",
-    status: "read",
-  },
-];
+// Notificações serão carregadas de admin_notifications no futuro.
+// Por enquanto, o sistema começa com lista vazia — notificações reais chegam
+// via WhatsApp e email quando o status da candidatura muda.
 
 const CHANNEL_LABELS: Record<NotifChannel, { icon: string; label: string }> = {
   whatsapp: { icon: "ri-whatsapp-line", label: "WhatsApp" },
@@ -89,7 +35,7 @@ const CHANNEL_LABELS: Record<NotifChannel, { icon: string; label: string }> = {
 };
 
 export default function NotificacoesPage() {
-  const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [filterType, setFilterType] = useState("all");
   const [showSettings, setShowSettings] = useState(false);
 

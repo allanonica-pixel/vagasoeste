@@ -1,11 +1,29 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { mockJobs } from "@/mocks/jobs";
+import { supabase } from "@/lib/supabase";
 import CandidaturasPage from "./components/CandidaturasPage";
 import CurriculoBuilder from "./components/CurriculoBuilder";
 import NotificacoesPage from "./components/NotificacoesPage";
 import VagaDetalheModal from "./components/VagaDetalheModal";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface Job {
+  id: string;
+  title: string;
+  sector: string;
+  area: string;
+  contractType: string;
+  neighborhood: string;
+  city: string;
+  state: string;
+  salaryRange?: string;
+  description: string;
+  requirements: string;
+  tags: string[];
+  createdAt: string;
+}
 
 const CONTRACT_COLORS: Record<string, string> = {
   CLT: "bg-emerald-100 text-emerald-700",
@@ -38,18 +56,52 @@ export default function PlataformaPage() {
   const [appliedJobs, setAppliedJobs] = useState<string[]>([]);
   const navigate = useNavigate();
 
-  // Vagas filters
+  // ── Vagas reais do Supabase ────────────────────────────────────────
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [loadingJobs, setLoadingJobs] = useState(true);
+
+  useEffect(() => {
+    supabase
+      .from("jobs")
+      .select("id, title, sector, area, contract_type, neighborhood, city, state, salary_range, description, requirements, tags, created_at")
+      .eq("status", "ativo")
+      .order("created_at", { ascending: false })
+      .then(({ data, error }) => {
+        if (!error && data) {
+          setJobs(
+            data.map((j) => ({
+              id:           j.id,
+              title:        j.title,
+              sector:       j.sector ?? "",
+              area:         j.area ?? "",
+              contractType: j.contract_type,
+              neighborhood: j.neighborhood ?? "",
+              city:         j.city ?? "Santarém",
+              state:        j.state ?? "PA",
+              salaryRange:  j.salary_range ?? undefined,
+              description:  j.description,
+              requirements: j.requirements ?? "",
+              tags:         j.tags ?? [],
+              createdAt:    j.created_at,
+            }))
+          );
+        }
+        setLoadingJobs(false);
+      });
+  }, []);
+
+  // ── Filtros ────────────────────────────────────────────────────────
   const [searchVaga, setSearchVaga] = useState("");
   const [filterSector, setFilterSector] = useState("Todos");
   const [filterContract, setFilterContract] = useState("Todos");
   const [filterNeighborhood, setFilterNeighborhood] = useState("Todos");
   const [showFilters, setShowFilters] = useState(false);
 
-  const sectors = ["Todos", ...Array.from(new Set(mockJobs.map((j) => j.sector).filter(Boolean)))];
-  const contracts = ["Todos", ...Array.from(new Set(mockJobs.map((j) => j.contractType)))];
-  const neighborhoods = ["Todos", ...Array.from(new Set(mockJobs.map((j) => j.neighborhood)))];
+  const sectors = ["Todos", ...Array.from(new Set(jobs.map((j) => j.sector).filter(Boolean)))];
+  const contracts = ["Todos", ...Array.from(new Set(jobs.map((j) => j.contractType)))];
+  const neighborhoods = ["Todos", ...Array.from(new Set(jobs.map((j) => j.neighborhood).filter(Boolean)))];
 
-  const filteredJobs = mockJobs.filter((job) => {
+  const filteredJobs = jobs.filter((job) => {
     const matchSearch = !searchVaga || job.title.toLowerCase().includes(searchVaga.toLowerCase()) || job.area.toLowerCase().includes(searchVaga.toLowerCase());
     const matchSector = filterSector === "Todos" || job.sector === filterSector;
     const matchContract = filterContract === "Todos" || job.contractType === filterContract;
@@ -74,8 +126,8 @@ export default function PlataformaPage() {
     setAppliedJobs((prev) => [...prev, jobId]);
   };
 
-  // Unread notifications count (mock)
-  const unreadNotifCount = 1;
+  // Notificações não lidas (sem dados reais por enquanto)
+  const unreadNotifCount = 0;
 
   const tabs: { id: Tab; label: string; icon: string; badge?: number }[] = [
     { id: "vagas", label: "Vagas Disponíveis", icon: "ri-briefcase-line" },
@@ -221,9 +273,29 @@ export default function PlataformaPage() {
               )}
             </div>
 
+            {/* Loading skeleton */}
+            {loadingJobs && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="bg-white rounded-xl border border-gray-100 p-5 animate-pulse">
+                    <div className="flex gap-2 mb-3">
+                      <div className="h-6 w-16 bg-gray-100 rounded-full"></div>
+                      <div className="h-6 w-20 bg-gray-100 rounded-full"></div>
+                    </div>
+                    <div className="h-5 bg-gray-100 rounded mb-2 w-3/4"></div>
+                    <div className="h-4 bg-gray-100 rounded mb-3 w-1/2"></div>
+                    <div className="h-4 bg-gray-100 rounded mb-1 w-full"></div>
+                    <div className="h-4 bg-gray-100 rounded w-2/3"></div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {!loadingJobs && (
             <p className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-3">
               {filteredJobs.length} vaga{filteredJobs.length !== 1 ? "s" : ""} encontrada{filteredJobs.length !== 1 ? "s" : ""}
             </p>
+            )}
 
             {selected.length > 0 && (
               <div className="bg-emerald-600 text-white rounded-xl px-5 py-4 mb-6 flex items-center justify-between">
@@ -383,7 +455,7 @@ export default function PlataformaPage() {
 
       {/* Vaga Detalhe Modal */}
       {vagaDetalheId && (() => {
-        const job = mockJobs.find((j) => j.id === vagaDetalheId);
+        const job = jobs.find((j) => j.id === vagaDetalheId);
         if (!job) return null;
         return (
           <VagaDetalheModal
