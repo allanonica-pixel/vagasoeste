@@ -331,12 +331,14 @@ adminRouter.post('/companies/:id/reenviar-ativacao', async (c) => {
   const newToken  = crypto.randomUUID();
   const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
 
-  // 3. Dispara e-mail via Supabase generateLink
+  // 3. Dispara e-mail via SMTP transacional próprio
   const { supabaseUserId } = await gerarEEnviarLinkAtivacao(
-    String(preCad.contact_email  ?? ''),
+    String(preCad.contact_email   ?? ''),
     String(preCad.contact_password ?? ''),
-    String(preCad.company_name   ?? ''),
+    String(preCad.company_name    ?? ''),
     newToken,
+    String(preCad.contact_name    ?? 'responsável'),
+    String(preCad.cnpj            ?? ''),
   );
 
   // 4. Persiste novo token (e, se obtivemos um user id novo, também o armazena)

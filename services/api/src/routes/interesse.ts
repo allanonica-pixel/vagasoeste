@@ -18,6 +18,8 @@ import { logger } from '../lib/logger.js';
 import { db } from '../lib/db.js';
 import { companies } from '../schema/index.js';
 import { eq } from 'drizzle-orm';
+import { sendTransactional } from '../lib/email.js';
+import { buildCompanyActivationEmail } from '../templates/company-emails.js';
 
 export const interesseRouter = new Hono();
 
@@ -49,82 +51,93 @@ async function enviarWhatsApp(phone: string, codigo: string): Promise<void> {
 }
 
 /**
- * Envia e-mail de ativação do pré-cadastro via SMTP do Supabase.
+ * Cria/recupera o usuário no auth.users e envia e-mail de ativação do pré-cadastro
+ * usando SMTP transacional próprio (template HTML em pt-BR, paleta VagasOeste).
  *
- * IMPORTANTE: `generateLink` do Admin SDK apenas GERA o link — nunca envia e-mail.
- * O único método admin que realmente dispara o SMTP é `inviteUserByEmail`.
+ * Substitui o fluxo anterior que dependia do template "Invite user" default
+ * do Supabase Auth (em inglês). Agora o e-mail é totalmente sob nosso controle.
  *
  * Estratégia:
- *  1. `inviteUserByEmail`  — cria usuário (se não existir) + envia e-mail real
- *     → Após sucesso, define a senha via `updateUserById` (invite não aceita senha)
- *  2. `generateLink magiclink` — fallback para usuário já confirmado
- *     → NÃO envia e-mail; apenas registra o action_link nos logs para uso manual
+ *  1. `createUser` (admin) — cria usuário com senha + e-mail confirmado=false.
+ *     Se já existir, busca pelo e-mail e atualiza a senha (`updateUserById`).
+ *  2. Monta link de ativação interno (`/ativar-empresa?token=...`) — não usa
+ *     magiclink do Supabase; nosso backend valida o token de 48h em
+ *     `empresa_pre_cadastros.activation_token`.
+ *  3. Envia e-mail via `sendTransactional` com template `buildCompanyActivationEmail`.
  *
  * Retorna o supabase_auth_user_id criado/encontrado (null em caso de falha total).
+ *
+ * @param contactName Nome do contato responsável (para personalizar o e-mail)
+ * @param cnpj        CNPJ formatado da empresa (para o e-mail)
  */
 export async function gerarEEnviarLinkAtivacao(
   email:       string,
   senha:       string,
   companyName: string,
   token:       string,
+  contactName = 'responsável',
+  cnpj        = '',
 ): Promise<{ supabaseUserId: string | null }> {
-  const siteUrl    = process.env.SITE_URL ?? 'http://localhost:4321';
-  const redirectTo = `${siteUrl}/ativar-empresa?token=${token}`;
+  const siteUrl       = process.env.SITE_URL ?? 'http://localhost:4321';
+  const activationUrl = `${siteUrl}/ativar-empresa?token=${token}`;
 
-  // ── Tentativa 1: inviteUserByEmail ─────────────────────────────────────────
-  // Único método admin que usa o SMTP configurado no Supabase e envia o e-mail.
-  // Cria o usuário se não existir; reusa se já existir (não confirmado).
-  const { data: inviteData, error: inviteErr } = await supabaseAdmin.auth.admin
-    .inviteUserByEmail(email, {
-      redirectTo,
-      data: { role: 'empresa', company_name: companyName },
-    });
+  let userId: string | null = null;
 
-  if (!inviteErr && inviteData?.user?.id) {
-    const userId = inviteData.user.id;
-
-    // inviteUserByEmail cria o usuário SEM senha — define agora para que o login
-    // com e-mail+senha funcione após o usuário confirmar o e-mail.
-    if (senha) {
-      const { error: pwErr } = await supabaseAdmin.auth.admin
-        .updateUserById(userId, { password: senha });
-      if (pwErr) {
-        logger.warn({ pwErr, userId }, '[gerarLink] Falha ao definir senha pós-invite');
-      }
-    }
-
-    logger.info(
-      { email, companyName, userId },
-      '📧 [Supabase inviteUserByEmail] E-mail de ativação enviado com sucesso',
-    );
-    return { supabaseUserId: userId };
-  }
-
-  // ── Tentativa 2: usuário já confirmado → generateLink (sem envio automático) ─
-  // generateLink não envia e-mail. O action_link fica nos logs para uso manual.
-  logger.warn({ inviteErr, email }, '[gerarLink] inviteUserByEmail falhou → tentando generateLink');
-
-  const { data: linkData, error: linkErr } = await supabaseAdmin.auth.admin.generateLink({
-    type:    'magiclink',
+  // ── 1. Cria o usuário em auth.users (ou recupera existente) ────────────────
+  const { data: createData, error: createErr } = await supabaseAdmin.auth.admin.createUser({
     email,
-    options: { redirectTo },
+    password:      senha,
+    email_confirm: false, // confirmação ocorre quando empresa clica no link
+    user_metadata: { role: 'empresa', company_name: companyName },
   });
 
-  if (!linkErr && linkData?.properties?.action_link) {
-    logger.info(
-      { email, companyName, action_link: linkData.properties.action_link },
-      '🔗 [generateLink] Link gerado — usuário já confirmado; envio de e-mail manual necessário',
-    );
-    return { supabaseUserId: linkData.user?.id ?? null };
+  if (!createErr && createData?.user?.id) {
+    userId = createData.user.id;
+  } else {
+    // Usuário já existe — busca e atualiza senha
+    const { data: usersPage } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 5000 });
+    const existing = usersPage?.users?.find((u) => u.email?.toLowerCase() === email.toLowerCase());
+    if (existing) {
+      userId = existing.id;
+      if (senha) {
+        const { error: pwErr } = await supabaseAdmin.auth.admin
+          .updateUserById(userId, { password: senha });
+        if (pwErr) logger.warn({ pwErr, userId }, '[gerarLink] Falha ao atualizar senha em user existente');
+      }
+    } else {
+      logger.error({ createErr, email }, '[gerarLink] Falha ao criar/localizar usuário');
+      return { supabaseUserId: null };
+    }
   }
 
-  // ── Fallback final ─────────────────────────────────────────────────────────
-  logger.warn({ linkErr, email, redirectTo }, '[gerarLink] Todos os métodos falharam');
-  logger.info(
-    { email, companyName, redirectTo },
-    '📧 [STUB] Link de ativação (acesso manual)',
-  );
-  return { supabaseUserId: null };
+  // ── 2. Envia e-mail via SMTP transacional próprio ──────────────────────────
+  const emailContent = buildCompanyActivationEmail({
+    contactName,
+    companyName,
+    cnpj,
+    activationUrl,
+    validityHours: 48,
+  });
+
+  const sendResult = await sendTransactional({
+    to:      email,
+    subject: emailContent.subject,
+    html:    emailContent.html,
+  });
+
+  if (!sendResult.sent) {
+    logger.error(
+      { email, reason: sendResult.reason, error: sendResult.error },
+      '[gerarLink] Falha ao enviar e-mail transacional de ativação',
+    );
+  } else {
+    logger.info(
+      { email, companyName, userId, messageId: sendResult.messageId },
+      '✉️ [gerarLink] E-mail de ativação enviado via SMTP transacional',
+    );
+  }
+
+  return { supabaseUserId: userId };
 }
 
 // ── Middleware: valida Content-Type ───────────────────────────────────────────
@@ -300,6 +313,8 @@ interesseRouter.post('/submit', async (c) => {
     senha,
     body.company_name,
     activationToken,
+    body.contact_name ?? 'responsável',
+    body.cnpj         ?? '',
   );
 
   // Salva pré-cadastro
