@@ -581,6 +581,44 @@ function RegioesList({
   const estadoAberto = cidadeAberta ? estados.find((e) => e.id === cidadeAberta.estadoId) ?? null : null;
   const bairrosAbertos = cidadeAberta ? bairros.filter((b) => b.cidadeId === cidadeAberta.id) : [];
 
+  // Edição inline de bairro
+  const [editBairroId, setEditBairroId] = useState<string | null>(null);
+  const [editBairroNome, setEditBairroNome] = useState("");
+
+  const saveBairroNome = async (id: string) => {
+    if (editBairroNome.trim().length < 2) return;
+    const headers = await authHeader();
+    const res  = await fetch(`${API_URL}/v1/admin/regioes/bairros/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", ...headers },
+      body:    JSON.stringify({ nome: editBairroNome.trim() }),
+    });
+    const json = await res.json();
+    if (!res.ok) { showToast(json.message ?? "Erro.", "error"); return; }
+    setBairros((prev) => prev.map((x) => x.id === id ? json.bairro : x).sort((a, b) => a.nome.localeCompare(b.nome)));
+    setEditBairroId(null);
+    showToast("Bairro atualizado.", "success");
+  };
+
+  // Edição inline do nome da cidade aberta
+  const [editCidadeAbertaName, setEditCidadeAbertaName] = useState("");
+  const [editingCidadeAberta, setEditingCidadeAberta] = useState(false);
+
+  const saveCidadeAbertaName = async () => {
+    if (!cidadeAberta || editCidadeAbertaName.trim().length < 2) return;
+    const headers = await authHeader();
+    const res  = await fetch(`${API_URL}/v1/admin/regioes/cidades/${cidadeAberta.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", ...headers },
+      body:    JSON.stringify({ nome: editCidadeAbertaName.trim() }),
+    });
+    const json = await res.json();
+    if (!res.ok) { showToast(json.message ?? "Erro.", "error"); return; }
+    setCidades((prev) => prev.map((x) => x.id === cidadeAberta.id ? json.cidade : x).sort((a, b) => a.nome.localeCompare(b.nome)));
+    setEditingCidadeAberta(false);
+    showToast("Nome da cidade atualizado.", "success");
+  };
+
   const adicionarBairroNoModal = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!cidadeAberta || novoBairroNome.trim().length < 2 || submittingBairro) return;
@@ -623,6 +661,167 @@ function RegioesList({
     if (!res.ok) { showToast(json.message ?? "Erro.", "error"); return; }
     setCidades((prev) => prev.map((x) => x.id === cidadeAberta.id ? json.cidade : x));
   };
+
+  // ── Expanded view: cidade aberta vira "página" full-width dentro do componente ──
+  if (cidadeAberta && estadoAberto) {
+    return (
+      <div>
+        {/* Header com voltar + dados da cidade */}
+        <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl p-5 mb-4">
+          <button
+            type="button"
+            onClick={() => { setOpenCidadeId(null); setEditingCidadeAberta(false); setEditBairroId(null); }}
+            className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 mb-3 cursor-pointer transition-colors"
+            aria-label="Voltar para lista de cidades"
+          >
+            <i className="ri-arrow-left-line text-base" aria-hidden="true"></i>
+            Voltar para lista
+          </button>
+
+          <div className="flex items-start justify-between gap-3 flex-wrap">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-xs font-bold bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-gray-700 dark:text-gray-300">{estadoAberto.uf}</span>
+                <span className="text-xs text-gray-500 dark:text-gray-400">{estadoAberto.nome}</span>
+              </div>
+              <div className="flex items-center gap-2 group">
+                {editingCidadeAberta ? (
+                  <input
+                    type="text"
+                    value={editCidadeAbertaName}
+                    onChange={(e) => setEditCidadeAbertaName(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") saveCidadeAbertaName(); if (e.key === "Escape") setEditingCidadeAberta(false); }}
+                    className="text-xl font-bold px-2 py-0.5 border border-emerald-300 dark:border-emerald-700 dark:bg-gray-800 rounded text-gray-900 dark:text-gray-100 focus:outline-none"
+                    autoFocus
+                    maxLength={120}
+                  />
+                ) : (
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 truncate">{cidadeAberta.nome}</h3>
+                )}
+                {editingCidadeAberta ? (
+                  <>
+                    <button onClick={saveCidadeAbertaName} className="text-sm text-emerald-600 hover:text-emerald-700 font-semibold px-2 py-0.5 rounded hover:bg-emerald-50 dark:hover:bg-emerald-950 cursor-pointer">Salvar</button>
+                    <button onClick={() => setEditingCidadeAberta(false)} className="text-sm text-gray-500 hover:text-gray-700 px-2 py-0.5 rounded hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer">Cancelar</button>
+                  </>
+                ) : (
+                  <button
+                    onClick={() => { setEditingCidadeAberta(true); setEditCidadeAbertaName(cidadeAberta.nome); }}
+                    className="text-xs text-sky-600 hover:text-sky-700 opacity-0 group-hover:opacity-100 transition-opacity px-1.5 py-0.5 rounded hover:bg-sky-50 dark:hover:bg-sky-950 cursor-pointer"
+                  >
+                    Editar nome
+                  </button>
+                )}
+              </div>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{bairrosAbertos.length} bairro{bairrosAbertos.length !== 1 ? "s" : ""} cadastrado{bairrosAbertos.length !== 1 ? "s" : ""}</p>
+            </div>
+            <button
+              type="button"
+              onClick={toggleCidadeNoModal}
+              className={`text-sm font-medium px-3 py-1.5 rounded-full cursor-pointer transition-colors ${
+                cidadeAberta.ativo
+                  ? "bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900"
+                  : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+              }`}
+            >
+              {cidadeAberta.ativo ? "✓ Cidade ativa" : "Cidade inativa"}
+            </button>
+          </div>
+        </div>
+
+        {/* Form de novo bairro */}
+        <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl p-4 mb-4">
+          <form onSubmit={adicionarBairroNoModal} className="flex gap-2 items-end flex-wrap">
+            <div className="flex-1 min-w-[200px]">
+              <label htmlFor="exp-novo-bairro" className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                Novo bairro em <strong>{cidadeAberta.nome}</strong>
+              </label>
+              <input
+                id="exp-novo-bairro"
+                type="text"
+                value={novoBairroNome}
+                onChange={(e) => setNovoBairroNome(e.target.value)}
+                placeholder="Ex.: Aldeia, Centro, Maracanã"
+                className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 dark:bg-gray-800 rounded-lg text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:border-emerald-500"
+                maxLength={120}
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={submittingBairro || novoBairroNome.trim().length < 2}
+              className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold px-4 py-2 rounded-lg text-sm cursor-pointer transition-colors flex items-center gap-1.5 whitespace-nowrap"
+            >
+              <i className="ri-add-line text-base" aria-hidden="true"></i>
+              Adicionar bairro
+            </button>
+          </form>
+        </div>
+
+        {/* Lista de bairros */}
+        <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl overflow-hidden">
+          <div className="px-4 py-2 bg-gray-50 dark:bg-gray-800 text-xs text-gray-500 dark:text-gray-400">
+            Bairros ({bairrosAbertos.length})
+          </div>
+          {bairrosAbertos.length === 0 ? (
+            <div className="p-8 text-center">
+              <i className="ri-home-2-line text-4xl text-gray-200 dark:text-gray-700 mb-3 block" aria-hidden="true"></i>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Nenhum bairro cadastrado nesta cidade ainda.</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Use o formulário acima pra adicionar.</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-100 dark:divide-gray-800">
+              {bairrosAbertos.map((b) => (
+                <div key={b.id} className={`group flex items-center justify-between gap-2 px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-800 ${!b.ativo ? "opacity-50" : ""}`}>
+                  <div className="flex-1 min-w-0">
+                    {editBairroId === b.id ? (
+                      <input
+                        type="text"
+                        value={editBairroNome}
+                        onChange={(e) => setEditBairroNome(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === "Enter") saveBairroNome(b.id); if (e.key === "Escape") setEditBairroId(null); }}
+                        className="w-full px-2 py-1 border border-emerald-300 dark:border-emerald-700 dark:bg-gray-800 rounded text-sm text-gray-900 dark:text-gray-100 focus:outline-none"
+                        autoFocus
+                        maxLength={120}
+                      />
+                    ) : (
+                      <span className="text-sm text-gray-900 dark:text-gray-100 truncate">{b.nome}</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    {editBairroId === b.id ? (
+                      <>
+                        <button onClick={() => saveBairroNome(b.id)} className="text-xs text-emerald-600 hover:text-emerald-700 font-semibold px-2 py-1 rounded hover:bg-emerald-50 dark:hover:bg-emerald-950 cursor-pointer">Salvar</button>
+                        <button onClick={() => setEditBairroId(null)} className="text-xs text-gray-500 hover:text-gray-700 font-semibold px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer">Cancelar</button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => { setEditBairroId(b.id); setEditBairroNome(b.nome); }}
+                          className="text-xs text-sky-600 hover:text-sky-700 opacity-0 group-hover:opacity-100 transition-opacity px-2 py-1 rounded hover:bg-sky-50 dark:hover:bg-sky-950 cursor-pointer"
+                          aria-label={`Editar ${b.nome}`}
+                        >
+                          Editar
+                        </button>
+                        <button
+                          onClick={() => toggleBairroNoModal(b)}
+                          className={`text-xs font-medium px-2 py-0.5 rounded-full cursor-pointer transition-colors ${
+                            b.ativo
+                              ? "bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900"
+                              : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                          }`}
+                        >
+                          {b.ativo ? "Ativo" : "Inativo"}
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -731,108 +930,6 @@ function RegioesList({
         )}
       </div>
 
-      {/* Modal contextual da cidade aberta */}
-      {cidadeAberta && estadoAberto && (
-        <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="cidade-modal-title"
-          onClick={(e) => { if (e.target === e.currentTarget) setOpenCidadeId(null); }}
-        >
-          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl max-w-lg w-full max-h-[85vh] flex flex-col">
-            {/* Header do modal */}
-            <div className="p-5 border-b border-gray-100 dark:border-gray-800 flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs font-bold bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-gray-700 dark:text-gray-300">{estadoAberto.uf}</span>
-                  <span className="text-xs text-gray-500 dark:text-gray-400">{estadoAberto.nome}</span>
-                </div>
-                <h3 id="cidade-modal-title" className="text-lg font-bold text-gray-900 dark:text-gray-100 truncate">
-                  {cidadeAberta.nome}
-                </h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{bairrosAbertos.length} bairro{bairrosAbertos.length !== 1 ? "s" : ""} cadastrado{bairrosAbertos.length !== 1 ? "s" : ""}</p>
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <button
-                  type="button"
-                  onClick={toggleCidadeNoModal}
-                  className={`text-xs font-medium px-2.5 py-1 rounded-full cursor-pointer transition-colors ${
-                    cidadeAberta.ativo
-                      ? "bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900"
-                      : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
-                  }`}
-                >
-                  {cidadeAberta.ativo ? "Ativa" : "Inativa"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setOpenCidadeId(null)}
-                  className="size-8 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center justify-center cursor-pointer transition-colors"
-                  aria-label="Fechar"
-                >
-                  <i className="ri-close-line text-gray-500 text-lg" aria-hidden="true"></i>
-                </button>
-              </div>
-            </div>
-
-            {/* Form de novo bairro (contextual à cidade) */}
-            <form onSubmit={adicionarBairroNoModal} className="p-4 border-b border-gray-100 dark:border-gray-800 flex gap-2 items-end">
-              <div className="flex-1">
-                <label htmlFor="modal-novo-bairro" className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                  Novo bairro em <strong>{cidadeAberta.nome}</strong>
-                </label>
-                <input
-                  id="modal-novo-bairro"
-                  type="text"
-                  value={novoBairroNome}
-                  onChange={(e) => setNovoBairroNome(e.target.value)}
-                  placeholder="Ex.: Aldeia, Centro, Maracanã"
-                  className="w-full px-2 py-1.5 border border-gray-200 dark:border-gray-700 dark:bg-gray-800 rounded text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:border-emerald-500"
-                  maxLength={120}
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={submittingBairro || novoBairroNome.trim().length < 2}
-                className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold px-3 py-1.5 rounded cursor-pointer transition-colors flex items-center gap-1.5 whitespace-nowrap"
-              >
-                <i className="ri-add-line text-base" aria-hidden="true"></i>
-                Adicionar
-              </button>
-            </form>
-
-            {/* Lista de bairros (rolável) */}
-            <div className="flex-1 overflow-y-auto p-4">
-              {bairrosAbertos.length === 0 ? (
-                <div className="text-center py-8">
-                  <i className="ri-home-2-line text-3xl text-gray-200 dark:text-gray-700 mb-2 block" aria-hidden="true"></i>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Nenhum bairro cadastrado nesta cidade ainda.</p>
-                </div>
-              ) : (
-                <div className="space-y-1">
-                  {bairrosAbertos.map((b) => (
-                    <div key={b.id} className={`flex items-center justify-between gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 ${!b.ativo ? "opacity-50" : ""}`}>
-                      <span className="text-sm text-gray-900 dark:text-gray-100 truncate flex-1">{b.nome}</span>
-                      <button
-                        type="button"
-                        onClick={() => toggleBairroNoModal(b)}
-                        className={`text-xs font-medium px-2 py-0.5 rounded-full cursor-pointer transition-colors ${
-                          b.ativo
-                            ? "bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900"
-                            : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
-                        }`}
-                      >
-                        {b.ativo ? "Ativo" : "Inativo"}
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

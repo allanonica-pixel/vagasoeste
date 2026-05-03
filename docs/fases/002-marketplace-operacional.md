@@ -50,17 +50,20 @@ Habilitar **e-mail transacional real** (não apenas de auth via Supabase) — ne
 | F6 | Frontend empresa: no formulário de cadastro/edição de vaga, input opcional `max_candidates` (override) | Default = `max_candidates_default` |
 | F7 | UI candidato: quando limite atingido em uma vaga, mostrar estado "Vaga com candidaturas encerradas — capacidade atingida" em vez de botão "Candidatar" | Mensagem clara, sem expor número exato |
 
-### Bloco G — Pausar vaga com limpeza de candidaturas
+### Bloco G — Pausar vaga com limpeza de candidaturas + validação geográfica no despause
 
 **Regra de negócio:** empresa pode pausar uma vaga. Se a vaga tem candidatos, **limpa todos** ao pausar. Empresa **é avisada antes** de pausar (modal de confirmação). Candidatos afetados recebem **e-mail informativo**.
+
+**Regra geográfica adicional (decidida pelo PO em 2026-05-03):** ao **despausar** uma vaga, o sistema verifica se Estado/Cidade/Bairro da vaga ainda estão **ativos** no cadastro de Regiões Atendidas. Se sim, despausa normalmente. Se não, bloqueia o despause e alerta a empresa pra **criar nova vaga** (porque a localização original foi desativada pelo admin). Isso garante que vagas só voltem ao público se a região ainda for atendida.
 
 | ID | Tarefa | Critério de aceitação |
 |---|---|---|
 | G1 | Backend: endpoint `POST /v1/company/jobs/:id/pausar` autenticado por empresa. Valida ownership. Conta candidaturas ativas. Retorna `{ pendingCount: N }` (sem efeito ainda) — modo "preview" | Retorna corretamente |
 | G2 | Backend: endpoint `POST /v1/company/jobs/:id/pausar/confirmar` — efetivamente pausa (jobs.status='pausado'), DELETE FROM applications WHERE job_id, dispara e-mail pra cada candidato afetado | Status atualizado, mails enviados |
 | G3 | Frontend empresa: botão "Pausar vaga" → chama endpoint preview → modal "Esta vaga tem N candidatos. Pausar vai REMOVER as candidaturas e notificar os candidatos. Confirmar?" → ao confirmar chama o endpoint de confirmação | UX clara, sem ambiguidade |
-| G4 | Backend: endpoint `POST /v1/company/jobs/:id/reativar` — só permite se status='pausado'. Volta pra 'ativo'. Não restaura candidaturas (já foram limpas) | Vaga volta a aparecer ao público |
-| G5 | UI candidato: quando vê histórico de candidaturas e uma foi removida por pause, mostrar status especial "Vaga pausada pela empresa" em vez de sumir do histórico (defesa em profundidade) | Histórico transparente |
+| G4 | Backend: endpoint `POST /v1/company/jobs/:id/reativar` — só permite se status='pausado'. **Antes de despausar, verifica que `jobs.city` está em cidade ativa E `jobs.state` está em estado ativo (jobs.neighborhood não bloqueia — só sinaliza)**. Se OK, volta pra 'ativo'. Se não OK, retorna 409 `LOCATION_NOT_AVAILABLE` com detalhes (qual estado/cidade está inativo). Não restaura candidaturas (já foram limpas) | Vaga volta só se região segue ativa |
+| G5 | Frontend empresa: ao tentar despausar e receber `LOCATION_NOT_AVAILABLE`, modal explicativo: "Esta vaga foi cadastrada em [Cidade], mas atualmente não estamos cobrindo essa cidade. Pra reativar a vaga, você precisará criar uma nova vaga em uma cidade que opere. Acesse Minhas Vagas → Nova Vaga." (texto final será ajustado pelo time UI/UX) | Empresa entende o motivo |
+| G6 | UI candidato: quando vê histórico de candidaturas e uma foi removida por pause, mostrar status especial "Vaga pausada pela empresa" em vez de sumir do histórico (defesa em profundidade) | Histórico transparente |
 
 ### Bloco H — Hardening, telemetria e auditoria
 
