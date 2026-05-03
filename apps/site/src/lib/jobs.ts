@@ -157,7 +157,7 @@ export function buildJobSchema(job: Job): object {
   return {
     '@context': 'https://schema.org',
     '@type': 'JobPosting',
-    '@id': `https://santarem.app/vagas/${job.id}`,
+    '@id': `https://santarem.app/vagas/${job.id}#jobposting`,
     url: `https://santarem.app/vagas/${job.id}`,
     title: job.title,
     description: job.description,
@@ -165,15 +165,9 @@ export function buildJobSchema(job: Job): object {
     validThrough: job.validThrough ?? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     employmentType: employmentTypeMap[job.contractType] ?? 'OTHER',
     directApply: true,
-    hiringOrganization: {
-      '@type': 'Organization',
-      name: 'VagasOeste',
-      url: 'https://santarem.app',
-      logo: {
-        '@type': 'ImageObject',
-        url: 'https://santarem.app/logo.png',
-      },
-    },
+    inLanguage: 'pt-BR',
+    // Linkagem ao graph: hiring é o publisher VagasOeste (definido em lib/schemas.ts ORGANIZATION_ID)
+    hiringOrganization: { '@id': 'https://santarem.app/#organization' },
     jobLocation: {
       '@type': 'Place',
       address: {

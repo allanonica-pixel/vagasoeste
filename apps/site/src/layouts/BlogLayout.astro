@@ -1,6 +1,7 @@
 ---
 import BaseLayout from './BaseLayout.astro';
 import type { BlogPost } from '../lib/blog';
+import { buildBlogPostingSchema } from '../lib/schemas';
 
 interface Props {
   post: BlogPost;
@@ -8,35 +9,8 @@ interface Props {
 
 const { post } = Astro.props;
 
-const articleSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'Article',
-  headline: post.title,
-  description: post.excerpt,
-  datePublished: post.publishedAt,
-  dateModified: post.publishedAt,
-  author: {
-    '@type': 'Organization',
-    name: post.author,
-    url: 'https://santarem.app',
-  },
-  publisher: {
-    '@type': 'Organization',
-    name: 'VagasOeste',
-    logo: {
-      '@type': 'ImageObject',
-      url: 'https://santarem.app/logo.png',
-    },
-  },
-  image: post.coverImage,
-  keywords: post.tags.join(', '),
-  articleSection: post.category,
-  url: `https://santarem.app/blog/${post.slug}`,
-  mainEntityOfPage: {
-    '@type': 'WebPage',
-    '@id': `https://santarem.app/blog/${post.slug}`,
-  },
-};
+// BlogPosting tipado, com inLanguage e linkado ao graph (publisher → Organization, isPartOf → WebSite)
+const blogPostingSchema = buildBlogPostingSchema(post);
 
 const breadcrumbSchema = {
   '@context': 'https://schema.org',
@@ -53,7 +27,7 @@ const breadcrumbSchema = {
   title={`${post.title} | Blog VagasOeste`}
   description={post.excerpt}
   keywords={post.tags.join(', ')}
-  schema={[articleSchema, breadcrumbSchema]}
+  schema={[blogPostingSchema, breadcrumbSchema]}
   image={post.coverImage}
   type="article"
   publishedAt={post.publishedAt}

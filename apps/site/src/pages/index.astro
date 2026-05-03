@@ -7,6 +7,7 @@ import SectorCards from '../components/islands/SectorCards';
 import { getAllJobs, getUniqueSectors } from '../lib/jobs';
 import { supabase } from '../lib/supabase';
 import { getFeaturedPosts } from '../lib/blog';
+import { buildWebSiteSchema, buildLocalBusinessSchema } from '../lib/schemas';
 
 // SSG — gerado em build time
 export const prerender = true;
@@ -138,42 +139,17 @@ const affiliateCourses = [
   },
 ];
 
-const organizationSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'Organization',
-  name: 'VagasOeste',
-  url: 'https://santarem.app',
-  logo: 'https://santarem.app/logo.png',
-  description: 'Plataforma de empregos em Santarém e região oeste do Pará com processo seletivo anônimo e seguro.',
-  areaServed: {
-    '@type': 'Place',
-    name: 'Santarém, Pará, Brasil',
-  },
-  contactPoint: {
-    '@type': 'ContactPoint',
-    contactType: 'customer service',
-    availableLanguage: 'Portuguese',
-  },
-};
-
-const websiteSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'WebSite',
-  name: 'VagasOeste',
-  url: 'https://santarem.app',
-  potentialAction: {
-    '@type': 'SearchAction',
-    target: { '@type': 'EntryPoint', urlTemplate: 'https://santarem.app/vagas?q={search_term_string}' },
-    'query-input': 'required name=search_term_string',
-  },
-};
+// Organization é injetado globalmente pelo BaseHead.
+// Home recebe schemas extras: WebSite (sitelinks search box) + LocalBusiness (presença local).
+const websiteSchema = buildWebSiteSchema();
+const localBusinessSchema = buildLocalBusinessSchema();
 ---
 
 <BaseLayout
   title="Vagas de Emprego em Santarém PA — VagasOeste"
   description="Encontre vagas de emprego em Santarém e região oeste do Pará. Processo seletivo anônimo e seguro. Mais de 1.240 vagas ativas. Candidate-se grátis."
   keywords="vagas em Santarém, emprego Santarém PA, vagas Pará, emprego oeste do Pará, vagas CLT Santarém"
-  schema={[organizationSchema, websiteSchema]}
+  schema={[websiteSchema, localBusinessSchema]}
   transparentNav={true}
 >
 

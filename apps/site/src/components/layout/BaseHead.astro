@@ -1,4 +1,6 @@
 ---
+import { buildOrganizationSchema } from '../../lib/schemas';
+
 interface Props {
   title: string;
   description: string;
@@ -25,8 +27,10 @@ const siteURL = 'https://santarem.app';
 const fullTitle = title.includes('VagasOeste') ? title : `${title} | VagasOeste`;
 const ogImage = image.startsWith('http') ? image : `${siteURL}${image}`;
 
-// Schema pode ser um array de schemas ou um único schema
-const schemas = Array.isArray(schema) ? schema : schema ? [schema] : [];
+// Organization é injetado em TODA página — entidade global do site (graph anchor)
+const organizationSchema = buildOrganizationSchema();
+const pageSchemas = Array.isArray(schema) ? schema : schema ? [schema] : [];
+const schemas = [organizationSchema, ...pageSchemas];
 ---
 
 <!-- Charset e viewport -->
