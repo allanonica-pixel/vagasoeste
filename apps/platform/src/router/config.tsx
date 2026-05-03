@@ -63,10 +63,13 @@ const routes: RouteObject[] = [
   },
 
   // ── Empresa ─────────────────────────────────────────────────
+  // requireMfa removido: empresa pode acessar painel mesmo sem 2FA configurado.
+  // Painel exibe banner sugerindo configurar (vide ?suggest_mfa=1 no login).
+  // requireMfa fica reservado pra rotas admin.
   {
     path: "/empresa/dashboard",
     element: (
-      <PrivateRoute allowedRoles={["empresa"]} requireMfa>
+      <PrivateRoute allowedRoles={["empresa"]}>
         <EmpresaPage />
       </PrivateRoute>
     ),
