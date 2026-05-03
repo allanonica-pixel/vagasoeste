@@ -14,8 +14,7 @@ export default function AdminRegioes() {
   const [estadoSel, setEstadoSel] = useState<string | null>(null);
   const [cidadeSel, setCidadeSel] = useState<string | null>(null);
 
-  const [novoEstadoUf, setNovoEstadoUf] = useState("");
-  const [novoEstadoNome, setNovoEstadoNome] = useState("");
+  const [estadoSearch, setEstadoSearch] = useState("");
   const [novaCidadeNome, setNovaCidadeNome] = useState("");
   const [novoBairroNome, setNovoBairroNome] = useState("");
 
@@ -70,20 +69,8 @@ export default function AdminRegioes() {
   }, [fetchEstados, fetchCidades, fetchBairros]);
 
   // ── Criação ──
-  const criarEstado = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const headers = await authHeader();
-    const res  = await fetch(`${API_URL}/v1/admin/regioes/estados`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", ...headers },
-      body:    JSON.stringify({ uf: novoEstadoUf.trim(), nome: novoEstadoNome.trim() }),
-    });
-    const json = await res.json();
-    if (!res.ok) { showToast(json.message ?? "Erro.", "error"); return; }
-    setEstados((prev) => [...prev, json.estado].sort((a, b) => a.nome.localeCompare(b.nome)));
-    setNovoEstadoUf(""); setNovoEstadoNome("");
-    showToast(`Estado ${json.estado.uf} cadastrado.`, "success");
-  };
+  // Estados são pré-populados via migration 0018 (27 brasileiros). Admin só
+  // ativa/desativa e edita nome se quiser. Não há mais criação manual de estado.
 
   const criarCidade = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -222,7 +209,7 @@ export default function AdminRegioes() {
         <div className="mt-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-xl p-3 flex items-start gap-2">
           <i className="ri-information-line text-blue-600 text-base shrink-0 mt-0.5" aria-hidden="true"></i>
           <div className="text-xs text-blue-900 dark:text-blue-300 leading-relaxed">
-            <strong>Como cadastrar:</strong> primeiro o estado (UF + nome por extenso, ex. "PA" + "Pará"). Depois <strong>clique no estado</strong> que aparecer pra liberar o card de Cidades. Mesmo padrão pra adicionar bairros: clique numa cidade.
+            <strong>Como funciona:</strong> os 27 estados brasileiros já estão pré-cadastrados — você só ativa os que opera. Depois <strong>clique num estado ativo</strong> pra cadastrar cidades. Cadastrada a cidade, clique nela pra cadastrar bairros.
           </div>
         </div>
       </div>
@@ -237,44 +224,29 @@ export default function AdminRegioes() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Coluna 1: Estados */}
         <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl p-4">
-          <h3 className="font-bold text-gray-900 dark:text-gray-100 text-sm mb-3 flex items-center gap-2">
+          <h3 className="font-bold text-gray-900 dark:text-gray-100 text-sm mb-1 flex items-center gap-2">
             <i className="ri-map-2-line text-emerald-600" aria-hidden="true"></i>
-            Estados ({estados.length})
+            Estados ({estados.filter((e) => e.ativo).length}/{estados.length} ativos)
           </h3>
-          <form onSubmit={criarEstado} className="space-y-2 mb-3">
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">Sigla (UF)</label>
-              <input
-                type="text"
-                value={novoEstadoUf}
-                onChange={(e) => setNovoEstadoUf(e.target.value.toUpperCase().slice(0, 2))}
-                placeholder="Ex.: PA, SP, MG"
-                className="w-full px-2 py-1.5 border border-gray-200 dark:border-gray-700 dark:bg-gray-800 rounded text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:border-emerald-500 uppercase"
-                maxLength={2}
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">Nome do estado</label>
-              <input
-                type="text"
-                value={novoEstadoNome}
-                onChange={(e) => setNovoEstadoNome(e.target.value)}
-                placeholder="Ex.: Pará, São Paulo"
-                className="w-full px-2 py-1.5 border border-gray-200 dark:border-gray-700 dark:bg-gray-800 rounded text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:border-emerald-500"
-                maxLength={100}
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={novoEstadoUf.length !== 2 || novoEstadoNome.trim().length < 3}
-              className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold px-2 py-1.5 rounded cursor-pointer transition-colors flex items-center justify-center gap-1.5"
-            >
-              <i className="ri-add-line text-base" aria-hidden="true"></i>
-              Adicionar estado
-            </button>
-          </form>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">27 estados pré-cadastrados. Ative os que opera.</p>
+          <div className="relative mb-3">
+            <i className="ri-search-line text-gray-400 absolute left-2 top-1/2 -translate-y-1/2 text-sm" aria-hidden="true"></i>
+            <input
+              type="text"
+              value={estadoSearch}
+              onChange={(e) => setEstadoSearch(e.target.value)}
+              placeholder="Buscar estado..."
+              className="w-full pl-8 pr-2 py-1.5 border border-gray-200 dark:border-gray-700 dark:bg-gray-800 rounded text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:border-emerald-500"
+            />
+          </div>
           <div className="space-y-1 max-h-96 overflow-y-auto">
-            {estados.map((e) => (
+            {estados
+              .filter((e) => {
+                if (!estadoSearch) return true;
+                const q = estadoSearch.toLowerCase();
+                return e.nome.toLowerCase().includes(q) || e.uf.toLowerCase().includes(q);
+              })
+              .map((e) => (
               <div key={e.id}
                 className={`group flex items-center justify-between gap-2 px-2 py-1.5 rounded-lg ${
                   estadoSel === e.id ? "bg-emerald-50 dark:bg-emerald-950 ring-1 ring-emerald-300 dark:ring-emerald-800" : "hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
